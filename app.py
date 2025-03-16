@@ -11,7 +11,7 @@ def get_db():
             g.db = mysql.connector.connect(
                 host="localhost",
                 user="knight0",  # Replace with your MySQL username
-                password="Kill-fire0",  # Replace with your MySQL password
+                password="",  # Replace with your MySQL password
                 database="habit_tracker"  # Replace with your DB name
             )
         except Error as e:
