@@ -42,5 +42,6 @@
             "database": "activity_logs",
             "connectionTimeout": 30
         }
-    ]
+    ],
+    "git.ignoreLimitWarning": true
 }
