@@ -35,3 +35,8 @@ ssl/
 
 # Node.js
 node_modules/
+
+# Dependency directories
+package.json
+package-lock.json
+server.js
