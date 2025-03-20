@@ -3,6 +3,7 @@
 This is a web application built with Flask to help users track their habits and monitor progress over time. It allows users to create, update, and manage habits with features like streak tracking, notifications, and reminders.
 
 ## Features
+
 - **User Authentication**: Login, registration, and password management using Flask-Login.
 - **Habit Tracking**: Add, update, and delete habits. Each habit is tied to a user.
 - **Streak Tracking**: Track the streak of habit completions.
@@ -11,6 +12,7 @@ This is a web application built with Flask to help users track their habits and 
 - **Reminders**: Set up reminders for habits and receive notifications (optional).
 
 ## Tech Stack
+
 - **Backend**: Python, Flask, SQLAlchemy
 - **Frontend**: HTML, CSS, JavaScript
 - **Database**: SQLite (for local development)
@@ -20,6 +22,7 @@ This is a web application built with Flask to help users track their habits and 
 ## Setup Instructions
 
 ### Prerequisites
+
 - Python 3.x
 - Flask
 - SQLAlchemy
@@ -35,3 +38,11 @@ This is a web application built with Flask to help users track their habits and 
    ```bash
    git clone https://github.com/yourusername/habit-tracker-flask.git
    cd habit-tracker-flask
+
+### Explanation
+
+- The **Features** section outlines the app's functionality.
+- The **Tech Stack** section lists the technologies used.
+- The **Setup Instructions** section provides detailed steps for installation and configuration.
+- The **Usage** section explains how to use the app once set up.
+- The **License** section refers to the open-source license.
