@@ -17,3 +17,21 @@ logs/
 # IDE/editor settings
 .vscode/
 *.swp
+
+# Database
+database/db/
+
+# Static files
+instance/
+dev.dn
+test.dn
+
+
+.gitconfig
+.gitignore
+
+
+ssl/
+
+# Node.js
+node_modules/
