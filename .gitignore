@@ -23,8 +23,8 @@ database/db/
 
 # Static files
 instance/
-dev.dn
-test.dn
+dev.db
+test.db
 
 
 .gitconfig
