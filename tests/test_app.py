@@ -1,6 +1,6 @@
 import pytest
 from app import create_app, db
-from app.models import User, Habit
+from backend.src.models import User, Habit  # Adjusted to reflect the correct relative module path
 from werkzeug.security import generate_password_hash
 
 # Test fixtures
