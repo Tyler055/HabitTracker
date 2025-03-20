@@ -35,10 +35,6 @@ This is a web application built with Flask to help users track their habits and 
 
 1. Clone the repository:
 
-   ```bash
-   git clone https://github.com/yourusername/habit-tracker-flask.git
-   cd habit-tracker-flask
-
 ### Explanation
 
 - The **Features** section outlines the app's functionality.
