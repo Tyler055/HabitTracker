@@ -1,7 +1,8 @@
 # Virtual environment
 .venv/
 venv/
-.myapp/  
+*/venv/
+.myapp/
 
 # Byte-compiled / cached
 __pycache__/
@@ -9,32 +10,35 @@ __pycache__/
 
 # Logs
 logs/
-*.log
+**/*.log
 
 # Environment variables
 .env
+!.env.example
 
 # IDE/editor settings
 .vscode/
+.idea/
 *.swp
+*.swo
 
 # Database
 database/db/
-
-# Static files
-instance/
+*.sqlite3
 dev.db
 test.db
 
-
+# Git-related
 .gitconfig
 .gitignore
 
-
+# SSL Certificates
 ssl/
 
 # Node.js
 node_modules/
+.next/
+dist/
 
 # Dependency directories
 package.json
