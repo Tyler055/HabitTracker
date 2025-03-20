@@ -1,0 +1,19 @@
+# Virtual environment
+.venv/
+venv/
+.myapp/  
+
+# Byte-compiled / cached
+__pycache__/
+*.py[cod]
+
+# Logs
+logs/
+*.log
+
+# Environment variables
+.env
+
+# IDE/editor settings
+.vscode/
+*.swp
