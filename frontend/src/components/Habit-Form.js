@@ -8,7 +8,7 @@ export default function HabitForm({ onHabitAdded }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const res = await api.post("/habits", { name, description });
-    onHabitAdded(res.data);
+    onHabitAdded();
     setName("");
     setDescription("");
   };
