@@ -1,5 +1,5 @@
 const Habit = require("../models/Habit");
-const db = require("../config/mysqlDB");
+const db = require("./src/config/mysqlDB");
 
 // Get all habits
 exports.getHabits = async (req, res) => {

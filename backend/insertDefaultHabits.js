@@ -1,5 +1,6 @@
 require("dotenv").config();
 const mongoose = require("mongoose");
+const dbUri = process.env.MONGO_URI;
 const Habit = require("./src/models/Habit"); // Adjust path if needed
 
 const defaultHabits = [

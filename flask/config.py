@@ -2,14 +2,14 @@ import os
 import logging
 from dotenv import load_dotenv
 
-# Load environment variables from the appropriate .env file
+# Load environment variables from the appropriate .env file based on FLASK_ENV
 env = os.getenv('FLASK_ENV', 'development')  # Default to 'development' if not set
 dotenv_path = f'.env.{env}'
 load_dotenv(dotenv_path)
 
 class Config:
     """Base configuration with common settings."""
-    SECRET_KEY = os.getenv('SECRET_KEY', os.urandom(24))  # Default to a random secret key for production
+    SECRET_KEY = os.getenv('SECRET_KEY', os.urandom(24))  # Default to a random secret key if not set
     SESSION_COOKIE_SECURE = os.getenv('SESSION_COOKIE_SECURE', 'True').lower() == 'true'
     REMEMBER_COOKIE_DURATION = 30 * 24 * 60 * 60  # 30 days for persistent logins
     SQLALCHEMY_TRACK_MODIFICATIONS = False
@@ -99,3 +99,14 @@ class MasterConfig:
 
 # Default configuration object
 config = MasterConfig().get_config()
+
+# Choose the correct configuration based on the environment
+app_config = {
+    'development': DevelopmentConfig,
+    'production': ProductionConfig,
+    'testing': TestingConfig
+}
+
+def get_config():
+    env = os.getenv('FLASK_ENV', 'development')
+    return app_config.get(env, DevelopmentConfig)
