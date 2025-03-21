@@ -44,3 +44,7 @@ dist/
 package.json
 package-lock.json
 server.js
+
+# testing
+tests/
+test/
