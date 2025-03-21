@@ -4,6 +4,7 @@ import Login from './components/Login';
 import Register from './components/Register';
 import Dashboard from "./components/Dashboard";
 import HomePage from "./pages/HomePage"; // Correct the import path
+import HabitTracker from './HabitTracker'; // Import the HabitTracker component
 
 const App = () => {
   const isAuthenticated = localStorage.getItem("token"); // Check if user is authenticated
@@ -21,6 +22,9 @@ const App = () => {
           path="/dashboard"
           element={isAuthenticated ? <Dashboard /> : <Navigate to="/login" />}
         />
+
+        {/* Habit Tracker route */}
+        <Route path="/habit-tracker" element={<HabitTracker />} />
       </Routes>
     </Router>
   );
