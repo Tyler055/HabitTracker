@@ -2,12 +2,13 @@
 const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
-const connectMongoDB = require("./src/config/mongoDB"); // Adjust if needed
-const connectMySQL = require("./src/config/mysqlDB"); // MySQL connection
+const mongoose = require("mongoose");
 const habitRoutes = require("./src/routes/habitRoutes");
 const userRoutes = require("./src/routes/userRoutes");
+const connectMongoDB = require("./src/config/mongoDB"); // MongoDB connection
+const connectMySQL = require("./src/config/mysqlDB"); // MySQL connection
 
-// Load .env variables
+// Load environment variables from .env file
 dotenv.config();
 
 // Initialize Express app
@@ -20,8 +21,10 @@ app.use(express.json());
 
 // Database Connections
 if (process.env.DB_TYPE === "mongodb") {
+  // Connect to MongoDB
   connectMongoDB();
 } else if (process.env.DB_TYPE === "mysql") {
+  // Connect to MySQL
   const db = connectMySQL();
 
   // Example MySQL-based habit routes
@@ -56,7 +59,7 @@ if (process.env.DB_TYPE === "mongodb") {
   });
 }
 
-// Custom API Routes (Mongo or shared logic)
+// Custom API Routes (MongoDB or shared logic)
 app.use("/api/habits", habitRoutes);
 app.use("/api/users", userRoutes);
 
@@ -69,3 +72,5 @@ app.get("/", (req, res) => {
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
 });
+
+module.exports = app;

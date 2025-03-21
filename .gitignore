@@ -15,6 +15,7 @@ logs/
 # Environment variables
 .env
 !.env.example
+env.js
 
 # IDE/editor settings
 .vscode/
