@@ -44,8 +44,9 @@ node_modules/
 dist/
 
 # Dependency directories
-package.json
+jest.config.js
 package-lock.json
+package.json
 server.js
 
 # testing
@@ -53,3 +54,5 @@ __tests__/
 auth.test.js
 tests/
 test/
+test.js
+test.yml
