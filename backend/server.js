@@ -1,9 +1,8 @@
 const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
-const mysql = require("mysql");
-
 const connectMongoDB = require("./config/mongoDB"); // MongoDB connection
+const connectMySQL = require("./config/mysql"); // MySQL connection
 const habitRoutes = require("./routes/habitRoutes");
 const userRoutes = require("./routes/userRoutes");
 
@@ -20,22 +19,7 @@ app.use(express.json());
 if (process.env.DB_TYPE === "mongodb") {
   connectMongoDB(); // MongoDB
 } else {
-  // MySQL
-  const db = mysql.createConnection({
-    host: process.env.DB_HOST || "localhost",
-    user: process.env.DB_USER || "root",
-    password: process.env.DB_PASSWORD || "password",
-    database: process.env.DB_NAME || "habit_tracker",
-  });
-
-  db.connect((err) => {
-    if (err) {
-      console.error("❌ MySQL connection failed:", err);
-    } else {
-      console.log("✅ Connected to MySQL Database");
-    }
-  });
-
+  const db = connectMySQL(); // MySQL
   // Example MySQL routes (optional)
   app.get("/habits", (req, res) => {
     db.query("SELECT * FROM habits", (err, results) => {
