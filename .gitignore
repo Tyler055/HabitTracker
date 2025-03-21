@@ -49,5 +49,7 @@ package-lock.json
 server.js
 
 # testing
+__tests__/
+auth.test.js
 tests/
 test/
