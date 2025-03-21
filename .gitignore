@@ -28,6 +28,8 @@ database/db/
 dev.db
 test.db
 
+instance/
+
 # Git-related
 .gitconfig
 .gitignore
