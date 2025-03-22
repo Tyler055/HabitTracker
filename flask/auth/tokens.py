@@ -27,10 +27,13 @@ def create_token(email, app=None):
         # Define the expiration time for the token (1 hour from now)
         expiration_time = datetime.datetime.utcnow() + datetime.timedelta(hours=1)
         
+        # Convert expiration time to timestamp (seconds since epoch)
+        exp_timestamp = int(expiration_time.timestamp())
+
         # Payload with user email and expiration time
         payload = {
             "email": email,
-            "exp": expiration_time
+            "exp": exp_timestamp
         }
         
         # Generate the JWT token using the secret key and HS256 algorithm
