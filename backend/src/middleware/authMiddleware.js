@@ -1,15 +1,17 @@
+// authMiddleware.js
 const jwt = require("jsonwebtoken");
-const config = require("../config/env");
 
-module.exports = (req, res, next) => {
-  const token = req.header("Authorization");
-  if (!token) return res.status(401).json({ message: "No token, authorization denied" });
+const authMiddleware = (req, res, next) => {
+  const token = req.cookies.token;
+  if (!token) return res.status(401).json({ message: "Not authenticated" });
 
   try {
-    const decoded = jwt.verify(token, config.JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.user = decoded;
     next();
-  } catch (error) {
-    res.status(401).json({ message: "Invalid token" });
+  } catch (err) {
+    res.status(403).json({ message: "Invalid or expired token" });
   }
 };
+
+module.exports = authMiddleware;
