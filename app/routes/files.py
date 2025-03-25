@@ -1,5 +1,6 @@
 import os
 import time
+import random
 from werkzeug.utils import secure_filename
 from flask import Blueprint, request, flash, redirect, url_for, send_from_directory, render_template
 from werkzeug.datastructures import FileStorage
@@ -10,6 +11,10 @@ files = Blueprint('files', __name__, url_prefix='/files')
 UPLOAD_FOLDER = 'uploads'
 ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif', 'docx', 'xls', 'xlsx', 'csv'}
 MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16 MB max file size
+
+# Ensure the upload folder exists
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
 
 # Function to check if the file extension is allowed
 def allowed_file(filename):
@@ -23,7 +28,7 @@ def save_file(file: FileStorage) -> str:
         # Secure the filename and construct the file path
         filename = secure_filename(file.filename)
         timestamp = int(time.time())  # Add timestamp to avoid filename conflicts
-        unique_filename = f"{timestamp}_{filename}"
+        unique_filename = f"{timestamp}_{random.randint(1000, 9999)}_{filename}"
         file_path = os.path.join(UPLOAD_FOLDER, unique_filename)
 
         try:
@@ -93,6 +98,11 @@ def delete(filename):
 @files.route('/download/<filename>', methods=['GET'])
 def download_file(filename):
     """Handles file download."""
+    file_path = get_file_path(filename)
+    if not os.path.exists(file_path):
+        flash(f"File '{filename}' does not exist.", 'danger')
+        return redirect(url_for('files.upload_file'))
+    
     try:
         return send_from_directory(UPLOAD_FOLDER, filename, as_attachment=True)
     except Exception as e:

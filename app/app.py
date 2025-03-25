@@ -1,5 +1,5 @@
 import os
-from flask import Flask
+from flask import Flask, render_template
 from config import get_config
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
@@ -12,6 +12,11 @@ import logging
 env = os.getenv('FLASK_ENV', 'development')  # Default to 'development' if not set
 dotenv_path = f'.env.{env}'
 load_dotenv(dotenv_path)
+
+# Validate environment
+valid_envs = ['development', 'production', 'testing']
+if env not in valid_envs:
+    raise ValueError(f"Invalid FLASK_ENV: {env}. Valid values are {', '.join(valid_envs)}.")
 
 # Initialize extensions
 db = SQLAlchemy()
@@ -37,6 +42,9 @@ def create_app(config_name=None):
 
     # Configure logging for the app
     _configure_logging(app)
+
+    # Error handling
+    _register_error_handlers(app)
 
     return app
 
@@ -72,6 +80,17 @@ def _configure_logging(app):
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
         handlers=[logging.StreamHandler()]
     )
+
+def _register_error_handlers(app):
+    """Register error handlers for common HTTP errors."""
+    @app.errorhandler(404)
+    def not_found_error(error):
+        return render_template('404.html'), 404
+
+    @app.errorhandler(500)
+    def internal_error(error):
+        db.session.rollback()  # Rollback any uncommitted transactions
+        return render_template('500.html'), 500
 
 # Flask-Login user loader function
 @login_manager.user_loader

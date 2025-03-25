@@ -1,7 +1,7 @@
 import os
 import logging
 from flask import Flask
-from config.config import MasterConfig
+from config import MasterConfig
 from utils.extensions import db, migrate, login_manager, mail, csrf
 
 def create_app(config_name=None):
@@ -66,6 +66,16 @@ def _register_blueprints(app):
     app.register_blueprint(files, url_prefix='/files')
     app.register_blueprint(main)
 
+def _configure_logging():
+    """Configure logging for the app."""
+    if not os.path.exists('logs'):
+        os.makedirs('logs')
+    
+    logging.basicConfig(filename='logs/app.log', 
+                        level=logging.DEBUG,
+                        format='%(asctime)s %(levelname)s: %(message)s')
+    logging.getLogger().addHandler(logging.StreamHandler())  # Also log to console
+
 def run_app(app):
     """Run the Flask app with SSL in production if certificates are available."""
     ssl_cert = os.path.join(os.getcwd(), 'ssl', 'cert.pem')
@@ -83,4 +93,5 @@ def run_app(app):
 
 if __name__ == '__main__':
     app = create_app()
+    _configure_logging()  # Set up logging
     run_app(app)

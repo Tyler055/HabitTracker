@@ -4,6 +4,9 @@ from werkzeug.security import generate_password_hash
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from app import app, db, mail
 from models import User
+from flask_wtf import FlaskForm
+from wtforms.validators import DataRequired, Length, EqualTo
+from wtforms import PasswordField
 
 # Create a password reset token
 def generate_reset_token(email, expiration=3600):
@@ -45,20 +48,22 @@ def reset_password():
 def reset_with_token(token):
     email = verify_reset_token(token)
     if email is None:
-        flash('The token is invalid or expired.', 'danger')
+        flash('The password reset token has expired or is invalid. Please request a new one.', 'danger')
         return redirect(url_for('auth.login'))
 
-    if request.method == 'POST':
-        new_password = request.form['new_password']
-        confirm_password = request.form['confirm_password']
-        if new_password != confirm_password:
-            flash('Passwords do not match', 'danger')
-            return redirect(url_for('reset_with_token', token=token))
-
+    # Password reset form
+    class ResetPasswordForm(FlaskForm):
+        new_password = PasswordField('New Password', validators=[DataRequired(), Length(min=8)])
+        confirm_password = PasswordField('Confirm Password', validators=[DataRequired(), EqualTo('new_password')])
+    
+    form = ResetPasswordForm()
+    
+    if form.validate_on_submit():
+        new_password = form.new_password.data
         user = User.query.filter_by(email=email).first()
         user.password = generate_password_hash(new_password)
         db.session.commit()
         flash('Password reset successful!', 'success')
         return redirect(url_for('auth.login'))
 
-    return render_template('auth/reset_with_token.html')
+    return render_template('auth/reset_with_token.html', form=form)

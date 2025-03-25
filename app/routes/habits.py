@@ -10,7 +10,8 @@ habits = Blueprint("habits", __name__)
 @login_required
 def view_habits():
     """Display all habits for the logged-in user."""
-    user_habits = Habit.query.filter_by(user_id=current_user.id).all()
+    page = request.args.get('page', 1, type=int)
+    user_habits = Habit.query.filter_by(user_id=current_user.id).paginate(page, per_page=10)
     return render_template("habits.html", habits=user_habits)
 
 @habits.route("/add", methods=["POST"])
@@ -19,10 +20,14 @@ def add_habit():
     """Add a new habit."""
     name = request.form.get("name")
     if name:
-        new_habit = Habit(name=name, user_id=current_user.id)
-        db.session.add(new_habit)
-        db.session.commit()
-        flash("Habit added successfully!", "success")
+        # Ensure habit name is unique
+        if Habit.query.filter_by(user_id=current_user.id, name=name).first():
+            flash("This habit already exists.", "danger")
+        else:
+            new_habit = Habit(name=name, user_id=current_user.id)
+            db.session.add(new_habit)
+            db.session.commit()
+            flash("Habit added successfully!", "success")
     else:
         flash("Habit name cannot be empty.", "danger")
     

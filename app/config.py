@@ -2,8 +2,8 @@ import os
 import logging
 from dotenv import load_dotenv
 
-# Load environment variables from the appropriate .env file based on FLASK_ENV
-env = os.getenv('FLASK_ENV', 'development')  # Default to 'development' if not set
+# Load environment variables based on FLASK_ENV (default: development)
+env = os.getenv('FLASK_ENV', 'development')
 dotenv_path = f'.env.{env}'
 load_dotenv(dotenv_path)
 
@@ -58,55 +58,32 @@ class ProductionConfig(Config):
     SESSION_COOKIE_SECURE = True  # Force HTTPS for session cookies
     SQLALCHEMY_ECHO = False  # Disable query logging in production
 
-class MasterConfig:
-    """Master configuration class that integrates all environments."""
-    def __init__(self, env=None):
-        # Default to development if not provided
-        self.env = env or os.getenv('FLASK_ENV', 'development')
-        
-        # Dynamically load the environment class
-        self.config_class = {
-            'development': DevelopmentConfig,
-            'testing': TestingConfig,
-            'production': ProductionConfig
-        }.get(self.env, DevelopmentConfig)
-
-        self.config = self.config_class()
-        
-        # Ensure required environment variables are set
-        self._check_required_env_vars()
-        
-    def _check_required_env_vars(self):
-        """Ensure all required environment variables are set."""
-        required_vars = ['SECRET_KEY', 'MAIL_USERNAME', 'MAIL_PASSWORD']
-        
-        # Ensure the correct database variable is checked based on the environment
-        db_var = {
-            'development': 'DEV_DATABASE_URL',
-            'testing': 'TEST_DATABASE_URL',
-            'production': 'PROD_DATABASE_URL'
-        }.get(self.env, 'DEV_DATABASE_URL')  # Default to dev if env is unknown
-        
-        required_vars.append(db_var)
-        
-        for var in required_vars:
-            if not os.getenv(var):
-                raise ValueError(f"❌ {var} is missing! Please check your .env.{self.env} file.")
-
-    def get_config(self):
-        """Return the current configuration object."""
-        return self.config
-
-# Default configuration object
-config = MasterConfig().get_config()
-
-# Choose the correct configuration based on the environment
-app_config = {
-    'development': DevelopmentConfig,
-    'production': ProductionConfig,
-    'testing': TestingConfig
-}
-
+# Return the appropriate configuration based on the FLASK_ENV
 def get_config():
     env = os.getenv('FLASK_ENV', 'development')
-    return app_config.get(env, DevelopmentConfig)
+    config_map = {
+        'development': DevelopmentConfig,
+        'testing': TestingConfig,
+        'production': ProductionConfig
+    }
+    return config_map.get(env, DevelopmentConfig)
+
+# Ensure required environment variables are set
+def check_required_env_vars():
+    required_vars = ['SECRET_KEY', 'MAIL_USERNAME', 'MAIL_PASSWORD']
+    db_var = {
+        'development': 'DEV_DATABASE_URL',
+        'testing': 'TEST_DATABASE_URL',
+        'production': 'PROD_DATABASE_URL'
+    }.get(os.getenv('FLASK_ENV', 'development'), 'DEV_DATABASE_URL')  # Default to dev if env is unknown
+    required_vars.append(db_var)
+
+    for var in required_vars:
+        if not os.getenv(var):
+            raise ValueError(f"❌ {var} is missing! Please check your .env.{os.getenv('FLASK_ENV')} file.")
+
+# Load the configuration object
+config = get_config()
+
+# Ensure all required environment variables are available
+check_required_env_vars()

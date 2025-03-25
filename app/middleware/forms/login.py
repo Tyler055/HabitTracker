@@ -4,9 +4,17 @@ from werkzeug.security import check_password_hash
 from app import db
 from models import User
 from forms import LoginForm
+from datetime import datetime, timedelta
+from flask_login import LoginManager
 
 # Define Blueprint for authentication routes
 auth = Blueprint('auth', __name__)
+
+# Initialize Flask-Login manager
+login_manager = LoginManager()
+
+# Define custom remember duration (if needed)
+REMEMBER_DURATION = timedelta(days=7)  # Set a custom duration for the "Remember me" feature
 
 @auth.route('/login', methods=['GET', 'POST'])
 def login():
@@ -25,7 +33,12 @@ def login():
         # If the user exists and the password matches
         if user and check_password_hash(user.password, form.password.data):
             remember = form.remember.data  # Get the value of the "Remember me" checkbox
-            login_user(user, remember=remember)  # Log in the user
+
+            # If "Remember me" is checked, use custom duration
+            if remember:
+                login_user(user, remember=True, duration=REMEMBER_DURATION)
+            else:
+                login_user(user, remember=False)  # Log in the user with no remember cookie
             
             flash('Login successful!', 'success')
             
