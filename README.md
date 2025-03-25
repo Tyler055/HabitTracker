@@ -42,3 +42,5 @@ This is a web application built with Flask to help users track their habits and 
 - The **Setup Instructions** section provides detailed steps for installation and configuration.
 - The **Usage** section explains how to use the app once set up.
 - The **License** section refers to the open-source license.
+
+-test
