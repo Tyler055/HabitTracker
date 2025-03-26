@@ -1,13 +1,12 @@
-// components/Register.js
 import React, { useState } from "react";
 import axios from "axios";
-import {  useNavigate  } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const Register = () => {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const history = useHistory();
+  const navigate = useNavigate(); // Using useNavigate instead of useHistory in React Router v6
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -18,7 +17,7 @@ const Register = () => {
         password,
       });
       localStorage.setItem("token", res.data.token); // Store JWT in localStorage
-      history.push("/dashboard");
+      navigate("/dashboard"); // Redirect to a protected route
     } catch (err) {
       console.error(err);
       alert("Error registering user");

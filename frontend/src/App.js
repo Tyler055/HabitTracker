@@ -1,14 +1,15 @@
-import React from "react";
-import { BrowserRouter as Router, Route, Routes, Navigate } from "react-router-dom";
-import Login from './components/Login';
-import Register from './components/Register';
-import Dashboard from "./components/Dashboard";
-import HomePage from "./pages/HomePage"; // Correct the import path
-import HabitTracker from './HabitTracker'; // Import the HabitTracker component
+const React = require("react");
+const { BrowserRouter: Router, Routes, Route } = require("react-router-dom");
+
+const Login = require("./components/Login.js").default;
+const Register = require("./components/Register.js").default;
+const Dashboard = require("./components/Dashboard.js").default;
+const HabitTracker = require("./components/HabitTracker.js").default;
+const Layout = require("./components/Layout.js").default;
+const ProtectedRoute = require("./components/ProtectedRoute.js").default;
+const HomePage = require("./pages/HomePage.js").default;
 
 const App = () => {
-  const isAuthenticated = localStorage.getItem("token"); // Check if user is authenticated
-
   return (
     <Router>
       <Routes>
@@ -17,10 +18,16 @@ const App = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
 
-        {/* Protected route */}
+        {/* Protected route with layout */}
         <Route
           path="/dashboard"
-          element={isAuthenticated ? <Dashboard /> : <Navigate to="/login" />}
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <Dashboard />
+              </Layout>
+            </ProtectedRoute>
+          }
         />
 
         {/* Habit Tracker route */}
@@ -30,4 +37,4 @@ const App = () => {
   );
 };
 
-export default App;
+module.exports = App;

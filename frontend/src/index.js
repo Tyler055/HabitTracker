@@ -1,16 +1,11 @@
-import React from "react";
-import ReactDOM from "react-dom/client";
-import App from "./App";  // Your main component
-import "./css/index.css"; // Your global styles
-import reportWebVitals from "./reportWebVitals";
+const React = require('react');
+const ReactDOM = require('react-dom/client');
+const App = require('./App.js');  // Add the .js extension
+const reportWebVitals = require('./reportWebVitals.js');  // Add the .js extension
 
-// Render the app in the 'root' div
-const root = ReactDOM.createRoot(document.getElementById("root"));
+const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
+  React.createElement(React.StrictMode, null, React.createElement(App))
 );
 
-// Measure performance (optional)
 reportWebVitals();

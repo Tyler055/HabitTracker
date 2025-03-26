@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import "../css/styles.css";
 
 const HabitTracker = () => {
   const [habits, setHabits] = useState([]);

@@ -58,7 +58,7 @@ class ProductionConfig(Config):
     SESSION_COOKIE_SECURE = True  # Force HTTPS for session cookies
     SQLALCHEMY_ECHO = False  # Disable query logging in production
 
-# Return the appropriate configuration based on the FLASK_ENV
+# Select the correct configuration based on FLASK_ENV
 def get_config():
     env = os.getenv('FLASK_ENV', 'development')
     config_map = {

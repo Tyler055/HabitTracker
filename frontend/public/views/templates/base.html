@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Habit Tracker{% endblock %}</title>
+
+    <!-- Bootstrap CSS (link your CSS later) -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+
+    <!-- Custom CSS (link your custom styles later) -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <!-- Dynamically load the correct stylesheet based on user theme -->
+    {% if current_user.is_authenticated %}
+        {% if current_user.theme == 'dark' %}
+            <link rel="stylesheet" href="{{ url_for('static', filename='styles/dark.css') }}">
+        {% else %}
+            <link rel="stylesheet" href="{{ url_for('static', filename='styles/light.css') }}">
+        {% endif %}
+    {% else %}
+        <link rel="stylesheet" href="{{ url_for('static', filename='styles/light.css') }}">
+    {% endif %}
+</head>
+<body class="{{ current_user.theme if current_user.is_authenticated else 'light' }}">
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('index') }}">Habit Tracker</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('index') }}">Home</a></li>
+                    {% if current_user.is_authenticated %}
+                        <li class="nav-item"><a class="nav-link" href="{{ url_for('user.user_profile') }}">Profile</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ url_for('user.user_preferences') }}">Settings</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.logout') }}">Logout</a></li>
+                    {% else %}
+                        <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.login') }}">Login</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.signup') }}">Sign Up</a></li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mt-4">
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- Footer (optional) -->
+    <footer class="bg-light text-center py-3 mt-4">
+        <p>&copy; 2025 Habit Tracker App. All Rights Reserved.</p>
+    </footer>
+
+    <!-- Bootstrap JavaScript -->
+    <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
+
+    <!-- User settings dropdown menu (if user is authenticated) -->
+    {% if current_user.is_authenticated %}
+    <div class="user-menu">
+        <img src="{{ url_for('static', filename='images/default_avatar.png') }}" alt="User Icon" id="userIcon" class="user-icon" onclick="toggleMenu()" aria-label="User settings">
+
+        <div id="settingsMenu" class="settings-menu" style="display: none; transition: all 0.3s ease;">
+            <ul>
+                <li><a href="{{ url_for('user.user_profile') }}">Profile Settings</a></li>
+                <li><a href="{{ url_for('user.user_preferences') }}">Preferences</a></li>
+                <li><a href="{{ url_for('user.change_password') }}">Change Password</a></li>
+                <li><a href="{{ url_for('auth.logout') }}">Logout</a></li>
+            </ul>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Script to toggle the settings menu -->
+    <script>
+        function toggleMenu() {
+            var menu = document.getElementById('settingsMenu');
+            menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
+        }
+    </script>
+
+</body>
+</html>
