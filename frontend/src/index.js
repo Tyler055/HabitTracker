@@ -1,8 +1,8 @@
 // index.js
 import React, { useState, useEffect } from 'react';
 import { createRoot } from 'react-dom/client'; // React 18+ syntax
-import './styles.css'; // Link to your CSS
-import './script.js'
+import './styles/styles.css'; // Link to your CSS
+import './styles/script.js'
 
 // App component
 function App() {
@@ -38,9 +38,10 @@ function App() {
       <div className="habit-item">
         <span>Read a Book</span>
         <button className="delete-btn">Delete</button>
-        <button type="submit" id="add-habit-btn">Add Habit</button>
+        
       </div>
       <input type="text" className="input-box" placeholder="Add new habit" />
+      <button type="submit" id="add-habit-btn">submit</button>
     </div>
   );
 }

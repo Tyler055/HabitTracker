@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify
-from config.config import config  # Importing config from config.py
+from config import config  # Importing config from config.py
 from models import db, Habit  # Importing db and Habit from models.py
 from routes.habit_routes import habit_bp  # Import blueprint from habit_routes.py
 import os

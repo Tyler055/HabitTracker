@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import AddHabit from './components/AddHabit';
-import './styles.css';
+import './styles/styles.css';
 
 const App = () => {
   // State to manage the current theme
