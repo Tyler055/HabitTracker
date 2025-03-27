@@ -1,8 +1,5 @@
-/* styles.css */
-
 /* Default theme */
 :root {
-  /* Light Theme Variables */
   --background-light: #f0f0f0;
   --text-light: #333;
   --button-light: #007bff;
@@ -10,7 +7,6 @@
   --input-light-bg: #fff;
   --input-light-border: #ccc;
 
-  /* Dark Theme Variables */
   --background-dark: #181818;
   --text-dark: #e0e0e0;
   --button-dark: #00ccff;
@@ -19,7 +15,6 @@
   --input-dark-border: #555;
 
   --delete-btn-hover-dark: darkred;
-
   --transition-duration: 0.3s;
 }
 
@@ -196,7 +191,6 @@ input:checked + .slider:before {
   }
 
   button {
-    font-size: 1rem;
-    padding: 5px 5px;
+    font-size: 0.9rem;
   }
 }

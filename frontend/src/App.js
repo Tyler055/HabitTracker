@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import AddHabit from './components/AddHabit'; // Separate AddHabit component
 import './styles/styles.css'; // Link to your CSS
 
 const App = () => {
@@ -67,6 +66,21 @@ const App = () => {
     }
   };
 
+  const deleteHabit = async (id) => {
+    try {
+      const response = await fetch(`http://127.0.0.1:5000/habits/${id}`, {
+        method: 'DELETE',
+      });
+      if (response.ok) {
+        setHabits(habits.filter(habit => habit.id !== id)); // Remove habit from state
+      } else {
+        alert('Failed to delete habit.');
+      }
+    } catch (error) {
+      console.error('Error deleting habit:', error);
+    }
+  };
+
   return (
     <div>
       <h1>Habit Tracker</h1>
@@ -91,7 +105,7 @@ const App = () => {
         ))}
       </ul>
 
-      {/* Add Habit Component */}
+      {/* Add Habit */}
       <input
         type="text"
         className="input-box"

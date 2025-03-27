@@ -1,36 +1,48 @@
-from flask import Flask, Blueprint, request, jsonify
-from models import db, Habit
+from flask import Blueprint, request, jsonify
+from app import db
+from models import Habit
 
-# Initialize Flask app
-app = Flask(__name__)
-
-# Blueprint for Habit routes
 habit_bp = Blueprint('habit_bp', __name__)
 
 # Route to get all habits
 @habit_bp.route('/api/habits', methods=['GET'])
 def get_habits():
     try:
-        habits = Habit.query.all()  # Get all habits from the database
-        return jsonify([habit.name for habit in habits])  # Return a list of habit names
+        # Fetch all habits from the database
+        habits = Habit.query.all()
+        
+        # Return a list of habit names
+        return jsonify([habit.name for habit in habits])
+    
     except Exception as e:
-        return jsonify({"error": str(e)}), 500  # Handle errors
+        # Handle potential errors
+        return jsonify({"error": str(e)}), 500
 
 # Route to add a new habit
 @habit_bp.route('/api/habits', methods=['POST'])
 def add_habit():
     try:
         data = request.get_json()  # Get JSON data from the request
-        if not data or 'name' not in data:  # Validate input
-            return jsonify({"error": "Invalid request, habit name is required"}), 400
-
-        new_habit = Habit(name=data["name"])  # Create a new habit object
+        habit_name = data.get('name')  # Extract habit name
+        
+        # Validate the input
+        if not habit_name:
+            return jsonify({"error": "Habit name is required"}), 400
+        
+        # Create a new habit object
+        new_habit = Habit(name=habit_name)
         db.session.add(new_habit)  # Add the habit to the session
         db.session.commit()  # Commit the transaction to the database
         
-        return jsonify({"message": "Habit added successfully!", "habit": {"id": new_habit.id, "name": new_habit.name}}), 201
+        # Return the newly created habit as a response
+        return jsonify({
+            "id": new_habit.id,
+            "name": new_habit.name
+        }), 201
+    
     except Exception as e:
-        return jsonify({"error": str(e)}), 500  # Handle errors
+        # Handle potential errors
+        return jsonify({"error": str(e)}), 500
 
 # Route to delete a habit by ID
 @habit_bp.route('/api/habits/<int:id>', methods=['DELETE'])
@@ -43,27 +55,22 @@ def delete_habit(id):
         db.session.delete(habit)  # Delete the habit
         db.session.commit()  # Commit the transaction to the database
         return jsonify({"message": "Habit deleted successfully"}), 200
+    
     except Exception as e:
-        return jsonify({"error": str(e)}), 500  # Handle errors
+        # Handle potential errors
+        return jsonify({"error": str(e)}), 500
 
-# Route to reset all habits (e.g., for clearing out habits)
+# Route to reset all habits (optional route to clear all habits)
 @habit_bp.route('/api/habits/reset', methods=['POST'])
 def reset_habits():
     try:
         Habit.query.delete()  # Delete all habits
         db.session.commit()  # Commit the transaction to the database
         return jsonify({"message": "All habits have been reset."}), 200
+    
     except Exception as e:
-        return jsonify({"error": str(e)}), 500  # Handle errors
+        # Handle potential errors
+        return jsonify({"error": str(e)}), 500
 
 # Register the habit blueprint
-app.register_blueprint(habit_bp)
-
-# Main route (optional, but can be used to check if the server is working)
-@app.route('/')
-def index():
-    return jsonify({"message": "Welcome to the Habit Tracker API!"}), 200
-
-# Running the app
-if __name__ == '__main__':
-    app.run(debug=True)
+# In your app.py file, register this blueprint: app.register_blueprint(habit_bp)

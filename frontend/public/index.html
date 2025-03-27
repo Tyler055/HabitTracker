@@ -1,16 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Habit Tracker</title>
-    <link rel="stylesheet" href="./assets/css/styles.css" />
-    <script src="./assets/js/index.js"></script>
-    <script src="./styles/script.js"></script>
+    <link rel="stylesheet" href="styles/styles.css">
+    <script src="scripts/script.js"></script>
 </head>
-<body>
-    <div id="root"></div> <!-- React will render here -->
 
+<body>
+    <!-- React will render the app inside this div -->
+    <div id="root"></div> <!-- This is where React will inject the app -->
+
+    <!-- Customize Theme Section -->
     <div class="container">
         <h2>Customize Your Theme</h2>
 
@@ -24,7 +27,7 @@
         <input type="color" id="button-color">
 
         <button id="apply-theme">Apply Theme</button>
-        <button id="reset-button">Reset Habits</button>
+
     </div>
 </body>
 </html>

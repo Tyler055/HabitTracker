@@ -1,54 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import axios from "axios";
 
-const API_URL = 'http://127.0.0.1:5000/api'; // Use consistent API base URL
+const API_BASE_URL = "http://127.0.0.1:5000"; // Base URL for the API
 
-const HabitList = () => {
-  const [habits, setHabits] = useState([]);
-  const [newHabit, setNewHabit] = useState('');
-  const [error, setError] = useState(null);
+// Fetch habits from the backend
+export const getHabits = () => axios.get(`${API_BASE_URL}/api/habits`);
 
-  useEffect(() => {
-    // Fetch habits from the backend
-    axios.get(`${API_URL}/habits`)
-      .then(response => setHabits(response.data))
-      .catch(error => setError(error.response?.data?.error || "Failed to load habits."));
-  }, []);
+// Add a new habit
+export const addHabit = (name) => axios.post(`${API_BASE_URL}/api/add-habit`, { name });
 
-  const addHabit = async () => {
-    if (!newHabit.trim()) {
-      setError("Habit name cannot be empty.");
-      return;
-    }
+// Delete a habit
+export const deleteHabit = (id) => axios.delete(`${API_BASE_URL}/api/habits/${id}`);
 
-    try {
-      const response = await axios.post(`${API_URL}/add-habit`, { name: newHabit });
-      setHabits([...habits, { id: response.data.id, name: newHabit }]); // Ensure the correct structure
-      setNewHabit('');
-      setError(null);
-    } catch (error) {
-      setError(error.response?.data?.error || "Failed to add habit.");
-    }
-  };
-
-  return (
-    <div>
-      <h1>Habit List</h1>
-      {error && <p style={{ color: 'red' }}>{error}</p>} {/* Display error messages */}
-      <ul>
-        {habits.map(habit => (
-          <li key={habit.id}>{habit.name}</li>
-        ))}
-      </ul>
-      <input
-        type="text"
-        value={newHabit}
-        onChange={(e) => setNewHabit(e.target.value)}
-        placeholder="New habit"
-      />
-      <button onClick={addHabit}>Add Habit</button>
-    </div>
-  );
-};
-
-export default HabitList;
+// Reset all habits
+export const resetHabits = () => axios.post(`${API_BASE_URL}/api/reset_habits`);
