@@ -1,6 +1,6 @@
 // index.js
 import React, { useState, useEffect } from 'react';
-import { createRoot } from 'react-dom/client';
+import { createRoot } from 'react-dom/client'; // React 18+ syntax
 import './styles.css'; // Link to your CSS
 import './script.js'
 
