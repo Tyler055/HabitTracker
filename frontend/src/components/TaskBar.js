@@ -1,22 +1,23 @@
-const React = require("react");
-const { Link } = require("react-router-dom");
+import React from 'react';
+import { Link } from 'react-router-dom';
+import './taskbar.css'; // Link to your TaskBar CSS for styling
 
 const TaskBar = () => {
   return (
     <div className="task-bar">
       <nav>
-        <ul>
-          <li>
+        <ul className="taskbar-items">
+          <li className="taskbar-item">
             <Link to="/">Home</Link>
           </li>
-          <li>
-            <Link to="/page1">Page 1</Link>
+          <li className="taskbar-item">
+            <Link to="/tracker">Tracker</Link>
           </li>
-          <li>
-            <Link to="/page2">Page 2</Link>
+          <li className="taskbar-item">
+            <Link to="/settings">Settings</Link>
           </li>
-          <li>
-            <Link to="/page3">Page 3</Link>
+          <li className="taskbar-item">
+            <Link to="/profile">Profile</Link>
           </li>
         </ul>
       </nav>
@@ -24,4 +25,4 @@ const TaskBar = () => {
   );
 };
 
-module.exports = TaskBar;
+export default TaskBar;

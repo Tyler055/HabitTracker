@@ -1,235 +1,205 @@
-/* styles.css */
-
 /* Default theme */
 :root {
-    /* Light Theme Variables */
-    --background-light: #f0f0f0;
-    --text-light: #333;
-    --button-light: #007bff;
-    --button-hover-light: #0056b3;
-    --input-light-bg: #fff;
-    --input-light-border: #ccc;
-  
-    /* Dark Theme Variables */
-    --background-dark: #181818;
-    --text-dark: #e0e0e0;
-    --button-dark: #00ccff;
-    --button-hover-dark: #00aaff;
-    --input-dark-bg: #333;
-    --input-dark-border: #555;
-  
-    --delete-btn-hover-dark: darkred;
-  
-    --transition-duration: 0.3s;
-  }
-  
-  /* General body styles */
-  body {
-    font-family: "Arial", sans-serif;
-    margin: 0;
-    padding: 0;
-    transition: all var(--transition-duration) ease;
-    background-color: var(--background-light);
-    color: var(--text-light);
-  }
-  
-  /* Button styles */
-  button {
-    background-color: var(--button-light);
-    color: rgb(0, 0, 0);
-    padding: 6px 6px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-weight: bold;
-    font-size: 1rem;
-    transition: background var(--transition-duration), color var(--transition-duration);
-  }
-  
-  button:hover {
-    background-color: var(--button-hover-light);
-  }
-  
-  /* Container and input styles */
+  /* Light Theme Variables */
+  --background-light: #f0f0f0;
+  --text-light: #333;
+  --button-light: #007bff;
+  --button-hover-light: #0056b3;
+  --input-light-bg: #fff;
+  --input-light-border: #ccc;
+
+  /* Dark Theme Variables */
+  --background-dark: #181818;
+  --text-dark: #e0e0e0;
+  --button-dark: #00ccff;
+  --button-hover-dark: #00aaff;
+  --input-dark-bg: #333;
+  --input-dark-border: #555;
+
+  --delete-btn-hover-dark: darkred;
+
+  --transition-duration: 0.3s;
+}
+
+/* General body styles */
+body {
+  font-family: "Arial", sans-serif;
+  margin: 0;
+  padding: 0;
+  transition: all var(--transition-duration) ease;
+  background-color: var(--background-light);
+  color: var(--text-light);
+}
+
+/* Button styles */
+button {
+  background-color: var(--button-light);
+  color: rgb(0, 0, 0);
+  padding: 8px 12px;
+  border: none;
+  border-radius: 8px; /* Rounded buttons */
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 1rem;
+  transition: background var(--transition-duration), color var(--transition-duration);
+  margin-right: 8px; /* Add spacing between buttons */
+}
+
+button:hover {
+  background-color: var(--button-hover-light);
+}
+
+/* Container and input styles */
+.container {
+  max-width: 600px;
+  margin: auto;
+  padding: 15px;
+  background: var(--input-light-bg);
+  border-radius: 10px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.input-box {
+  width: 100%;
+  padding: 12px;
+  font-size: 1rem;
+  margin: 12px 0;
+  border: 1px solid var(--input-light-border);
+  border-radius: 3px;
+  background: var(--input-light-bg);
+}
+
+/* Habit item styles */
+.habit-item {
+  background: #dacfcf;
+  padding: 12px;
+  margin: 5px 0;
+  border-radius: 5px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: background var(--transition-duration);
+}
+
+.habit-item:hover {
+  background: var(--button-light);
+}
+
+/* Delete button styles */
+.delete-btn {
+  background-color: red;
+  color: white;
+  padding: 6px 10px;
+  border-radius: 5px;
+  text-decoration: none;
+}
+
+.delete-btn:hover {
+  background-color: var(--delete-btn-hover-dark);
+}
+
+/* Dark theme styles */
+.dark-theme {
+  --background-light: var(--background-dark);
+  --text-light: var(--text-dark);
+  --button-light: var(--button-dark);
+  --button-hover-light: var(--button-hover-dark);
+  --input-light-bg: var(--input-dark-bg);
+  --input-light-border: var(--input-dark-border);
+}
+
+.dark-theme body {
+  background-color: var(--background-light);
+  color: var(--text-light);
+}
+
+.dark-theme button {
+  background-color: var(--button-light);
+  color: white;
+}
+
+.dark-theme button:hover {
+  background-color: var(--button-hover-light);
+}
+
+.dark-theme .container {
+  background: #242424;
+}
+
+.dark-theme .habit-item {
+  background: #333;
+}
+
+.dark-theme .input-box {
+  background: var(--input-light-bg);
+  color: rgb(225, 223, 223);
+  border: 1px solid var(--input-light-border);
+}
+
+/* Switch styles */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 47px;
+  height: 20px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #6e6e6e;
+  transition: 0.4s;
+  border-radius: 15px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 15px;
+  width: 15px;
+  border-radius: 50%;
+  left: 4px;
+  bottom: 2px;
+  background-color: rgb(11, 1, 1);
+  transition: 0.4s;
+}
+
+input:checked + .slider {
+  background-color: #00ecf9; /* Green color for dark mode */
+}
+
+input:checked + .slider:before {
+  transform: translateX(26px);
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
   .container {
-    max-width: 600px;
-    margin: auto;
-    padding: 15px;
-    background: var(--input-light-bg);
-    border-radius: 10px;
-    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
-  }
-  
-  .input-box {
-    width: 100%;
-    padding: 12px;
-    font-size: 1rem;
-    margin: 12px 0;
-    border: 1px solid var(--input-light-border);
-    border-radius: 3px;
-    background: var(--input-light-bg);
-  }
-  
-  /* Habit item styles */
-  .habit-item {
-    background: #dacfcf;
-    padding: 12px;
-    margin: 5px 0;
-    border-radius: 5px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    transition: background var(--transition-duration);
-  }
-  
-  .habit-item:hover {
-    background: var(--button-light);
-  }
-  
-  /* Delete button styles */
-  .delete-btn {
-    background-color: red;
-    color: white;
-    padding: 6px 10px;
-    border-radius: 2px;
-    text-decoration: none;
-  }
-  
-  .delete-btn:hover {
-    background-color: var(--delete-btn-hover-dark);
-  }
-  
-  /* Dark theme styles */
-  .dark-theme {
-    --background-light: var(--background-dark);
-    --text-light: var(--text-dark);
-    --button-light: var(--button-dark);
-    --button-hover-light: var(--button-hover-dark);
-    --input-light-bg: var(--input-dark-bg);
-    --input-light-border: var(--input-dark-border);
-  }
-  
-  .dark-theme body {
-    background-color: var(--background-light);
-    color: var(--text-light);
-  }
-  
-  .dark-theme button {
-    background-color: var(--button-light);
-    color: white;
-  }
-  
-  .dark-theme button:hover {
-    background-color: var(--button-hover-light);
-  }
-  
-  .dark-theme .container {
-    background: #242424;
-  }
-  
-  .dark-theme .habit-item {
-    background: #333;
-  }
-  
-  .dark-theme .input-box {
-    background: var(--input-light-bg);
-    color: rgb(225, 223, 223);
-    border: 1px solid var(--input-light-border);
-  }
-  
-  /* Switch styles */
-  .switch {
-    position: relative;
-    display: inline-block;
-    width: 47px;
-    height: 20px;
-  }
-  
-  .switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-  }
-  
-  .slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: #6e6e6e;
-    transition: 0.4s;
-    border-radius: 15px;
-  }
-  
-  .slider:before {
-    position: absolute;
-    content: "";
-    height: 15px;
-    width: 15px;
-    border-radius: 50%;
-    left: 4px;
-    bottom: 2px;
-    background-color: rgb(11, 1, 1);
-    transition: 0.4s;
-  }
-  
-  input:checked + .slider {
-    background-color: #00ecf9; /* Green color for dark mode */
-  }
-  
-  input:checked + .slider:before {
-    transform: translateX(26px);
-  }
-  
-  /* Mobile responsiveness */
-  @media (max-width: 768px) {
-    .container {
       padding: 15px;
       margin: 10px;
-    }
-  
-    h1,
-    h2 {
+  }
+
+  h1, h2 {
       font-size: 1.5rem;
-    }
-  
-    button {
+  }
+
+  button {
       font-size: 1rem;
       padding: 5px 5px;
-    }
   }
-  .task-bar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    background-color: #333;
-    color: white;
-    padding: 10px 0;
-    z-index: 1000;
-  }
-  
-  .task-bar nav ul {
-    display: flex;
-    justify-content: center;
-    list-style-type: none;
-    margin: 0;
-    padding: 0;
-  }
-  
-  .task-bar nav ul li {
-    margin: 0 20px;
-  }
-  
-  .task-bar nav ul li a {
-    color: white;
-    text-decoration: none;
-    font-size: 18px;
-  }
-  
-  .task-bar nav ul li a:hover {
-    text-decoration: underline;
-  }
-  
+}
+
+/* Spacing for switch label */
+.switch-label {
+  margin-left: 8px; /* Space between switch and text */
+}

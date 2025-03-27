@@ -1,58 +1,72 @@
-const React = require("react");
-const { useState, useEffect } = React;
+import React, { useState, useEffect } from "react";
+import "./styles/styles.css"; // Your global styles
 
 const HabitTracker = () => {
+  const [isDarkMode, setIsDarkMode] = useState(false);
   const [habits, setHabits] = useState([]);
-  const [habitInput, setHabitInput] = useState("");
-  const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
+  const [newHabit, setNewHabit] = useState("");
 
-  // Load habits from backend on component mount
   useEffect(() => {
-    async function fetchHabits() {
+    const savedTheme = localStorage.getItem("theme") || "dark";
+    setIsDarkMode(savedTheme === "dark");
+    document.body.classList.add(`${savedTheme}-theme`);
+
+    // Fetch habits from the backend
+    const fetchHabits = async () => {
       try {
-        const response = await fetch("/api/habits");
-        if (!response.ok) throw new Error("Failed to fetch habits.");
+        const response = await fetch("http://127.0.0.1:5000/habits");
         const data = await response.json();
         setHabits(data);
       } catch (error) {
-        console.error("Error loading habits:", error);
+        console.error("Error fetching habits:", error);
       }
-    }
+    };
     fetchHabits();
   }, []);
 
-  // Handle adding a new habit
+  const toggleTheme = () => {
+    const newTheme = !isDarkMode ? "dark" : "light";
+    setIsDarkMode(!isDarkMode);
+    document.body.classList.remove(isDarkMode ? "dark-theme" : "light-theme");
+    document.body.classList.add(newTheme + "-theme");
+    localStorage.setItem("theme", newTheme);
+  };
+
   const addHabit = async () => {
-    if (!habitInput.trim()) return;
+    if (!newHabit.trim()) return;
 
     try {
-      const response = await fetch("/api/add-habit", {
+      const response = await fetch("http://127.0.0.1:5000/habits", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: habitInput }),
+        body: JSON.stringify({ name: newHabit }),
       });
 
       if (response.ok) {
-        const newHabit = await response.json();
-        setHabits([...habits, newHabit]); // Update UI
-        setHabitInput(""); // Clear input field
-      } else {
-        alert("Failed to add habit.");
+        const updatedHabit = await response.json();
+        setHabits([...habits, updatedHabit]);
+        setNewHabit("");
       }
     } catch (error) {
       console.error("Error adding habit:", error);
     }
   };
 
-  // Handle deleting a habit
-  const deleteHabit = async (habitId) => {
+  const resetHabits = async () => {
     try {
-      const response = await fetch(`/api/delete-habit/${habitId}`, {
-        method: "DELETE",
-      });
+      const response = await fetch("/reset_habits", { method: "POST" });
+      if (!response.ok) throw new Error("Error resetting habits.");
+      window.location.reload();
+    } catch (error) {
+      alert(error.message);
+    }
+  };
 
+  const deleteHabit = async (id) => {
+    try {
+      const response = await fetch(`http://127.0.0.1:5000/habits/${id}`, { method: "DELETE" });
       if (response.ok) {
-        setHabits(habits.filter((habit) => habit.id !== habitId)); // Update UI
+        setHabits(habits.filter((habit) => habit.id !== id));
       } else {
         alert("Failed to delete habit.");
       }
@@ -61,46 +75,37 @@ const HabitTracker = () => {
     }
   };
 
-  // Theme toggle
-  useEffect(() => {
-    document.documentElement.classList.toggle("dark-theme", theme === "dark");
-    localStorage.setItem("theme", theme);
-  }, [theme]);
-
   return (
-    <div className="container">
-      <h2>Habit Tracker</h2>
+    <div className="habit-tracker">
+      <h1>Habit Tracker</h1>
 
-      <div>
-        <input
-          type="text"
-          className="input-box"
-          placeholder="Enter a new habit..."
-          value={habitInput}
-          onChange={(e) => setHabitInput(e.target.value)}
-        />
-        <button onClick={addHabit}>Add Habit</button>
-      </div>
+      <button id="theme-toggle" onClick={toggleTheme}>
+        {isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
+      </button>
+
+      <button id="reset-button" onClick={resetHabits}>
+        Reset Habits
+      </button>
 
       <ul>
-        {habits.map((habit) => (
-          <li key={habit.id} className="habit-item">
-            <span>{habit.name}</span>
-            <button
-              className="delete-btn"
-              onClick={() => deleteHabit(habit.id)}
-            >
-              Delete
-            </button>
+        {habits.map((habit, index) => (
+          <li key={index}>
+            {habit.name}
+            <button className="delete-btn" onClick={() => deleteHabit(habit.id)}>Delete</button>
           </li>
         ))}
       </ul>
 
-      <button onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
-        {theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
-      </button>
+      <input
+        type="text"
+        className="input-box"
+        placeholder="Add new habit"
+        value={newHabit}
+        onChange={(e) => setNewHabit(e.target.value)}
+      />
+      <button onClick={addHabit}>Add Habit</button>
     </div>
   );
 };
 
-module.exports = HabitTracker;
+export default HabitTracker;

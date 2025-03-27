@@ -1,34 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Habit Tracker</title>
-    <link rel="stylesheet" href="styles/styles.css">
-    <script src="scripts/script.js"></script>
     
-</head>
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="%PUBLIC_URL%/styles/styles.css">
+    <link rel="stylesheet" href="%PUBLIC_URL%/styles/taskbar.css">
 
+    <!-- Favicon (optional) -->
+    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" type="image/x-icon">
+</head>
 <body>
     <!-- React will render the app inside this div -->
-    <div id="root"></div> <!-- This is where React will inject the app -->
+    <div id="root"></div> 
 
-    <!-- Customize Theme Section -->
-    <div class="container">
-        <h2>Customize Your Theme</h2>
-
-        <label for="bg-color">Background Color:</label>
-        <input type="color" id="bg-color">
-
-        <label for="text-color">Text Color:</label>
-        <input type="color" id="text-color">
-
-        <label for="button-color">Button Color:</label>
-        <input type="color" id="button-color">
-
-        <button id="apply-theme">Apply Theme</button>
-
-    </div>
+    <!-- React will inject the JS bundle, so no need for manual scripts -->
 </body>
 </html>

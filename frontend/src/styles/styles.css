@@ -1,5 +1,6 @@
 /* Default theme */
 :root {
+  /* Light Theme Variables */
   --background-light: #f0f0f0;
   --text-light: #333;
   --button-light: #007bff;
@@ -7,6 +8,7 @@
   --input-light-bg: #fff;
   --input-light-border: #ccc;
 
+  /* Dark Theme Variables */
   --background-dark: #181818;
   --text-dark: #e0e0e0;
   --button-dark: #00ccff;
@@ -15,6 +17,7 @@
   --input-dark-border: #555;
 
   --delete-btn-hover-dark: darkred;
+
   --transition-duration: 0.3s;
 }
 
@@ -32,17 +35,22 @@ body {
 button {
   background-color: var(--button-light);
   color: rgb(0, 0, 0);
-  padding: 6px 6px;
+  padding: 8px 12px;
   border: none;
-  border-radius: 5px;
+  border-radius: 8px; /* Rounded buttons */
   cursor: pointer;
   font-weight: bold;
   font-size: 1rem;
   transition: background var(--transition-duration), color var(--transition-duration);
+  margin-right: 8px; /* Add spacing between buttons */
 }
 
 button:hover {
   background-color: var(--button-hover-light);
+}
+
+button:focus {
+  outline: 2px solid var(--button-light);
 }
 
 /* Container and input styles */
@@ -86,7 +94,7 @@ button:hover {
   background-color: red;
   color: white;
   padding: 6px 10px;
-  border-radius: 2px;
+  border-radius: 5px;
   text-decoration: none;
 }
 
@@ -181,16 +189,21 @@ input:checked + .slider:before {
 /* Mobile responsiveness */
 @media (max-width: 768px) {
   .container {
-    padding: 15px;
-    margin: 10px;
+      padding: 15px;
+      margin: 10px;
   }
 
-  h1,
-  h2 {
-    font-size: 1.5rem;
+  h1, h2 {
+      font-size: 1.5rem;
   }
 
   button {
-    font-size: 0.9rem;
+      font-size: 1rem;
+      padding: 5px 5px;
   }
+}
+
+/* Spacing for switch label */
+.switch-label {
+  margin-left: 8px; /* Space between switch and text */
 }
