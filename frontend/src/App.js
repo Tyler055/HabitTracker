@@ -8,12 +8,12 @@ import Home from './pages/Home';
 import HabitTracker from './pages/HabitTracker';
 import Settings from './pages/Settings';
 import Profile from './pages/Profile';
-import Page1 from './pages/Page1';
-import Page2 from './pages/Page2';
-import Page3 from './pages/Page3';
 
 const App = () => {
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [habit, setHabit] = useState('');
+  const [habits, setHabits] = useState([]);
+  const [errorMessage, setErrorMessage] = useState('');
 
   // Effect to load and apply the saved theme from localStorage
   useEffect(() => {
@@ -22,6 +22,7 @@ const App = () => {
       setIsDarkMode(savedTheme === 'dark');
       document.body.classList.add(savedTheme + '-theme');
     }
+    fetchHabits();
   }, []);
 
   // Toggle between dark and light mode
@@ -33,26 +34,84 @@ const App = () => {
     localStorage.setItem('theme', newTheme);
   };
 
+  // Fetch habits from the backend
+  const fetchHabits = () => {
+    fetch('/')
+      .then((response) => response.json())
+      .then((data) => setHabits(data))
+      .catch((error) => setErrorMessage('Error fetching habits.'));
+  };
+
+  // Add a new habit
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (habit.trim()) {
+      fetch('/add', {
+        method: 'POST',
+        body: new URLSearchParams({ habit_name: habit }),
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+      })
+        .then((response) => response.ok ? fetchHabits() : alert('Error adding habit'))
+        .catch((error) => setErrorMessage('Error adding habit.'));
+      setHabit('');
+    }
+  };
+
+  // Delete a habit
+  const deleteHabit = (habitId) => {
+    fetch(`/delete/${habitId}`, { method: 'GET' })
+      .then((response) => response.ok ? fetchHabits() : alert('Error deleting habit'))
+      .catch((error) => setErrorMessage('Error deleting habit.'));
+  };
+
+  // Reset habits
+  const resetHabits = () => {
+    setErrorMessage(''); // Clear previous errors
+    fetch('/reset_habits', { method: 'POST' })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('Failed to reset habits');
+        }
+        fetchHabits();
+      })
+      .catch((error) => setErrorMessage(error.message));
+  };
+
   return (
     <Router>
-      {/* Task Bar (Fixed at the top) */}
       <TaskBar />
-
-      {/* Main Content Area */}
       <div style={{ marginTop: '60px', padding: '20px' }}>
-        {/* Theme Customization Section */}
         <ThemeCustomizer toggleTheme={toggleTheme} isDarkMode={isDarkMode} />
 
-        {/* Routes for different pages */}
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/tracker" element={<HabitTracker />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/page1" element={<Page1 />} />
-          <Route path="/page2" element={<Page2 />} />
-          <Route path="/page3" element={<Page3 />} />
-        </Routes>
+        <h1>Habit Tracker</h1>
+        
+        {errorMessage && <p className="error-message">{errorMessage}</p>}
+
+        <form onSubmit={handleSubmit}>
+          <input
+            type="text"
+            className="input-box"
+            placeholder="Add new habit"
+            value={habit}
+            onChange={(e) => setHabit(e.target.value)}
+          />
+          <button type="submit">Submit</button>
+        </form>
+
+        <div className="habit-list">
+          {habits.length > 0 ? (
+            habits.map((habit) => (
+              <div key={habit.id} className="habit-item">
+                <span>{habit.name}</span>
+                <button className="delete-btn" onClick={() => deleteHabit(habit.id)}>Delete</button>
+              </div>
+            ))
+          ) : (
+            <p>No habits found. Start by adding a new one!</p>
+          )}
+        </div>
+
+        <button onClick={resetHabits}>Reset Habits</button>
       </div>
     </Router>
   );
