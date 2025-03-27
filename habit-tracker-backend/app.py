@@ -1,7 +1,17 @@
-from flask import Flask, request, jsonify
+import sys
+import os
+
+# Add the project root to the sys.path to resolve the import issue
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+# Now try importing config
 from config.config import config
+
+
+from flask import Flask, request, jsonify
+from config.config import config  # Importing config from config.py
 from models import db, Habit  # Assuming Habit model is inside models.py
-from routes.habit_routes import habit_bp
+from routes.habit_routes import habit_bp  # Import blueprint from habit_routes.py
 import os
 from dotenv import load_dotenv
 from flask_migrate import Migrate
@@ -13,8 +23,9 @@ load_dotenv()
 # Initialize Flask app
 app = Flask(__name__)
 
-# Load configuration based on environment
-app.config.from_object('config.Config')  # Assuming Config class is in config.py
+# Load configuration based on environment (using the appropriate environment config class)
+env = os.getenv('FLASK_ENV', 'development')
+app.config.from_object(config[env])  # Select the config based on the environment variable
 
 # Set the database URI dynamically based on the environment variable
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URL")
@@ -24,7 +35,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  # Disable modification tra
 print(f"Database URI: {app.config['SQLALCHEMY_DATABASE_URI']}")
 
 # Initialize database and migrate
-db = SQLAlchemy(app)
+db.init_app(app)
 migrate = Migrate(app, db)
 
 # Register Blueprints (assuming habit_bp is defined in habit_routes.py)
