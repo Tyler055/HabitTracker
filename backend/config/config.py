@@ -43,8 +43,12 @@ class TestingConfig(Config):
     DEBUG = True
     DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///test.db")
 
-    MYSQL_URI = os.getenv("TEST_MYSQL_URI")
-    MONGO_URI = os.getenv("TEST_MONGO_URI")
+    # Database URIs for testing
+    MYSQL_TEST_URI = os.getenv("MYSQL_TEST_URI")
+    MONGO_TEST_URI = os.getenv("MONGO_TEST_URI")
+
+    if not MYSQL_TEST_URI or not MONGO_TEST_URI:
+        raise ValueError("Test database URIs must be set as environment variables.")
 
 
 class DevelopmentConfig(Config):
@@ -53,40 +57,33 @@ class DevelopmentConfig(Config):
     DEBUG = True
     DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///dev.db")
 
-    MYSQL_URI = os.getenv("DEV_MYSQL_URI")
-    MONGO_URI = os.getenv("DEV_MONGO_URI")
+    # Database URIs for development
+    MYSQL_DB_URI = os.getenv("MYSQL_DB_URI")
+    MONGO_DB_URI = os.getenv("MONGO_DB_URI")
+
+    if not MYSQL_DB_URI or not MONGO_DB_URI:
+        raise ValueError("Development database URIs must be set as environment variables.")
 
 
 class ProductionConfig(Config):
-    """Configuration for the production environment."""
+    """Configuration for the production environment (skipped entirely)."""
     APP_MODE = "production"
     DEBUG = False
-    DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///prod.db")
 
-    MYSQL_URI = os.getenv("PROD_MYSQL_URI")
-    MONGO_URI = os.getenv("PROD_MONGO_URI")
-
-    # Ensure database credentials are set in production
-    if not MYSQL_URI or not MONGO_URI:
-        raise ValueError("Production database URIs must be set as environment variables.")
-
-    # Production-specific configurations
-    UPLOAD_FOLDER = os.getenv("UPLOAD_FOLDER", "uploads/production")
-
-    # Caching (Redis)
-    REDIS_URL = os.getenv("REDIS_URL")
-    CACHE_TYPE = "redis"
-    CACHE_DEFAULT_TIMEOUT = 300
-
-    if not REDIS_URL:
-        raise ValueError("REDIS_URL must be set in production.")
-
-    # Flask Production Settings
-    FLASK_ENV = "production"
-    FLASK_SECRET_KEY = os.getenv("FLASK_SECRET_KEY")
-
-    if not FLASK_SECRET_KEY:
-        raise ValueError("FLASK_SECRET_KEY must be set for production security.")
+    # Skip all production-specific settings
+    print("Warning: Production configuration skipped. Running without production settings.")
+    
+    # Empty, but kept for future use if needed
+    # DATABASE_URL = os.getenv("DATABASE_URL")
+    # MYSQL_PROD_URI = os.getenv("MYSQL_PROD_URI")
+    # MONGO_PROD_URI = os.getenv("MONGO_PROD_URI")
+    # REDIS_URL = os.getenv("REDIS_URL")
+    # FLASK_SECRET_KEY = os.getenv("FLASK_SECRET_KEY")
+    
+    # Placeholder warnings:
+    print("Warning: Production database URIs (MYSQL_PROD_URI, MONGO_PROD_URI) are not set.")
+    print("Warning: Production Redis URL (REDIS_URL) is not set.")
+    print("Warning: FLASK_SECRET_KEY for production security is not set.")
 
 
 # Configuration dictionary to select the correct environment
