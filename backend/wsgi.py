@@ -1,3 +1,6 @@
-from app import create_app  # Ensure this is correctly importing your Flask app
+from app import create_app
 
-app = create_app()  # Ensure this function initializes your Flask app
+# Create an instance of the Flask application
+app = create_app()
+
+# The `app` object will be used by the WSGI server (e.g., Gunicorn, uWSGI)

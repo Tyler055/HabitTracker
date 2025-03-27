@@ -110,3 +110,44 @@ function init() {
       }
   }
 }
+document.addEventListener("DOMContentLoaded", () => {
+    const bgColorInput = document.getElementById("bg-color");
+    const textColorInput = document.getElementById("text-color");
+    const buttonColorInput = document.getElementById("button-color");
+    const applyThemeBtn = document.getElementById("apply-theme");
+    const resetButton = document.getElementById("reset-button");
+
+    // Load stored theme from localStorage
+    const storedBg = localStorage.getItem("bgColor");
+    const storedText = localStorage.getItem("textColor");
+    const storedBtn = localStorage.getItem("buttonColor");
+
+    if (storedBg) document.body.style.backgroundColor = storedBg;
+    if (storedText) document.body.style.color = storedText;
+    if (storedBtn) document.documentElement.style.setProperty('--button-color', storedBtn);
+
+    // Apply theme on button click
+    applyThemeBtn.addEventListener("click", () => {
+        const bgColor = bgColorInput.value;
+        const textColor = textColorInput.value;
+        const buttonColor = buttonColorInput.value;
+
+        document.body.style.backgroundColor = bgColor;
+        document.body.style.color = textColor;
+        document.documentElement.style.setProperty('--button-color', buttonColor);
+
+        localStorage.setItem("bgColor", bgColor);
+        localStorage.setItem("textColor", textColor);
+        localStorage.setItem("buttonColor", buttonColor);
+    });
+
+    // Reset habits button click
+    resetButton.addEventListener("click", async () => {
+        try {
+            await fetch("http://127.0.0.1:5000/api/reset-habits", { method: "POST" });
+            alert("Habits reset successfully!");
+        } catch (error) {
+            alert("Failed to reset habits.");
+        }
+    });
+});

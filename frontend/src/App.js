@@ -1,16 +1,31 @@
 import React, { useState, useEffect } from 'react';
-import AddHabit from './components/AddHabit';
-import './styles/styles.css';
+import AddHabit from './components/AddHabit'; // Separate AddHabit component
+import './styles/styles.css'; // Link to your CSS
 
 const App = () => {
   // State to manage the current theme
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [habits, setHabits] = useState([]); // State to hold the list of habits
+  const [newHabit, setNewHabit] = useState(''); // State to hold new habit input
 
   useEffect(() => {
     // Load saved theme from localStorage when the component mounts
     const savedTheme = localStorage.getItem('theme') || 'dark';
     setIsDarkMode(savedTheme === 'dark');
     document.body.classList.add(`${savedTheme}-theme`);
+
+    // Fetch the list of habits from the backend on load
+    const fetchHabits = async () => {
+      try {
+        const response = await fetch('http://127.0.0.1:5000/habits');
+        const data = await response.json();
+        setHabits(data); // Set the habits into the state
+      } catch (error) {
+        console.error("Error fetching habits:", error);
+      }
+    };
+
+    fetchHabits();
   }, []);
 
   const toggleTheme = () => {
@@ -20,6 +35,26 @@ const App = () => {
     document.body.classList.remove(isDarkMode ? 'dark-theme' : 'light-theme');
     document.body.classList.add(newTheme + '-theme');
     localStorage.setItem('theme', newTheme); // Save theme preference
+  };
+
+  const addHabit = async () => {
+    if (!newHabit.trim()) return; // Prevent empty habit
+
+    try {
+      const response = await fetch('http://127.0.0.1:5000/habits', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: newHabit }),
+      });
+      if (response.ok) {
+        // After successful add, fetch updated habits list
+        const updatedHabit = await response.json();
+        setHabits([...habits, updatedHabit]); // Update the list in the state
+        setNewHabit(''); // Clear input field
+      }
+    } catch (error) {
+      console.error("Error adding habit:", error);
+    }
   };
 
   const resetHabits = async () => {
@@ -46,9 +81,25 @@ const App = () => {
         Reset Habits
       </button>
 
-      {/* Habit Adding Component */}
-      <AddHabit />
+      {/* Habit List */}
+      <ul>
+        {habits.map((habit, index) => (
+          <li key={index}>
+            {habit.name}
+            <button className="delete-btn" onClick={() => deleteHabit(habit.id)}>Delete</button>
+          </li>
+        ))}
+      </ul>
 
+      {/* Add Habit Component */}
+      <input
+        type="text"
+        className="input-box"
+        placeholder="Add new habit"
+        value={newHabit}
+        onChange={(e) => setNewHabit(e.target.value)}
+      />
+      <button onClick={addHabit}>Add Habit</button>
     </div>
   );
 };
