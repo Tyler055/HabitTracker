@@ -1,10 +1,13 @@
 from flask import Flask
 from flask_migrate import Migrate
+from flask_jwt_extended import JWTManager
 from dotenv import load_dotenv
 import os
+
 from app.config import config  # Import configuration settings
 from app.extensions import db  # Import db object from extensions.py
 from app.routes.habit_routes import habit_bp  # Import habit blueprint
+from app.routes.auth_routes import auth_bp  # Import auth blueprint
 
 # Load environment variables from the .env file
 load_dotenv()
@@ -18,16 +21,19 @@ app.config.from_object(config[env])  # Select config based on environment
 
 # Set the database URI dynamically from environment variables
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URL", "mysql://root:password@localhost/habit-tracker")
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  # Disable modification tracking to save resources
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  # Disable modification tracking
+app.config['JWT_SECRET_KEY'] = os.getenv("JWT_SECRET_KEY", "super-secret-key")  # Change this in production
 
-# Initialize the database with Flask app
+# Initialize the database and migration
 db.init_app(app)
-
-# Initialize Flask-Migrate for handling database migrations
 migrate = Migrate(app, db)
 
-# Register Blueprints (you can add more blueprints here as needed)
-app.register_blueprint(habit_bp)
+# Initialize JWT Manager
+jwt = JWTManager(app)
+
+# Register Blueprints
+app.register_blueprint(habit_bp, url_prefix="/api/habits")
+app.register_blueprint(auth_bp, url_prefix="/api/auth")
 
 # Home route
 @app.route('/')
