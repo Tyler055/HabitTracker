@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
-from app import db  # Ensure you import db from your main app
-from models import Habit  # Ensure you import your Habit model
+from app import db  # Import db from your main app
+from app.models import Habit  # Ensure you import your Habit model
 
 # Create a Blueprint for habit routes
 habit_bp = Blueprint('habit_bp', __name__)
@@ -13,7 +13,7 @@ def get_habits():
         habits = Habit.query.all()
         return jsonify({
             "status": "success",
-            "data": [habit.name for habit in habits]  # List of habit names
+            "data": [{"id": habit.id, "name": habit.name} for habit in habits]  # List of habit names and ids
         })
     except Exception as e:
         return jsonify({
