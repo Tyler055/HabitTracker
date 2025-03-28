@@ -1,8 +1,7 @@
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
+from app.extensions import db
 
-# Initialize the db object
-db = SQLAlchemy()
 
 # Habit Model
 class Habit(db.Model):

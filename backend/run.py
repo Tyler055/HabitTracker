@@ -1,8 +1,10 @@
 from app import create_app
+import os
 
 # Create an instance of the Flask application
 app = create_app()
 
 # Run the app
-if __name__ == "__main__":
-    app.run(debug=True)  # Set debug to True for local development
+
+debug_mode = os.getenv('FLASK_DEBUG', 'False') == 'True'
+app.run(debug=debug_mode)
