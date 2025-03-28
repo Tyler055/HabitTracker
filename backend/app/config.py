@@ -1,7 +1,6 @@
 from dotenv import load_dotenv
 import os
 
-
 # Load environment variables from .env file
 load_dotenv()
 
@@ -65,6 +64,7 @@ class DevelopmentConfig(Config):
     if not MYSQL_DB_URI or not MONGO_DB_URI:
         raise ValueError("Development database URIs must be set as environment variables.")
 
+
 class ProductionConfig(Config):
     """Configuration for the production environment."""
     APP_MODE = "production"
@@ -76,13 +76,14 @@ class ProductionConfig(Config):
     
     if not os.getenv("MYSQL_PROD_URI") or not os.getenv("MONGO_PROD_URI"):
         raise ValueError("Production database URIs (MYSQL_PROD_URI, MONGO_PROD_URI) are missing.")
-
+    
     if not os.getenv("REDIS_URL"):
         raise ValueError("Production Redis URL (REDIS_URL) is missing.")
     
     if not os.getenv("FLASK_SECRET_KEY"):
         raise ValueError("Production FLASK_SECRET_KEY is missing for security.")
-    
+
+
 # Configuration dictionary to select the correct environment
 config = {
     "test": TestingConfig,
@@ -92,4 +93,4 @@ config = {
 
 # Automatically select config based on APP_MODE
 APP_MODE = os.getenv("APP_MODE", "development")
-ActiveConfig = config.get(APP_MODE, DevelopmentConfig)
+ActiveConfig = config.get(APP_MODE, DevelopmentConfig)  # Fix the assignment of ActiveConfig here

@@ -13,7 +13,7 @@ migrate = Migrate()
 def create_app():
     load_dotenv()
     app = Flask(__name__)
-    app.config.from_object(ActiveConfig)
+    app.config.from_object(config[env])
 
     env = os.getenv('FLASK_ENV', 'development')
     if env not in config:
