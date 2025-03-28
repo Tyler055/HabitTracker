@@ -1,24 +1,16 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import './taskbar.css'; // Link to your TaskBar CSS for styling
+import './TaskBar.css';
 
 const TaskBar = () => {
   return (
-    <div className="task-bar">
+    <div className="taskbar">
       <nav>
-        <ul className="taskbar-items">
-          <li className="taskbar-item">
-            <Link to="/">Home</Link>
-          </li>
-          <li className="taskbar-item">
-            <Link to="/tracker">Tracker</Link>
-          </li>
-          <li className="taskbar-item">
-            <Link to="/settings">Settings</Link>
-          </li>
-          <li className="taskbar-item">
-            <Link to="/profile">Profile</Link>
-          </li>
+        <ul>
+          <li><Link to="/" className="taskbar-item">Home</Link></li>
+          <li><Link to="/tracker" className="taskbar-item">Habit Tracker</Link></li>
+          <li><Link to="/settings" className="taskbar-item">Settings</Link></li>
+          <li><Link to="/profile" className="taskbar-item">Profile</Link></li>
         </ul>
       </nav>
     </div>

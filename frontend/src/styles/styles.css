@@ -1,12 +1,18 @@
 /* Default theme */
 :root {
-  /* Light Theme Variables */
-  --background-light: #f0f0f0;
-  --text-light: #333;
-  --button-light: #007bff;
-  --button-hover-light: #0056b3;
-  --input-light-bg: #fff;
-  --input-light-border: #ccc;
+  /* === Default / Customizable Variables === */
+  --background-color: #f0f0f0;
+  --text-color: #333;
+  --font-size: 16px;
+  --font-family: 'Arial', sans-serif;
+
+  --button-color: #007bff;
+  --button-hover-color: #0056b3;
+
+  --input-bg-color: #ffffff;
+  --input-border-color: #ccc;
+
+  --transition-speed: 0.3s;
 
   /* Dark Theme Variables */
   --background-dark: #181818;
@@ -17,63 +23,72 @@
   --input-dark-border: #555;
 
   --delete-btn-hover-dark: darkred;
-
-  --transition-duration: 0.3s;
 }
 
-/* General body styles */
+/* === Base Styles === */
 body {
-  font-family: "Arial", sans-serif;
+  background-color: var(--background-color);
+  color: var(--text-color);
+  font-size: var(--font-size);
+  font-family: var(--font-family);
   margin: 0;
   padding: 0;
-  transition: all var(--transition-duration) ease;
-  background-color: var(--background-light);
-  color: var(--text-light);
+  transition: background-color var(--transition-speed), color var(--transition-speed), font-size var(--transition-speed);
 }
 
-/* Button styles */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-family);
+}
+
+a {
+  color: var(--button-color);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* === Buttons === */
 button {
-  background-color: var(--button-light);
-  color: rgb(0, 0, 0);
-  padding: 8px 12px;
+  background-color: var(--button-color);
+  color: white;
   border: none;
-  border-radius: 8px; /* Rounded buttons */
+  padding: 10px 16px;
+  border-radius: 5px;
   cursor: pointer;
-  font-weight: bold;
-  font-size: 1rem;
-  transition: background var(--transition-duration), color var(--transition-duration);
-  margin-right: 8px; /* Add spacing between buttons */
+  font-family: var(--font-family);
+  transition: background-color var(--transition-speed);
 }
 
 button:hover {
-  background-color: var(--button-hover-light);
+  background-color: var(--button-hover-color);
 }
 
-button:focus {
-  outline: 2px solid var(--button-light);
-}
-
-/* Container and input styles */
-.container {
-  max-width: 600px;
-  margin: auto;
-  padding: 15px;
-  background: var(--input-light-bg);
-  border-radius: 10px;
-  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
-}
-
-.input-box {
+/* === Inputs & Textareas === */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+textarea {
+  background-color: var(--input-bg-color);
+  color: var(--text-color);
+  border: 1px solid var(--input-border-color);
+  border-radius: 4px;
+  padding: 10px;
   width: 100%;
-  padding: 12px;
-  font-size: 1rem;
-  margin: 12px 0;
-  border: 1px solid var(--input-light-border);
-  border-radius: 3px;
-  background: var(--input-light-bg);
+  box-sizing: border-box;
+  font-family: var(--font-family);
+  transition: background-color var(--transition-speed), color var(--transition-speed), border-color var(--transition-speed);
 }
 
-/* Habit item styles */
+/* === Containers === */
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* === Habit Item Styles === */
 .habit-item {
   background: #dacfcf;
   padding: 12px;
@@ -82,14 +97,14 @@ button:focus {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  transition: background var(--transition-duration);
+  transition: background var(--transition-speed);
 }
 
 .habit-item:hover {
-  background: var(--button-light);
+  background: var(--button-color);
 }
 
-/* Delete button styles */
+/* === Delete Button Styles === */
 .delete-btn {
   background-color: red;
   color: white;
@@ -102,28 +117,28 @@ button:focus {
   background-color: var(--delete-btn-hover-dark);
 }
 
-/* Dark theme styles */
+/* === Dark Theme Styles === */
 .dark-theme {
-  --background-light: var(--background-dark);
-  --text-light: var(--text-dark);
-  --button-light: var(--button-dark);
-  --button-hover-light: var(--button-hover-dark);
-  --input-light-bg: var(--input-dark-bg);
-  --input-light-border: var(--input-dark-border);
+  --background-color: var(--background-dark);
+  --text-color: var(--text-dark);
+  --button-color: var(--button-dark);
+  --button-hover-color: var(--button-hover-dark);
+  --input-bg-color: var(--input-dark-bg);
+  --input-border-color: var(--input-dark-border);
 }
 
 .dark-theme body {
-  background-color: var(--background-light);
-  color: var(--text-light);
+  background-color: var(--background-color);
+  color: var(--text-color);
 }
 
 .dark-theme button {
-  background-color: var(--button-light);
+  background-color: var(--button-color);
   color: white;
 }
 
 .dark-theme button:hover {
-  background-color: var(--button-hover-light);
+  background-color: var(--button-hover-color);
 }
 
 .dark-theme .container {
@@ -135,12 +150,12 @@ button:focus {
 }
 
 .dark-theme .input-box {
-  background: var(--input-light-bg);
+  background: var(--input-dark-bg);
   color: rgb(225, 223, 223);
-  border: 1px solid var(--input-light-border);
+  border: 1px solid var(--input-dark-border);
 }
 
-/* Switch styles */
+/* === Switch Styles === */
 .switch {
   position: relative;
   display: inline-block;
@@ -186,24 +201,54 @@ input:checked + .slider:before {
   transform: translateX(26px);
 }
 
-/* Mobile responsiveness */
-@media (max-width: 768px) {
+/* === Customization Panel (Optional) === */
+#customization-panel {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 0 12px rgba(0,0,0,0.15);
+  font-size: 14px;
+  z-index: 9999;
+  color: #000;
+}
+
+/* === Mobile Responsiveness === */
+@media screen and (max-width: 768px) {
   .container {
-      padding: 15px;
-      margin: 10px;
+    padding: 15px;
+    margin: 10px;
   }
 
   h1, h2 {
-      font-size: 1.5rem;
+    font-size: 1.5rem;
   }
 
   button {
-      font-size: 1rem;
-      padding: 5px 5px;
+    font-size: 1rem;
+    padding: 5px 5px;
   }
 }
 
-/* Spacing for switch label */
-.switch-label {
-  margin-left: 8px; /* Space between switch and text */
+/* === Utility Classes === */
+.hidden {
+  display: none;
+}
+
+.flex {
+  display: flex;
+}
+
+.flex-column {
+  flex-direction: column;
+}
+
+.mt-2 {
+  margin-top: 0.5rem;
+}
+
+.mt-4 {
+  margin-top: 1rem;
 }

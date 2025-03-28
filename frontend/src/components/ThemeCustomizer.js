@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from "react";
 
 const ThemeCustomizer = () => {
-  // Define states for each color option
   const [bgColor, setBgColor] = useState("#ffffff");
   const [textColor, setTextColor] = useState("#000000");
   const [buttonColor, setButtonColor] = useState("#4CAF50");
 
-  // Load saved theme from localStorage when the component mounts
+  // Load saved theme from localStorage
   useEffect(() => {
     const savedBgColor = localStorage.getItem("bgColor") || "#ffffff";
     const savedTextColor = localStorage.getItem("textColor") || "#000000";
@@ -16,31 +15,21 @@ const ThemeCustomizer = () => {
     setTextColor(savedTextColor);
     setButtonColor(savedButtonColor);
 
-    // Apply saved theme to document body and buttons
-    document.body.style.backgroundColor = savedBgColor;
-    document.body.style.color = savedTextColor;
-    const buttons = document.querySelectorAll("button");
-    buttons.forEach((button) => {
-      button.style.backgroundColor = savedButtonColor;
-    });
+    applyTheme(savedBgColor, savedTextColor, savedButtonColor);
   }, []);
 
-  // Apply the selected theme to the document
-  const applyTheme = () => {
-    // Apply background and text color to body
-    document.body.style.backgroundColor = bgColor;
-    document.body.style.color = textColor;
-
-    // Apply button color
-    const buttons = document.querySelectorAll("button");
-    buttons.forEach((button) => {
-      button.style.backgroundColor = buttonColor;
+  // Apply theme settings to the page
+  const applyTheme = (bg = bgColor, text = textColor, button = buttonColor) => {
+    document.body.style.backgroundColor = bg;
+    document.body.style.color = text;
+    document.querySelectorAll("button").forEach((btn) => {
+      btn.style.backgroundColor = button;
     });
 
-    // Save theme to localStorage
-    localStorage.setItem("bgColor", bgColor);
-    localStorage.setItem("textColor", textColor);
-    localStorage.setItem("buttonColor", buttonColor);
+    // Save to localStorage for persistence
+    localStorage.setItem("bgColor", bg);
+    localStorage.setItem("textColor", text);
+    localStorage.setItem("buttonColor", button);
   };
 
   return (
@@ -71,7 +60,7 @@ const ThemeCustomizer = () => {
         onChange={(e) => setButtonColor(e.target.value)}
       />
 
-      <button id="apply-theme" onClick={applyTheme}>
+      <button id="apply-theme" onClick={() => applyTheme()}>
         Apply Theme
       </button>
     </div>
