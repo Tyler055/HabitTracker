@@ -5,12 +5,15 @@ from dotenv import load_dotenv
 import os
 from .config import config
 from .extensions import db
+from app.routes.auth_routes import auth_bp
+from app.routes.completion_routes import completion_bp
 
 migrate = Migrate()
 
 def create_app():
     load_dotenv()
     app = Flask(__name__)
+    app.config.from_object(ActiveConfig)
 
     env = os.getenv('FLASK_ENV', 'development')
     if env not in config:
@@ -25,6 +28,8 @@ def create_app():
 
     # Register Blueprints
     from app.routes.habit_routes import habit_bp
-    app.register_blueprint(habit_bp)
+    app.register_blueprint(auth_bp) 
+    app.register_blueprint(completion_bp)  
+    app.register_blueprint(habit_bp) 
 
     return app

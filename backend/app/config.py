@@ -65,28 +65,24 @@ class DevelopmentConfig(Config):
     if not MYSQL_DB_URI or not MONGO_DB_URI:
         raise ValueError("Development database URIs must be set as environment variables.")
 
-
 class ProductionConfig(Config):
-    """Configuration for the production environment (skipped entirely)."""
+    """Configuration for the production environment."""
     APP_MODE = "production"
     DEBUG = False
 
-    # Skip all production-specific settings
-    print("Warning: Production configuration skipped. Running without production settings.")
+    # Check for critical production-specific settings
+    if not os.getenv("DATABASE_URL"):
+        raise ValueError("Critical environment variable DATABASE_URL is missing in production.")
     
-    # Empty, but kept for future use if needed
-    # DATABASE_URL = os.getenv("DATABASE_URL")
-    # MYSQL_PROD_URI = os.getenv("MYSQL_PROD_URI")
-    # MONGO_PROD_URI = os.getenv("MONGO_PROD_URI")
-    # REDIS_URL = os.getenv("REDIS_URL")
-    # FLASK_SECRET_KEY = os.getenv("FLASK_SECRET_KEY")
+    if not os.getenv("MYSQL_PROD_URI") or not os.getenv("MONGO_PROD_URI"):
+        raise ValueError("Production database URIs (MYSQL_PROD_URI, MONGO_PROD_URI) are missing.")
+
+    if not os.getenv("REDIS_URL"):
+        raise ValueError("Production Redis URL (REDIS_URL) is missing.")
     
-    # Placeholder warnings:
-    print("Warning: Production database URIs (MYSQL_PROD_URI, MONGO_PROD_URI) are not set.")
-    print("Warning: Production Redis URL (REDIS_URL) is not set.")
-    print("Warning: FLASK_SECRET_KEY for production security is not set.")
-
-
+    if not os.getenv("FLASK_SECRET_KEY"):
+        raise ValueError("Production FLASK_SECRET_KEY is missing for security.")
+    
 # Configuration dictionary to select the correct environment
 config = {
     "test": TestingConfig,
