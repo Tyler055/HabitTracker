@@ -1,45 +1,60 @@
+# app.py
 from flask import Flask
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
 from dotenv import load_dotenv
 import os
+from app.config import config
+from app.extensions import db, ma  # Centralized extension objects
+from app.routes.habit_routes import habit_bp
+from app.routes.auth_routes import auth_bp
 
-from app.config import config  # Import configuration settings
-from app.extensions import db  # Import db object from extensions.py
-from app.routes.habit_routes import habit_bp  # Import habit blueprint
-from app.routes.auth_routes import auth_bp  # Import auth blueprint
-
-# Load environment variables from the .env file
+# Load environment variables
 load_dotenv()
 
-# Initialize Flask app
-app = Flask(__name__)
+# Initialize extensions
+jwt = JWTManager()
+migrate = Migrate()
 
-# Load configuration based on environment
-env = os.getenv('FLASK_ENV', 'development')
-app.config.from_object(config[env])  # Select config based on environment
+def create_app(env_name=None):
+    app = Flask(__name__)
 
-# Set the database URI dynamically from environment variables
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URL", "mysql://root:password@localhost/habit-tracker")
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  # Disable modification tracking
-app.config['JWT_SECRET_KEY'] = os.getenv("JWT_SECRET_KEY", "super-secret-key")  # Change this in production
+    # Load config by environment
+    env = env_name or os.getenv('FLASK_ENV', 'development')
+    app.config.from_object(config[env])
 
-# Initialize the database and migration
-db.init_app(app)
-migrate = Migrate(app, db)
+    # Override DB URL from environment if provided
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv(
+        "DATABASE_URL", app.config.get("SQLALCHEMY_DATABASE_URI")
+    )
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    app.config['JWT_SECRET_KEY'] = os.getenv("JWT_SECRET_KEY", "super-secret-key")
 
-# Initialize JWT Manager
-jwt = JWTManager(app)
+    # Initialize extensions
+    db.init_app(app)
+    ma.init_app(app)
+    migrate.init_app(app, db)
+    jwt.init_app(app)
 
-# Register Blueprints
-app.register_blueprint(habit_bp, url_prefix="/api/habits")
-app.register_blueprint(auth_bp, url_prefix="/api/auth")
+    # Register blueprints
+    app.register_blueprint(habit_bp, url_prefix="/api/habits")
+    app.register_blueprint(auth_bp, url_prefix="/api/auth")
 
-# Home route
-@app.route('/')
-def home():
-    return "Welcome to the Habit Tracker API!"
+    # Register global error handlers
+    register_error_handlers(app)
 
-# Run the application
-if __name__ == "__main__":
-    app.run(port=int(os.getenv("PORT", 5000)), debug=os.getenv("DEBUG", "True") == "True")
+    # Root route
+    @app.route("/")
+    def home():
+        return "Welcome to the Habit Tracker API!"
+
+    return app
+
+def register_error_handlers(app):
+    @app.errorhandler(404)
+    def not_found(error):
+        return {"message": "Resource not found"}, 404
+
+    @app.errorhandler(500)
+    def internal_error(error):
+        return {"message": "Internal server error"}, 500
