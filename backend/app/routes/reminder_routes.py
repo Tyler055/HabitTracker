@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from app.models import Reminder  # Assuming Reminder is a model in your app
+from models.models import Reminder  # Assuming Reminder is a model in your app
 from app import db
 
 reminder_routes = Blueprint('reminder_routes', __name__)

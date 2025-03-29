@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from app import db
-from app.models import Habit
+from models.models import Habit
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
 # Create a Blueprint for habit routes

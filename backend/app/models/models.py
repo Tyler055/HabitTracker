@@ -1,7 +1,7 @@
 from datetime import datetime, time, timedelta
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy.orm import Query
-from app.extensions import db
+from utils.extensions import db
 
 # -------------------- Soft Delete Base Query --------------------
 class SoftDeleteQuery(Query):

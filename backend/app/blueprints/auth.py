@@ -1,8 +1,8 @@
 from flask import Blueprint, request, jsonify
 from app import db
-from app.models import User
+from models.models import User
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
-from utils import hash_password, verify_password  # Assuming hash_password and verify_password are utilities in 'utils'
+from utils.utils import hash_password, verify_password  # Assuming hash_password and verify_password are utilities in 'utils'
 
 # Create a Blueprint for auth routes
 auth_bp = Blueprint('auth_bp', __name__)

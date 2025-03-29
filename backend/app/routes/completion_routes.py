@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
-from app.extensions import db
-from app.models import HabitCompletion, Habit, User
+from utils.extensions import db
+from models.models import HabitCompletion, Habit, User
 from datetime import datetime
 
 completion_bp = Blueprint('completion_bp', __name__)

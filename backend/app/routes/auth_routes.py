@@ -9,12 +9,12 @@ completion_bp = Blueprint('completion', __name__)
 # Define Blueprint for reminder routes
 reminder_routes = Blueprint('reminder', __name__)
 
-from app.extensions import db
-from app.models import User, Habit, HabitCompletion, Reminder
+from utils.extensions import db
+from models.models import User, Habit, HabitCompletion, Reminder
 import jwt
 import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
-from app.config import ActiveConfig
+from config import ActiveConfig
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
 # Utility function to generate JWT token
