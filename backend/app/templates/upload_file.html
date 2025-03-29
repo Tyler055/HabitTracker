@@ -17,10 +17,12 @@
     <!-- Flash message for upload status -->
     {% with messages = get_flashed_messages() %}
         {% if messages %}
+            {% set message_list = "" %}
+            {% for message in messages %}
+                {% set message_list = message_list + "<li>" + message + "</li>" %}
+            {% endfor %}
             <ul>
-                {% for message in messages %}
-                    <li>{{ message }}</li>
-                {% endfor %}
+                {{ message_list | safe }}
             </ul>
         {% endif %}
     {% endwith %}

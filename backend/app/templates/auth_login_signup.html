@@ -8,11 +8,13 @@
     <!-- Flash Messages -->
     {% with messages = get_flashed_messages() %}
         {% if messages %}
+            {% set message_list = "" %}
+            {% for message in messages %}
+                {% set message_list = message_list + "<li>" + message + "</li>" %}
+            {% endfor %}
             <div class="flash-messages">
                 <ul>
-                    {% for message in messages %}
-                        <li>{{ message }}</li>
-                    {% endfor %}
+                    {{ message_list | safe }}
                 </ul>
             </div>
         {% endif %}
