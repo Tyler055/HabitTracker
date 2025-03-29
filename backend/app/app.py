@@ -7,6 +7,7 @@ from app.config import config
 from app.extensions import db, ma, mail, mongo  # Centralized extension objects
 from app.routes.habit_routes import habit_bp
 from app.routes.auth_routes import auth_bp
+from flask_pymongo import PyMongo
 
 # Load environment variables
 load_dotenv()
@@ -14,6 +15,7 @@ load_dotenv()
 # Initialize extensions
 jwt = JWTManager()
 migrate = Migrate()
+
 
 def create_app(env_name=None):
     app = Flask(__name__)
@@ -42,6 +44,10 @@ def create_app(env_name=None):
     mail.init_app(app)
     mongo.init_app(app)
 
+    # MongoDB setup
+    app.config["MONGO_URI"] = os.getenv("MONGO_PROD_URI")
+    mongo.init_app(app)
+
     # Register blueprints
     app.register_blueprint(habit_bp, url_prefix="/api/habits")
     app.register_blueprint(auth_bp, url_prefix="/api/auth")
@@ -53,6 +59,16 @@ def create_app(env_name=None):
     @app.route("/")
     def home():
         return "Welcome to the Habit Tracker API!"
+    
+    # Test MongoDB route
+    @app.route("/test-mongo")
+    def test_mongo():
+        try:
+            # Try to access a collection in your MongoDB
+            mongo.db.users.find_one()
+            return "MongoDB is connected and the route works!"
+        except Exception as e:
+            return f"Error connecting to MongoDB: {str(e)}"
 
     return app
 
