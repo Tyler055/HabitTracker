@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import "./styles/styles.css"; // Your global styles
+import "../styles/styles.css"; // Adjust the path to your global styles file
 
 const HabitTracker = () => {
   const [isDarkMode, setIsDarkMode] = useState(false);
