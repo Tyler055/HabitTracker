@@ -28,9 +28,8 @@ class SoftDeleteQuery(Query):
         return super().__iter__()
 
     def _only_not_deleted(self):
-        for entity in self._entities:
-            if hasattr(entity.entity_zero.class_, 'deleted_at'):
-                return entity.entity_zero.class_.deleted_at.is_(None)
+        if hasattr(self._entities[0].entity_zero.class_, 'deleted_at'):
+            return self._entities[0].entity_zero.class_.deleted_at.is_(None)
         return True
 
 # -------------------- User Model --------------------
@@ -91,7 +90,6 @@ class Habit(db.Model):
         reminder = HabitReminder(habit_id=self.id, reminder_time=default_time, reminder_message=message)
         db.session.add(reminder)
         db.session.commit()
-        # 🔔 Future: Schedule Celery task here
 
     def __repr__(self):
         return f'<Habit {self.name}>'
@@ -158,3 +156,6 @@ class HabitAnalytics(db.Model):
         self.total_completions += 1
         self.longest_streak = max(self.longest_streak, self.current_streak)
         self.last_completed = now
+
+    def __repr__(self):
+        return f'<HabitAnalytics habit_id={self.habit_id} total_completions={self.total_completions}>'

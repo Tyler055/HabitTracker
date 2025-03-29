@@ -1,11 +1,10 @@
-# app.py
 from flask import Flask
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
 from dotenv import load_dotenv
 import os
 from app.config import config
-from app.extensions import db, ma  # Centralized extension objects
+from app.extensions import db, ma, mail, mongo  # Centralized extension objects
 from app.routes.habit_routes import habit_bp
 from app.routes.auth_routes import auth_bp
 
@@ -27,14 +26,21 @@ def create_app(env_name=None):
     app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv(
         "DATABASE_URL", app.config.get("SQLALCHEMY_DATABASE_URI")
     )
+    
+    # Ensure the DATABASE_URL is set
+    if not app.config['SQLALCHEMY_DATABASE_URI']:
+        raise ValueError("DATABASE_URL is not set in the environment variables.")
+    
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['JWT_SECRET_KEY'] = os.getenv("JWT_SECRET_KEY", "super-secret-key")
 
-    # Initialize extensions
+    # Initialize extensions only once
     db.init_app(app)
     ma.init_app(app)
     migrate.init_app(app, db)
     jwt.init_app(app)
+    mail.init_app(app)
+    mongo.init_app(app)
 
     # Register blueprints
     app.register_blueprint(habit_bp, url_prefix="/api/habits")

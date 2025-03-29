@@ -1,8 +1,8 @@
 from flask import Blueprint, request, jsonify
 from app import db
-from app.models import User  # Assuming you have a User model
+from app.models import User
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
-from utils import hash_password, generate_jwt_token, verify_password  # Import your utils
+from utils import hash_password, verify_password  # Assuming hash_password and verify_password are utilities in 'utils'
 
 # Create a Blueprint for auth routes
 auth_bp = Blueprint('auth_bp', __name__)
@@ -50,7 +50,7 @@ def login():
         return jsonify({"status": "error", "message": "Invalid credentials"}), 401
 
     # Generate JWT token if authentication is successful
-    access_token = generate_jwt_token(user.id)
+    access_token = create_access_token(identity=user.id)
     return jsonify({
         "status": "success",
         "message": "Login successful",

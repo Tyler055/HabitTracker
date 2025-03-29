@@ -2,13 +2,14 @@ import bcrypt
 from flask_jwt_extended import create_access_token
 from datetime import timedelta
 import os
+from flask_mail import Message
+from flask import current_app
 
 # Function to hash passwords using bcrypt
 def hash_password(password: str) -> str:
     """
     Hashes the password using bcrypt. Bcrypt automatically handles salting.
     """
-    # bcrypt.gensalt() generates a salt and bcrypt.hashpw() hashes the password with the salt
     hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
     return hashed_password.decode('utf-8')  # Return the hashed password as a string
 
@@ -24,7 +25,6 @@ def generate_jwt_token(user_id: int) -> str:
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """
     Verifies if the plain password matches the hashed password.
-    Uses bcrypt to compare the password with the stored hash.
     """
     return bcrypt.checkpw(plain_password.encode('utf-8'), hashed_password.encode('utf-8'))
 
@@ -35,10 +35,15 @@ def generate_random_string(length: int = 16) -> str:
     """
     return os.urandom(length).hex()
 
-# Function to send email (dummy implementation, replace with actual code)
+# Function to send email (using Flask-Mail)
 def send_email(to: str, subject: str, body: str):
     """
-    A simple utility function to send emails.
+    A function to send emails using Flask-Mail.
     """
-    print(f"Sending email to {to} with subject: {subject}")
-    print(f"Body: {body}")
+    try:
+        msg = Message(subject=subject, recipients=[to])
+        msg.body = body  # Text content of the email
+        current_app.mail.send(msg)  # Sending email through Flask-Mail
+        print(f"Email sent to {to} with subject: {subject}")
+    except Exception as e:
+        print(f"Error sending email: {e}")
