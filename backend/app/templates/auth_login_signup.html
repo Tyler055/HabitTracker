@@ -8,13 +8,11 @@
     <!-- Flash Messages -->
     {% with messages = get_flashed_messages() %}
         {% if messages %}
-            {% set message_list = "" %}
-            {% for message in messages %}
-                {% set message_list = message_list + "<li>" + message + "</li>" %}
-            {% endfor %}
             <div class="flash-messages">
-                <ul>
-                    {{ message_list | safe }}
+                <ul role="alert">
+                    {% for message in messages %}
+                        <li>{{ message }}</li>
+                    {% endfor %}
                 </ul>
             </div>
         {% endif %}
@@ -23,22 +21,22 @@
     <form method="POST" action="{{ url_for('auth.' + form_action) }}">
         {{ form.hidden_tag() }}
 
-        <!-- Username / Email Field -->
+        <!-- Email Field -->
         <div class="form-group">
             <label for="email">Email</label>
-            {{ form.email(class="input", placeholder="Enter your email") }}
+            {{ form.email(class="input", id="email", placeholder="Enter your email") }}
         </div>
 
         <!-- Password Field -->
         <div class="form-group">
             <label for="password">Password</label>
-            {{ form.password(class="input", placeholder="Enter your password") }}
+            {{ form.password(class="input", id="password", placeholder="Enter your password") }}
         </div>
 
         <!-- Remember Me Checkbox (For Login only) -->
         {% if form_action == 'login' %}
             <div class="form-check">
-                {{ form.remember(class="input-check") }}
+                {{ form.remember(class="input-check", id="remember") }}
                 <label for="remember">Remember me</label>
             </div>
         {% endif %}

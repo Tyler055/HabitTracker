@@ -17,13 +17,13 @@
     <!-- Flash message for upload status -->
     {% with messages = get_flashed_messages() %}
         {% if messages %}
-            {% set message_list = "" %}
-            {% for message in messages %}
-                {% set message_list = message_list + "<li>" + message + "</li>" %}
-            {% endfor %}
-            <ul>
-                {{ message_list | safe }}
-            </ul>
+            <div class="flash-messages">
+                <ul role="alert">
+                    {%- for message in messages -%}
+                        <li>{{ message }}</li>
+                    {%- endfor -%}
+                </ul>
+            </div>
         {% endif %}
     {% endwith %}
 {% endblock %}
