@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify, current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from utils.extensions import db
-from models.models import Habit, HabitCompletion, User
+from app.models.models import Habit, HabitCompletion, User
 from marshmallow import Schema, fields, ValidationError
 from datetime import datetime
 

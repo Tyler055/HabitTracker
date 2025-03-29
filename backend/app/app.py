@@ -4,7 +4,7 @@ from flask_jwt_extended import JWTManager
 from dotenv import load_dotenv
 import os
 from config import config
-from utils.extensions import db, ma, mail, mongo  # Centralized extension objects
+from app.utils.extensions import db, ma, mail, mongo  # Centralized extension objects
 from app.routes.habit_routes import habit_bp
 from app.routes.auth_routes import auth_bp
 from flask_pymongo import PyMongo

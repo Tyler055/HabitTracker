@@ -1,10 +1,12 @@
-# run.py
 import os
-from app import create_app
+from app.app import create_app
 
-app = create_app()
+# Get environment mode from .env, default to development
+env_mode = os.getenv('FLASK_ENV', 'development')
 
-if __name__ == '__main__':
-    debug_mode = os.getenv('FLASK_DEBUG', 'False').lower() == 'true'
+app = create_app(env_mode)
+
+if __name__ == "__main__":
+    debug_mode = env_mode == 'development'
     port = int(os.getenv('PORT', 5000))
-    app.run(debug=debug_mode, port=port)
+    app.run(host="0.0.0.0", port=port, debug=debug_mode)

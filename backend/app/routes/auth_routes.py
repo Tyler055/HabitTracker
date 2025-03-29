@@ -1,4 +1,11 @@
 from flask import Blueprint, request, jsonify
+from app.utils.extensions import db
+from app.models.models import User, Habit, HabitCompletion, HabitReminder
+import jwt
+import datetime
+from werkzeug.security import generate_password_hash, check_password_hash
+from config import ActiveConfig
+from flask_jwt_extended import jwt_required, get_jwt_identity
 
 # Define Blueprint for authentication routes
 auth_bp = Blueprint('auth', __name__)
@@ -8,14 +15,6 @@ completion_bp = Blueprint('completion', __name__)
 
 # Define Blueprint for reminder routes
 reminder_routes = Blueprint('reminder', __name__)
-
-from utils.extensions import db
-from models.models import User, Habit, HabitCompletion, Reminder
-import jwt
-import datetime
-from werkzeug.security import generate_password_hash, check_password_hash
-from config import ActiveConfig
-from flask_jwt_extended import jwt_required, get_jwt_identity
 
 # Utility function to generate JWT token
 def generate_token(user_id):
@@ -115,7 +114,7 @@ def create_reminder():
     if 'habit_id' not in data or 'reminder_time' not in data:
         return jsonify({'msg': 'Habit ID and reminder time are required'}), 400
 
-    new_reminder = Reminder(
+    new_reminder = HabitReminder(
         habit_id=data['habit_id'],
         reminder_time=data['reminder_time'],
         user_id=user_id

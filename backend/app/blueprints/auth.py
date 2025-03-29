@@ -66,7 +66,6 @@ def me():
 
     if not user:
         return jsonify({"status": "error", "message": "User not found"}), 404
-
     return jsonify({
         "status": "success",
         "data": {"id": user.id, "username": user.username}
