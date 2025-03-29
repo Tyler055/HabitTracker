@@ -4,9 +4,8 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from dotenv import load_dotenv
 import os
-from app.config import config
+from config import config
 from app.utils.extensions import db
-from app.routes.auth_routes import auth_bp
 from app.routes.completion_routes import completion_bp
 from app.routes.habit_routes import habit_bp
 from flask_pymongo import PyMongo
@@ -16,6 +15,7 @@ mongo = PyMongo()
 migrate = Migrate()
 
 def create_app():
+    from app.routes.auth_routes import auth_bp
     # Load environment variables from .env file
     load_dotenv()
 

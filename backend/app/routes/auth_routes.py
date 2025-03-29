@@ -9,6 +9,9 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 
 # Define Blueprint for authentication routes
 auth_bp = Blueprint('auth', __name__)
+@auth_bp.route('/test')
+def test():
+    return "Auth route is working!"
 
 # Define Blueprint for habit completion routes
 completion_bp = Blueprint('completion', __name__)

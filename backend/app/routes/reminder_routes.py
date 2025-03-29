@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from models.models import Reminder  # Assuming Reminder is a model in your app
+from app.models.models import HabitReminder  # Assuming Reminder is a model in your app
 from app import db
 
 reminder_routes = Blueprint('reminder_routes', __name__)
@@ -16,7 +16,7 @@ def create_reminder():
     if 'habit_id' not in data or 'reminder_time' not in data:
         return jsonify({'msg': 'Habit ID and reminder time are required'}), 400
     
-    new_reminder = Reminder(
+    new_reminder = HabitReminder(
         habit_id=data['habit_id'],
         reminder_time=data['reminder_time'],
         user_id=user_id  # Link reminder to authenticated user
@@ -34,7 +34,7 @@ def create_reminder():
 def get_reminders():
     user_id = get_jwt_identity()
     
-    reminders = Reminder.query.filter_by(user_id=user_id).all()
+    reminders = HabitReminder.query.filter_by(user_id=user_id).all()
     reminders_list = [reminder.to_dict() for reminder in reminders]  # Convert each reminder to a dict
     
     return jsonify({'reminders': reminders_list}), 200
@@ -46,7 +46,7 @@ def get_reminders():
 def get_reminder(id):
     user_id = get_jwt_identity()
     
-    reminder = Reminder.query.filter_by(id=id, user_id=user_id).first()
+    reminder = HabitReminder.query.filter_by(id=id, user_id=user_id).first()
     if reminder is None:
         return jsonify({'msg': 'Reminder not found'}), 404
     
@@ -59,7 +59,7 @@ def get_reminder(id):
 def update_reminder(id):
     user_id = get_jwt_identity()
     
-    reminder = Reminder.query.filter_by(id=id, user_id=user_id).first()
+    reminder = HabitReminder.query.filter_by(id=id, user_id=user_id).first()
     if reminder is None:
         return jsonify({'msg': 'Reminder not found'}), 404
     
@@ -79,7 +79,7 @@ def update_reminder(id):
 def delete_reminder(id):
     user_id = get_jwt_identity()
     
-    reminder = Reminder.query.filter_by(id=id, user_id=user_id).first()
+    reminder = HabitReminder.query.filter_by(id=id, user_id=user_id).first()
     if reminder is None:
         return jsonify({'msg': 'Reminder not found'}), 404
     
