@@ -1,3 +1,190 @@
+/* 🌍 Global Styles for the App */
+
+/* :root Variables for Light and Dark Themes */
+:root {
+  /* Light Theme Variables */
+  --bg-color-light: #ffffff;
+  --text-color-light: #000000;
+  --button-color-light: #007bff;
+  --button-color-hover-light: #0056b3;
+
+  /* Dark Theme Variables */
+  --bg-color-dark: #121212;
+  --text-color-dark: #ffffff;
+  --button-color-dark: #333;
+  --button-color-hover-dark: #00aaff;
+}
+
+/* Base Body and Layout */
+body {
+  font-family: 'Arial', sans-serif;
+  background-color: var(--bg-color-light); /* Default light theme background */
+  color: var(--text-color-light); /* Default text color */
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* 🌙 Dark Mode and Light Mode settings */
+body.dark-theme {
+  background-color: var(--bg-color-dark);
+  color: var(--text-color-dark);
+}
+
+body.light-theme {
+  background-color: var(--bg-color-light);
+  color: var(--text-color-light);
+}
+
+/* Universal Container for content */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* 🌍 Universal Button Styles */
+button {
+  padding: 10px 15px;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+  font-size: 16px;
+  background-color: var(--button-color-light);
+  transition: background-color 0.3s;
+}
+
+button:hover {
+  background-color: var(--button-color-hover-light);
+  color: white;
+}
+
+/* Dark theme button styles */
+body.dark-theme button {
+  background-color: var(--button-color-dark);
+}
+
+body.dark-theme button:hover {
+  background-color: var(--button-color-hover-dark);
+}
+
+/* 🌍 Error Pop-up Styles (Global) */
+.error-popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  padding: 15px;
+  background-color: #f44336;
+  color: white;
+  font-size: 16px;
+  text-align: center;
+  z-index: 10000;
+  display: none; 
+}
+
+/* 🌍 Global Links */
+a {
+  color: #007BFF;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* 🌍 Footer Styling */
+footer {
+  text-align: center;
+  padding: 10px;
+  background-color: #f1f1f1;
+  color: #555;
+}
+
+/* 🌍 Global Form Styling */
+input[type="text"], input[type="password"], input[type="email"], textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  margin-bottom: 15px;
+}
+
+input[type="text"]:focus, input[type="password"]:focus, input[type="email"]:focus, textarea:focus {
+  outline: none;
+  border-color: #007BFF;
+}
+
+/* 🌍 Footer Styling */
+footer {
+  text-align: center;
+  padding: 10px;
+  background-color: #f1f1f1;
+  color: #555;
+}
+
+/* Responsive Styles for smaller screens */
+@media (max-width: 768px) {
+  body {
+    font-size: 14px;
+  }
+
+  .container {
+    padding: 15px;
+  }
+
+  button {
+    font-size: 14px;
+  }
+}
+
+/* Taskbar Button Styles */
+.taskbar-toggle-btn {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  background: none;
+  border: none;
+  font-size: 30px;
+  color: #fff;
+  cursor: pointer;
+}
+
+.taskbar-toggle-btn:hover {
+  color: #61dafb;
+}
+
+/* Page Container */
+main {
+  margin-top: 60px;
+  padding: 20px;
+}
+
+.setting-item label {
+  font-size: 16px;
+  margin-right: 10px;
+}
+
+.setting-item span {
+  font-size: 16px;
+}
+
+/* Reset Button Styling */
+.reset-theme-btn {
+  background-color: #f0f0f0;
+  border: 1px solid #ccc;
+  padding: 10px;
+  cursor: pointer;
+  margin-top: 20px;
+  transition: background-color 0.3s;
+}
+
+.reset-theme-btn:hover {
+  background-color: #e0e0e0;
+}
+
+/* 🌍 Global Styles for App with Transitions */
 .App {
   text-align: center;
 }
@@ -35,55 +222,4 @@
   to {
     transform: rotate(360deg);
   }
-}
-/* Base styles for light theme */
-body {
-  background-color: #ffffff;
-  color: #000000;
-  font-size: 16px;
-  transition: background-color 0.3s, color 0.3s, font-size 0.3s;
-}
-
-/* Dark theme styles */
-body.dark-theme {
-  background-color: #121212;
-  color: #ffffff;
-}
-
-/* Button color */
-button {
-  background-color: var(--button-color, #007bff);
-  transition: background-color 0.3s;
-}
-
-/* Settings container */
-.settings-container {
-  padding: 20px;
-}
-
-/* Styling for input elements and selectors */
-.setting-item {
-  margin-bottom: 15px;
-}
-
-input[type="checkbox"] {
-  margin-left: 10px;
-}
-
-select, input[type="color"] {
-  margin-left: 10px;
-}
-
-/* Reset button styling */
-.reset-theme-btn {
-  background-color: #f0f0f0;
-  border: 1px solid #ccc;
-  padding: 10px;
-  cursor: pointer;
-  margin-top: 20px;
-  transition: background-color 0.3s;
-}
-
-.reset-theme-btn:hover {
-  background-color: #e0e0e0;
 }

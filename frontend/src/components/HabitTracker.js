@@ -1,109 +1,151 @@
 import React, { useState, useEffect } from "react";
-import "../styles/styles.css"; // Adjust the path to your global styles file
+import axios from "axios";
 
 const HabitTracker = () => {
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [habit, setHabit] = useState("");
   const [habits, setHabits] = useState([]);
-  const [newHabit, setNewHabit] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState(""); // Added success message state
+  const [isLoading, setIsLoading] = useState(false);
 
+  // Fetch habits from the backend on mount
   useEffect(() => {
-    const savedTheme = localStorage.getItem("theme") || "dark";
-    setIsDarkMode(savedTheme === "dark");
-    document.body.classList.add(`${savedTheme}-theme`);
-
-    // Fetch habits from the backend
     const fetchHabits = async () => {
+      setIsLoading(true);
       try {
-        const response = await fetch("http://127.0.0.1:5000/habits");
-        const data = await response.json();
-        setHabits(data);
+        const response = await axios.get("/habits");
+        setHabits(response.data);
       } catch (error) {
-        console.error("Error fetching habits:", error);
+        setErrorMessage("Failed to fetch habits.");
+      } finally {
+        setIsLoading(false);
       }
     };
     fetchHabits();
   }, []);
 
-  const toggleTheme = () => {
-    const newTheme = !isDarkMode ? "dark" : "light";
-    setIsDarkMode(!isDarkMode);
-    document.body.classList.remove(isDarkMode ? "dark-theme" : "light-theme");
-    document.body.classList.add(newTheme + "-theme");
-    localStorage.setItem("theme", newTheme);
-  };
+  // Handle adding a new habit
+  const handleAddHabit = async (e) => {
+    e.preventDefault();
+    if (!habit.trim()) return;
 
-  const addHabit = async () => {
-    if (!newHabit.trim()) return;
+    // Optimistically update UI
+    const newHabit = { id: Date.now(), name: habit };
+    setHabits((prevHabits) => [...prevHabits, newHabit]);
 
+    setIsLoading(true);
     try {
-      const response = await fetch("http://127.0.0.1:5000/habits", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: newHabit }),
-      });
-
-      if (response.ok) {
-        const updatedHabit = await response.json();
-        setHabits([...habits, updatedHabit]);
-        setNewHabit("");
-      }
+      const response = await axios.post("/habits", { name: habit });
+      setHabits((prevHabits) =>
+        prevHabits.map((h) =>
+          h.id === newHabit.id ? { ...newHabit, id: response.data.id } : h
+        )
+      );
+      setHabit(""); // Reset input field
+      setErrorMessage(""); // Clear previous error
+      setSuccessMessage("Habit added successfully!"); // Show success message
+      setTimeout(() => setSuccessMessage(""), 3000); // Hide after 3 seconds
     } catch (error) {
-      console.error("Error adding habit:", error);
+      setErrorMessage("Failed to add habit.");
+      setHabits((prevHabits) => prevHabits.filter((h) => h.id !== newHabit.id)); // Rollback on error
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const resetHabits = async () => {
+  // Handle deleting a habit
+  const handleDeleteHabit = async (id) => {
+    const confirmDelete = window.confirm("Are you sure you want to delete this habit?");
+    if (!confirmDelete) return;
+
+    setIsLoading(true);
     try {
-      const response = await fetch("/reset_habits", { method: "POST" });
-      if (!response.ok) throw new Error("Error resetting habits.");
-      window.location.reload();
+      await axios.delete(`/habits/${id}`);
+      setHabits((prevHabits) => prevHabits.filter((habit) => habit.id !== id));
     } catch (error) {
-      alert(error.message);
+      setErrorMessage("Failed to delete habit.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const deleteHabit = async (id) => {
+  // Handle resetting all habits
+  const handleResetHabits = async () => {
+    const confirmReset = window.confirm("Are you sure you want to reset all habits?");
+    if (!confirmReset) return;
+
+    setIsLoading(true);
     try {
-      const response = await fetch(`http://127.0.0.1:5000/habits/${id}`, { method: "DELETE" });
-      if (response.ok) {
-        setHabits(habits.filter((habit) => habit.id !== id));
-      } else {
-        alert("Failed to delete habit.");
-      }
+      await axios.post("/reset_habits");
+      setHabits([]);
     } catch (error) {
-      console.error("Error deleting habit:", error);
+      setErrorMessage("Failed to reset habits.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="habit-tracker">
+    <div className="habit-container">
       <h1>Habit Tracker</h1>
 
-      <button id="theme-toggle" onClick={toggleTheme}>
-        {isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
+      <form onSubmit={handleAddHabit} className="habit-form">
+        <label htmlFor="habitInput" className="sr-only">Habit Name</label>
+        <input
+          id="habitInput"
+          type="text"
+          className="input-box"
+          placeholder="Add new habit"
+          value={habit}
+          onChange={(e) => setHabit(e.target.value)}
+          aria-label="Enter habit name"
+        />
+        <button
+          type="submit"
+          className="add-btn"
+          disabled={isLoading}
+          aria-label="Add a new habit"
+        >
+          {isLoading ? "Adding..." : "Add Habit"}
+        </button>
+      </form>
+
+      {errorMessage && <p className="error-message">{errorMessage}</p>}
+      {successMessage && <p className="success-message">{successMessage}</p>} {/* Success Message */}
+
+      <h2>Habit List</h2>
+
+      {isLoading ? (
+        <div className="spinner"></div>
+      ) : (
+        <div className="habit-list">
+          {habits.length ? (
+            habits.map((habit) => (
+              <div key={habit.id} className="habit-item">
+                <span>{habit.name}</span>
+                <button
+                  className="delete-btn"
+                  onClick={() => handleDeleteHabit(habit.id)} // Correctly reference habit.id
+                  aria-label={`Delete habit ${habit.name}`}
+                >
+                  Delete
+                </button>
+              </div>
+            ))
+          ) : (
+            <p>No habits found.</p>
+          )}
+        </div>
+      )}
+
+      <button
+        onClick={handleResetHabits}
+        disabled={isLoading}
+        className="reset-btn"
+        aria-label="Reset all habits"
+      >
+        {isLoading ? "Resetting..." : "Reset All Habits"}
       </button>
-
-      <button id="reset-button" onClick={resetHabits}>
-        Reset Habits
-      </button>
-
-      <ul>
-        {habits.map((habit, index) => (
-          <li key={index}>
-            {habit.name}
-            <button className="delete-btn" onClick={() => deleteHabit(habit.id)}>Delete</button>
-          </li>
-        ))}
-      </ul>
-
-      <input
-        type="text"
-        className="input-box"
-        placeholder="Add new habit"
-        value={newHabit}
-        onChange={(e) => setNewHabit(e.target.value)}
-      />
-      <button onClick={addHabit}>Add Habit</button>
     </div>
   );
 };

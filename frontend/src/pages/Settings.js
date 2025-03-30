@@ -1,19 +1,38 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
-const Settings = () => {
+const ThemeSettings = () => {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [fontSize, setFontSize] = useState('16px');
   const [buttonColor, setButtonColor] = useState('#007bff');
+  const [bgColor, setBgColor] = useState('#ffffff');
+  const [textColor, setTextColor] = useState('#000000');
+
+  const applyTheme = React.useCallback((bg = bgColor, text = textColor, button = buttonColor) => {
+    document.body.style.backgroundColor = bg;
+    document.body.style.color = text;
+    document.querySelectorAll("button").forEach((btn) => {
+      btn.style.backgroundColor = button;
+    });
+
+    // Save to localStorage for persistence
+    localStorage.setItem('bgColor', bg);
+    localStorage.setItem('textColor', text);
+    localStorage.setItem('buttonColor', button);
+  }, [bgColor, textColor, buttonColor]);
 
   // Load settings from localStorage
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme');
     const savedFontSize = localStorage.getItem('font-size');
     const savedButtonColor = localStorage.getItem('button-color');
+    const savedBgColor = localStorage.getItem('bgColor') || '#ffffff';
+    const savedTextColor = localStorage.getItem('textColor') || '#000000';
 
     if (savedTheme === 'dark') {
       setIsDarkMode(true);
       document.body.classList.add('dark-theme');
+    } else {
+      document.body.classList.remove('dark-theme');
     }
 
     if (savedFontSize) {
@@ -25,7 +44,11 @@ const Settings = () => {
       setButtonColor(savedButtonColor);
       document.documentElement.style.setProperty('--button-color', savedButtonColor);
     }
-  }, []);
+
+    setBgColor(savedBgColor);
+    setTextColor(savedTextColor);
+    applyTheme(savedBgColor, savedTextColor, savedButtonColor);
+  }, [applyTheme]);
 
   // Handle theme toggle
   const handleThemeToggle = () => {
@@ -58,7 +81,21 @@ const Settings = () => {
     localStorage.setItem('button-color', newButtonColor);
   };
 
-  // Reset to default theme
+  // Handle background color change
+  const handleBgColorChange = (event) => {
+    const newBgColor = event.target.value;
+    setBgColor(newBgColor);
+    applyTheme(newBgColor, textColor, buttonColor);
+  };
+
+  // Handle text color change
+  const handleTextColorChange = (event) => {
+    const newTextColor = event.target.value;
+    setTextColor(newTextColor);
+    applyTheme(bgColor, newTextColor, buttonColor);
+  };
+
+  // Reset to default settings
   const resetTheme = () => {
     document.body.classList.remove('dark-theme');
     localStorage.removeItem('theme');
@@ -66,6 +103,10 @@ const Settings = () => {
     document.body.style.fontSize = '16px';
     localStorage.setItem('font-size', '16px');
     setFontSize('16px');
+    setBgColor('#ffffff');
+    setTextColor('#000000');
+    setButtonColor('#007bff');
+    applyTheme('#ffffff', '#000000', '#007bff');
   };
 
   return (
@@ -81,7 +122,7 @@ const Settings = () => {
           checked={isDarkMode}
           onChange={handleThemeToggle}
         />
-        <span>{isDarkMode ? 'Light' : 'Dark'}</span> {/* Dynamically update text */}
+        <span>{isDarkMode ? 'Light' : 'Dark'}</span>
       </div>
 
       {/* Font Size Selector */}
@@ -106,6 +147,28 @@ const Settings = () => {
         />
       </div>
 
+      {/* Background Color Picker */}
+      <div className="setting-item">
+        <label htmlFor="bg-color">Background Color: </label>
+        <input
+          type="color"
+          id="bg-color"
+          value={bgColor}
+          onChange={handleBgColorChange}
+        />
+      </div>
+
+      {/* Text Color Picker */}
+      <div className="setting-item">
+        <label htmlFor="text-color">Text Color: </label>
+        <input
+          type="color"
+          id="text-color"
+          value={textColor}
+          onChange={handleTextColorChange}
+        />
+      </div>
+
       {/* Reset Theme Button */}
       <button onClick={resetTheme} className="reset-theme-btn">
         Reset Current Theme
@@ -114,4 +177,4 @@ const Settings = () => {
   );
 };
 
-export default Settings;
+export default ThemeSettings;

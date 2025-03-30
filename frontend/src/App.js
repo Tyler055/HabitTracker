@@ -3,11 +3,10 @@ import { Routes, Route } from "react-router-dom";
 import logo from "./logo.svg";
 import "./styles/App.css";
 import TaskBar from "./TaskBar";
-import ThemeCustomizer from "./components/ThemeCustomizer";
 import Home from "./pages/Home";
 import HabitTracker from "./components/HabitTracker";
 import Progress from "./pages/Progress";
-import Settings from "./pages/Settings";
+import { Settings } from './pages/Settings';
 import Profile from "./pages/Profile";
 
 const App = () => {
@@ -45,30 +44,14 @@ const App = () => {
         ☰
       </button>
 
-      {/* ✅ Use only ONE instance of TaskBar */}
       <TaskBar isVisible={isTaskbarVisible} toggleTaskbar={toggleTaskbarVisibility} />
 
       <main style={{ marginTop: "60px", padding: "20px" }}>
-        {/* Dark Mode Toggle */}
-        <div className="setting-item">
-          <label htmlFor="theme-toggle">Dark Mode: </label>
-          <input
-            type="checkbox"
-            id="theme-toggle"
-            checked={isDarkMode}
-            onChange={toggleTheme} // Call the toggleTheme directly
-          />
-          <span>{isDarkMode ? "Light" : "Dark"}</span> {/* Dynamically update text */}
-        </div>
-
-        {/* Place Theme Customizer in main content */}
-        <ThemeCustomizer toggleTheme={toggleTheme} isDarkMode={isDarkMode} />
-
         <Routes>
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<Home />} /> {/* Home page as the default route */}
           <Route path="/habit-tracker" element={<HabitTracker />} />
           <Route path="/progress" element={<Progress />} />
-          <Route path="/settings" element={<Settings />} />
+          <Route path="/settings" element={<Settings toggleTheme={toggleTheme} isDarkMode={isDarkMode} />} />
           <Route path="/profile" element={<Profile />} />
           {/* Default Route */}
           <Route path="*" element={<Home />} />
