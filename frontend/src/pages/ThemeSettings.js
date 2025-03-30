@@ -1,26 +1,35 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 const ThemeSettings = () => {
-  const [isDarkMode, setIsDarkMode] = useState(false);
   const [fontSize, setFontSize] = useState('16px');
   const [buttonColor, setButtonColor] = useState('#007bff');
   const [bgColor, setBgColor] = useState('#ffffff');
   const [textColor, setTextColor] = useState('#000000');
+  const [isDarkMode, setIsDarkMode] = useState(false);
 
-  const applyTheme = React.useCallback((bg = bgColor, text = textColor, button = buttonColor) => {
-    document.body.style.backgroundColor = bg;
-    document.body.style.color = text;
-    document.querySelectorAll("button").forEach((btn) => {
-      btn.style.backgroundColor = button;
+  // Apply the theme to the document
+  const applyTheme = useCallback(() => {
+    const currentBgColor = isDarkMode ? '#333333' : bgColor;
+    const currentTextColor = isDarkMode ? '#ffffff' : textColor;
+    const currentButtonColor = buttonColor;
+
+    document.documentElement.style.setProperty('--bg-color', currentBgColor);
+    document.documentElement.style.setProperty('--text-color', currentTextColor);
+    document.documentElement.style.setProperty('--button-color', currentButtonColor);
+
+    document.body.style.backgroundColor = currentBgColor;
+    document.body.style.color = currentTextColor;
+    document.querySelectorAll('button').forEach((btn) => {
+      btn.style.backgroundColor = currentButtonColor;
     });
 
-    // Save to localStorage for persistence
-    localStorage.setItem('bgColor', bg);
-    localStorage.setItem('textColor', text);
-    localStorage.setItem('buttonColor', button);
-  }, [bgColor, textColor, buttonColor]);
+    localStorage.setItem('bgColor', currentBgColor);
+    localStorage.setItem('textColor', currentTextColor);
+    localStorage.setItem('buttonColor', currentButtonColor);
+    localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
+  }, [isDarkMode, bgColor, textColor, buttonColor]);
 
-  // Load settings from localStorage
+  // Load settings from localStorage on component mount
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme');
     const savedFontSize = localStorage.getItem('font-size');
@@ -29,10 +38,9 @@ const ThemeSettings = () => {
     const savedTextColor = localStorage.getItem('textColor') || '#000000';
 
     if (savedTheme === 'dark') {
-      setIsDarkMode(true);
-      document.body.classList.add('dark-theme');
+      setIsDarkMode(true); // Set dark mode when it's saved in localStorage
     } else {
-      document.body.classList.remove('dark-theme');
+      setIsDarkMode(false); // Default to light theme
     }
 
     if (savedFontSize) {
@@ -42,30 +50,14 @@ const ThemeSettings = () => {
 
     if (savedButtonColor) {
       setButtonColor(savedButtonColor);
-      document.documentElement.style.setProperty('--button-color', savedButtonColor);
     }
 
     setBgColor(savedBgColor);
     setTextColor(savedTextColor);
-    applyTheme(savedBgColor, savedTextColor, savedButtonColor);
+
+    applyTheme(); // Apply the theme based on saved settings
   }, [applyTheme]);
 
-  // Handle theme toggle
-  const handleThemeToggle = () => {
-    setIsDarkMode((prevState) => {
-      const newState = !prevState;
-      if (newState) {
-        document.body.classList.add('dark-theme');
-        localStorage.setItem('theme', 'dark');
-      } else {
-        document.body.classList.remove('dark-theme');
-        localStorage.setItem('theme', 'light');
-      }
-      return newState;
-    });
-  };
-
-  // Handle font size change
   const handleFontSizeChange = (event) => {
     const newFontSize = event.target.value;
     setFontSize(newFontSize);
@@ -73,56 +65,57 @@ const ThemeSettings = () => {
     localStorage.setItem('font-size', newFontSize);
   };
 
-  // Handle button color change
   const handleButtonColorChange = (event) => {
     const newButtonColor = event.target.value;
     setButtonColor(newButtonColor);
-    document.documentElement.style.setProperty('--button-color', newButtonColor);
     localStorage.setItem('button-color', newButtonColor);
   };
 
-  // Handle background color change
   const handleBgColorChange = (event) => {
     const newBgColor = event.target.value;
     setBgColor(newBgColor);
-    applyTheme(newBgColor, textColor, buttonColor);
   };
 
-  // Handle text color change
   const handleTextColorChange = (event) => {
     const newTextColor = event.target.value;
     setTextColor(newTextColor);
-    applyTheme(bgColor, newTextColor, buttonColor);
   };
 
-  // Reset to default settings
   const resetTheme = () => {
-    document.body.classList.remove('dark-theme');
     localStorage.removeItem('theme');
-    setIsDarkMode(false);
-    document.body.style.fontSize = '16px';
-    localStorage.setItem('font-size', '16px');
+    localStorage.removeItem('bgColor');
+    localStorage.removeItem('textColor');
+    localStorage.removeItem('buttonColor');
+    localStorage.removeItem('font-size');
+
     setFontSize('16px');
     setBgColor('#ffffff');
     setTextColor('#000000');
     setButtonColor('#007bff');
-    applyTheme('#ffffff', '#000000', '#007bff');
+    setIsDarkMode(false); // Reset to light theme
+    applyTheme(); // Reset to default theme
+  };
+
+  const toggleDarkMode = () => {
+    setIsDarkMode((prevMode) => !prevMode);
   };
 
   return (
     <div className="settings-container">
       <h2>Settings</h2>
 
-      {/* Dark Mode Toggle */}
+      {/* Dark/Light Theme Toggle */}
       <div className="setting-item">
-        <label htmlFor="theme-toggle">Dark Mode: </label>
-        <input
-          type="checkbox"
-          id="theme-toggle"
-          checked={isDarkMode}
-          onChange={handleThemeToggle}
-        />
-        <span>{isDarkMode ? 'Light' : 'Dark'}</span>
+        <label htmlFor="theme-toggle" className="switch">
+          <input
+            type="checkbox"
+            id="theme-toggle"
+            checked={isDarkMode}
+            onChange={toggleDarkMode}
+          />
+          <span className="slider"></span>
+        </label>
+        <span>{isDarkMode ? 'Dark' : 'Light'}</span>
       </div>
 
       {/* Font Size Selector */}
@@ -169,7 +162,12 @@ const ThemeSettings = () => {
         />
       </div>
 
-      {/* Reset Theme Button */}
+      {/* Apply Changes */}
+      <button onClick={applyTheme} className="apply-btn">
+        Apply
+      </button>
+
+      {/* Reset to Default Theme */}
       <button onClick={resetTheme} className="reset-theme-btn">
         Reset Current Theme
       </button>

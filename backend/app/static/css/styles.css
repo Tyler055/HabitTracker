@@ -110,7 +110,8 @@ body.dark-theme .habit-item {
 
 /* 🖊️ Input Fields */
 .input-box {
-  width: 100%;
+  width: 225px;
+  max-width: 100%;
   padding: 12px;
   font-size: 1rem;
   margin: 10px 0;

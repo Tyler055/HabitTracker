@@ -5,7 +5,7 @@ const HabitTracker = () => {
   const [habit, setHabit] = useState("");
   const [habits, setHabits] = useState([]);
   const [errorMessage, setErrorMessage] = useState("");
-  const [successMessage, setSuccessMessage] = useState(""); // Added success message state
+  const [successMessage, setSuccessMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   // Fetch habits from the backend on mount
@@ -43,7 +43,7 @@ const HabitTracker = () => {
       );
       setHabit(""); // Reset input field
       setErrorMessage(""); // Clear previous error
-      setSuccessMessage("Habit added successfully!"); // Show success message
+      setSuccessMessage("Habit added successfully!");
       setTimeout(() => setSuccessMessage(""), 3000); // Hide after 3 seconds
     } catch (error) {
       setErrorMessage("Failed to add habit.");
@@ -111,12 +111,12 @@ const HabitTracker = () => {
       </form>
 
       {errorMessage && <p className="error-message">{errorMessage}</p>}
-      {successMessage && <p className="success-message">{successMessage}</p>} {/* Success Message */}
+      {successMessage && <p className="success-message">{successMessage}</p>}
 
       <h2>Habit List</h2>
 
       {isLoading ? (
-        <div className="spinner"></div>
+        <div className="spinner">Loading...</div>
       ) : (
         <div className="habit-list">
           {habits.length ? (
@@ -125,7 +125,7 @@ const HabitTracker = () => {
                 <span>{habit.name}</span>
                 <button
                   className="delete-btn"
-                  onClick={() => handleDeleteHabit(habit.id)} // Correctly reference habit.id
+                  onClick={() => handleDeleteHabit(habit.id)}
                   aria-label={`Delete habit ${habit.name}`}
                 >
                   Delete
@@ -149,5 +149,6 @@ const HabitTracker = () => {
     </div>
   );
 };
-
+// (Remove this duplicate declaration entirely)
 export default HabitTracker;
+

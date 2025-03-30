@@ -2,22 +2,58 @@
 .taskbar {
   position: fixed;
   top: 0;
-  left: 0;
+  left: -250px; /* Initially hide taskbar off-screen */
   width: 250px;
   height: 100%;
-  background-color: #333;
-  color: white;
   padding-top: 20px;
-  transition: transform 0.3s ease; /* Transition on transform */
-  transform: translateX(-100%); /* Initially hidden */
-  z-index: 1000; /* Ensure it's above other content */
+  background-color: var(--background-light);
+  color: var(--text-light);
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  z-index: 1000; /* Ensure it’s above other content */
 }
 
-/* Taskbar Visible When Toggled */
 .taskbar.show {
-  transform: translateX(0); /* Slide into view */
+  transform: translateX(250px); /* Slide taskbar in */
+  opacity: 1;
 }
 
+/* Taskbar Navigation */
+.taskbar nav ul,
+.taskbar ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.taskbar li {
+  padding: 10px;
+  font-size: 1.2rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.taskbar li:hover {
+  background-color: var(--button-hover-light);
+}
+
+.taskbar li.active {
+  background-color: var(--button-dark);
+  color: white;
+}
+
+/* Taskbar Links */
+.taskbar a {
+  color: inherit;
+  text-decoration: none;
+  display: block;
+  transition: background-color 0.3s ease;
+}
+
+.taskbar a:hover {
+  background-color: #575757;
+}
+
+/* Taskbar Button Styles */
 #toggle-btn {
   background-color: #333;
   color: white;
@@ -27,69 +63,71 @@
   position: fixed;
   top: 20px;
   left: 20px;
-  z-index: 1100; /* Ensure it's above the taskbar */
+  z-index: 1100;
+  padding: 10px;
+  border-radius: 5px;
+  transition: background-color 0.3s ease;
 }
 
-.taskbar nav ul {
-  list-style-type: none;
-  padding: 0;
+#toggle-btn:hover {
+  background-color: #444;
 }
 
-.taskbar nav ul li {
-  padding: 15px;
-  text-align: center;
+#toggle-btn:focus {
+  outline: none;
 }
 
-.taskbar nav ul li a {
-  color: white;
-  text-decoration: none;
-  font-size: 18px;
-  display: block;
-  transition: 0.3s;
-}
-
-.taskbar nav ul li a:hover {
-  background-color: #575757;
-}
-
-/* Taskbar is fixed to the top */
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-}
-
-/* TaskBar Sidebar */
-.sidebar {
-  margin-top: 50px;
-}
-
-.sidebar ul {
-  list-style-type: none;
-  padding: 0;
-}
-
-.sidebar li {
-  margin: 20px 0;
-}
-
-.sidebar a {
-  color: white;
-  text-decoration: none;
-  font-size: 18px;
-}
-
-.sidebar a:hover {
-  color: #f39c12;
-}
-
-/* Mobile responsiveness */
+/* Mobile Responsiveness */
 @media (max-width: 768px) {
   .taskbar {
-    width: 200px; /* Slightly smaller taskbar for mobile */
+    width: 200px;
   }
 
   #toggle-btn {
     top: 10px;
     left: 10px;
+    font-size: 24px;
   }
+
+  .taskbar nav ul li a {
+    font-size: 16px;
+  }
+}
+
+/* Light and Dark Mode Styles */
+body.dark-theme .taskbar {
+  background-color: #333;
+  color: white;
+}
+
+body.light-theme .taskbar {
+  background-color: #f0f0f0;
+  color: #333;
+}
+
+/* Sidebar Styles */
+.sidebar {
+  padding: 10px;
+}
+
+.sidebar ul {
+  list-style: none;
+  padding: 0;
+}
+
+.sidebar ul li {
+  margin: 10px 0;
+}
+
+.sidebar ul li a {
+  color: rgb(141, 138, 138);
+  text-decoration: none;
+  font-size: 18px;
+  display: block;
+  padding: 5px 10px;
+  border-radius: 5px;
+}
+
+.sidebar ul li a:hover {
+  background-color: #555;
 }

@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
-  let currentTheme = localStorage.getItem("theme") || "dark";
+  let currentTheme = localStorage.getItem("theme") || "light"; // Default to light theme
 
   // Element References
   const elements = {
@@ -13,8 +13,13 @@ document.addEventListener("DOMContentLoaded", () => {
     habitSort: document.getElementById("habit-sort"),
     habitList: document.getElementById("habit-list"),
     habitForm: document.querySelector(".habit-form"),
+    saveThemeBtn: document.getElementById('save-theme-btn'),
+    themeSwitch: document.getElementById('themeSwitch'),
+    toggleThemeButton: document.getElementById('toggle-theme-btn'),
+    taskbar: document.querySelector('.taskbar'),
   };
 
+  // Initial Setup
   applyTheme(currentTheme);
   updateThemeButtonText();
   loadHabits();
@@ -27,21 +32,24 @@ document.addEventListener("DOMContentLoaded", () => {
   elements.habitFilter?.addEventListener("change", filterHabits);
   elements.habitSort?.addEventListener("change", sortHabits);
   elements.habitForm?.addEventListener("submit", addNewHabit);
+  elements.saveThemeBtn?.addEventListener('click', saveCustomTheme);
+  elements.themeSwitch?.addEventListener('change', toggleCustomTheme);
+  elements.toggleThemeButton?.addEventListener('click', toggleTheme);
 
-  // Functions
-
-  // Toggle theme between light and dark
+  // Toggle between dark and light themes
   function toggleTheme() {
-    currentTheme = currentTheme === "dark" ? "light" : "dark";
+    currentTheme = currentTheme === "dark" ? "light" : "dark"; // Toggle theme
     applyTheme(currentTheme);
-    localStorage.setItem("theme", currentTheme);
+    localStorage.setItem("theme", currentTheme); // Store theme choice
     updateThemeButtonText();
   }
 
-  // Apply theme to the body
+  // Apply theme to the body and taskbar
   function applyTheme(theme) {
     document.body.classList.remove("dark-theme", "light-theme");
+    elements.taskbar.classList.remove("dark-theme", "light-theme");
     document.body.classList.add(`${theme}-theme`);
+    elements.taskbar.classList.add(`${theme}-theme`);
   }
 
   // Update the theme button text
@@ -50,7 +58,32 @@ document.addEventListener("DOMContentLoaded", () => {
       currentTheme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode";
   }
 
-  // Load habits from backend
+  // Save custom theme
+  function saveCustomTheme() {
+    const customThemeName = prompt("Enter a name for your custom theme:");
+    if (customThemeName) {
+      const themeSettings = {
+        name: customThemeName,
+        background: document.body.style.backgroundColor,
+        color: document.body.style.color,
+      };
+      localStorage.setItem("customTheme", JSON.stringify(themeSettings));
+      alert(`Your custom theme "${customThemeName}" has been saved.`);
+    }
+  }
+
+  // Toggle between custom themes
+  function toggleCustomTheme() {
+    if (elements.themeSwitch.checked) {
+      applyTheme("dark");
+      localStorage.setItem('theme', 'dark');
+    } else {
+      applyTheme("light");
+      localStorage.setItem('theme', 'light');
+    }
+  }
+
+  // Load habits from the backend
   async function loadHabits() {
     try {
       const res = await fetch("/api/habits");
@@ -68,7 +101,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // Add new habit
+  // Add a new habit
   async function addNewHabit(e) {
     e.preventDefault();
     const name = e.target.habit_name.value.trim();
@@ -95,7 +128,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // Create habit card
+  // Create habit element
   function createHabitElement(name, frequency, id) {
     const div = document.createElement("div");
     div.className = "habit-card habit-item";
@@ -119,7 +152,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return text.charAt(0).toUpperCase() + text.slice(1);
   }
 
-  // Attach listeners to habit actions
+  // Attach event listeners to habit actions
   function attachHabitListeners(habit) {
     habit.querySelector(".complete-btn")?.addEventListener("click", () => {
       habit.classList.toggle("completed");
@@ -142,7 +175,6 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   }
-
 
   // Update habit statistics
   function updateStatistics() {
@@ -194,12 +226,11 @@ document.addEventListener("DOMContentLoaded", () => {
         const nameB = b.querySelector(".habit-name").textContent;
         return nameA.localeCompare(nameB);
       }
-      return 0; // Default case to satisfy ESLint
+      return 0; // Default case
     });
     elements.habitList.innerHTML = "";
     items.forEach((item) => elements.habitList.appendChild(item));
   }
-
 
   // Reset habits (local only)
   function resetHabits() {
@@ -208,52 +239,5 @@ document.addEventListener("DOMContentLoaded", () => {
       document.querySelectorAll(".habit-item").forEach((el) => el.remove());
       updateStatistics();
     }
-  }
-
-});
-// Initial Setup: Check saved theme from localStorage
-const savedTheme = localStorage.getItem('theme') || 'light-theme';
-document.body.classList.add(savedTheme);
-
-// Theme Toggle Handler
-const toggle = document.getElementById('theme-toggle');
-const label = document.getElementById('theme-label');
-
-toggle.addEventListener('change', () => {
-  if (toggle.checked) {
-    document.body.classList.remove('light-theme');
-    document.body.classList.add('dark-theme');
-    label.textContent = 'Light Mode';
-  } else {
-    document.body.classList.remove('dark-theme');
-    document.body.classList.add('light-theme');
-    label.textContent = 'Dark Mode';
-  }
-
-  // Save theme choice in localStorage
-  localStorage.setItem('theme', toggle.checked ? 'dark-theme' : 'light-theme');
-});
-
-// Habit Form Handling
-const habitForm = document.getElementById('habit-form');
-const habitList = document.getElementById('habit-list');
-
-habitForm.addEventListener('submit', (e) => {
-  e.preventDefault();
-  const habitName = document.getElementById('habit-name').value;
-  const habitItem = document.createElement('li');
-  habitItem.classList.add('habit-item');
-  habitItem.textContent = habitName;
-
-  habitList.appendChild(habitItem);
-  document.getElementById('habit-name').value = ''; // Reset input field
-});
-
-// Custom Theme Save Handler
-const saveThemeBtn = document.getElementById('save-theme-btn');
-saveThemeBtn.addEventListener('click', () => {
-  const customThemeName = prompt("Enter a name for your custom theme:");
-  if (customThemeName) {
-    alert(`Your custom theme "${customThemeName}" has been saved.`);
   }
 });

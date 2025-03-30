@@ -1,251 +1,180 @@
-/* 🌍 Global Styles - Applies to every page */
+/* 🎨 Default Theme Variables */
+:root {
+  --background-light: #f0f0f0;
+  --text-light: #333;
+  --button-light: #007bff;
+  --button-hover-light: #0056b3;
+  --input-light-bg: #fff;
+  --input-light-border: #ccc;
 
-/* Basic Body Styling */
+  --background-dark: #181818;
+  --text-dark: #e0e0e0;
+  --button-dark: #00ccff;
+  --button-hover-dark: #00aaff;
+  --input-dark-bg: #333;
+  --input-dark-border: #555;
+
+  --transition-duration: 0.3s;
+}
+
+/* General Body Styling for Both Themes */
 body {
-  font-family: Arial, sans-serif;
-  font-size: var(--font-size);
-  color: var(--text-color);
-  background-color: var(--background-color);
+  font-family: "Arial", sans-serif;
+  transition: all var(--transition-duration) ease;
   margin: 0;
   padding: 0;
-  transition: background-color 0.3s, color 0.3s, font-size 0.3s;
 }
 
-/* 🌗 Dark Theme Global Styles */
-body.dark-theme {
-  --background-color: #121212;
-  --text-color: #fff;
-}
-
-/* 🌞 Light Theme Global Styles */
+/* Light Theme */
 body.light-theme {
-  --background-color: #ffffff;
-  --text-color: #333;
+  background-color: var(--background-light);
+  color: var(--text-light);
 }
 
-/* 🔲 Universal Button Styles */
+/* Dark Theme */
+body.dark-theme {
+  background-color: var(--background-dark);
+  color: var(--text-dark);
+}
+
+/* Universal Button Styles */
 button {
   display: block;
   margin: 10px auto;
   padding: 12px 18px;
-  border: 1px solid var(--button-border);
-  background-color: var(--button-bg);
-  color: var(--button-text);
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
   font-weight: bold;
   font-size: 1rem;
-  cursor: pointer;
   transition: background var(--transition-duration), color var(--transition-duration);
 }
 
-button:hover {
-  background-color: var(--button-hover-bg);
-}
-
-/* 🌍 Universal Input Styles */
-input, .input-box {
-  width: 300px;
-  max-width: 100%;
-  padding: 12px;
-  font-size: 1rem;
-  margin-top: 20px;
-  border-radius: 5px;
-  border: 1px solid var(--input-border);
-  background-color: var(--input-bg);
-  color: var(--input-text);
-}
-
-/* 🌍 Universal Taskbar Styles */
-.taskbar {
-  display: none;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 250px;
-  height: 100%;
-  background-color: var(--taskbar-bg);
-  color: var(--taskbar-text);
-  padding-top: 20px;
-  transition: all 0.3s ease;
-  z-index: 1000;
-}
-
-/* 🌍 Universal Progress Bar Styling */
-.progress-bar {
-  width: 100%;
-  height: 20px;
-  background-color: #e0e0e0;
-  border-radius: 5px;
-}
-
-.progress-fill {
-  height: 100%;
-  width: 0%; /* Dynamically changes */
-  background-color: #3498db;
-}
-
-/* 🌗 Dark Theme Specific Styles */
-body.dark-theme button {
-  --button-bg: #333;
-  --button-border: #444;
-  --button-text: #fff;
-}
-
-body.dark-theme button:hover {
-  --button-hover-bg: #00aaff;
-}
-
-body.dark-theme .input-box {
-  --input-bg: #333;
-  --input-border: #666;
-  --input-text: #fff;
-}
-
-body.dark-theme .taskbar {
-  --taskbar-bg: #333;
-  --taskbar-text: white;
-}
-
-/* 🌞 Light Theme Specific Styles */
 body.light-theme button {
-  --button-bg: #007bff;
-  --button-border: #007bff;
-  --button-text: #fff;
+  background-color: var(--button-light);
+  color: white;
 }
 
 body.light-theme button:hover {
-  --button-hover-bg: #0056b3;
+  background-color: var(--button-hover-light);
 }
 
-body.light-theme .input-box {
-  --input-bg: #fff;
-  --input-border: #ccc;
-  --input-text: #333;
+body.dark-theme button {
+  background-color: var(--button-dark);
+  color: white;
 }
 
-body.light-theme .taskbar {
-  --taskbar-bg: #f0f0f0;
-  --taskbar-text: #333;
+body.dark-theme button:hover {
+  background-color: var(--button-hover-dark);
 }
 
-/* 🔲 Specific Page Styles */
-
-/* 🖥️ Habit Tracker Page */
-.habit-box {
-  background-color: var(--habit-bg);
-  color: var(--habit-text);
-  padding: 15px;
-  border: 1px solid var(--habit-border);
-  border-radius: 5px;
+/* Slider button */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
 }
 
-/* 🖥️ Button Specific to Habit Tracker */
-.habit-button {
-  background-color: var(--habit-btn-bg);
-  border: 1px solid var(--habit-btn-border);
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
 }
 
-/* 🖥️ Taskbar Styles for Habit Tracker Page */
-.habit-taskbar {
-  display: block; /* This would show the taskbar only for this page */
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: .4s;
+  border-radius: 34px;
 }
 
-/* 🎯 Custom Page for Task Progress */
-.task-progress {
-  padding: 20px;
-  border-radius: 5px;
-  background-color: var(--progress-bg);
-  color: var(--progress-text);
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  border-radius: 50%;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  transition: .4s;
 }
 
-/* 🎯 Button for Task Progress Page */
-.task-progress-button {
-  background-color: var(--task-progress-btn-bg);
-  border: 1px solid var(--task-progress-btn-border);
+/* When the checkbox is checked, change the background color of the slider */
+input:checked + .slider {
+  background-color: #2196F3;
 }
 
-/* 📱 Responsive Styles - Mobile and Tablet */
+input:checked + .slider:before {
+  transform: translateX(26px);
+}
 
-/* Smartphones and small devices */
-@media (max-width: 600px) {
-  body {
-    font-size: 14px;
-  }
 
-  .input-box {
-    width: 90%;
-  }
-
-  .habit-box {
-    padding: 10px;
-  }
-
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
   .taskbar {
-    width: 200px; /* Narrow the taskbar on smaller devices */
+    width: 200px; /* Slightly smaller taskbar for mobile */
   }
 
-  .progress-bar {
-    height: 15px; /* Smaller progress bar for mobile */
+  #toggle-btn {
+    top: 10px;
+    right: 10px;
+    font-size: 24px; /* Adjust button size on mobile */
   }
 
-  button {
-    width: 100%; /* Make buttons full width for better accessibility */
-  }
-
-  .task-progress {
-    padding: 15px;
+  .taskbar nav ul li a {
+    font-size: 16px; /* Slightly smaller font for mobile */
   }
 }
-
-/* 📏 Tablets and larger mobile devices */
-@media (min-width: 601px) and (max-width: 1024px) {
-  body {
-    font-size: 16px;
-  }
-
-  .input-box {
-    width: 70%;
-  }
-
-  .habit-box {
-    padding: 12px;
-  }
-
-  .taskbar {
-    width: 220px; /* Slightly wider taskbar for tablets */
-  }
-
-  button {
-    width: auto; /* Buttons won't stretch full width on tablets */
-  }
-
-  .task-progress {
-    padding: 18px;
-  }
+/* Slider button (for dark/light toggle) */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
 }
 
-/* 🖥️ Desktop and larger devices */
-@media (min-width: 1025px) {
-  body {
-    font-size: 18px;
-  }
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
 
-  .input-box {
-    width: 50%;
-  }
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: .4s;
+  border-radius: 34px;
+}
 
-  .habit-box {
-    padding: 15px;
-  }
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  border-radius: 50%;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  transition: .4s;
+}
 
-  .taskbar {
-    width: 250px; /* Regular taskbar width */
-  }
+/* When the checkbox is checked, change the background color of the slider */
+input:checked + .slider {
+  background-color: #2196F3;
+}
 
-  button {
-    width: auto; /* Buttons at their natural width on desktops */
-  }
-
-  .task-progress {
-    padding: 20px;
-  }
+input:checked + .slider:before {
+  transform: translateX(26px);
 }

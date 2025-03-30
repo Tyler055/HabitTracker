@@ -4,19 +4,30 @@ import '../styles/Progress.css'; // Correct import path for your CSS file
 const Progress = () => {
   const [habitsProgress, setHabitsProgress] = useState([]);
   const [errorMessage, setErrorMessage] = useState('');
+  const [loading, setLoading] = useState(true); // Loading state
   const [compareMode, setCompareMode] = useState(false);
-  const [habitColors, setHabitColors] = useState({
-    habit1: '#4caf50', // Default color for Habit 1
-    habit2: '#ff9800', // Default color for Habit 2
-  });
+  const [habitColors, setHabitColors] = useState({});
 
   // Fetching progress data (mocked here for now)
   useEffect(() => {
     // Replace with real API call
     fetch('/api/progress') // Adjust endpoint to match your server's
       .then(res => res.json())
-      .then(data => setHabitsProgress(data))
-      .catch(() => setErrorMessage('Failed to fetch progress.'));
+      .then(data => {
+        setHabitsProgress(data);
+        setLoading(false);
+
+        // Initialize colors dynamically based on habits length
+        const colors = data.reduce((acc, habit, index) => {
+          acc[`habit${index + 1}`] = `#${Math.floor(Math.random() * 16777215).toString(16)}`; // Random color
+          return acc;
+        }, {});
+        setHabitColors(colors);
+      })
+      .catch(() => {
+        setErrorMessage('Failed to fetch progress.');
+        setLoading(false);
+      });
   }, []);
 
   // Function to toggle Compare Mode
@@ -32,6 +43,10 @@ const Progress = () => {
     }));
   };
 
+  if (loading) {
+    return <p>Loading...</p>; // Display loading message until data is fetched
+  }
+
   return (
     <div className="progress-page">
       <h1>Your Habit Progress</h1>
@@ -39,21 +54,17 @@ const Progress = () => {
       {errorMessage && <p className="error-message">{errorMessage}</p>}
 
       <div className="color-customization">
-        <label htmlFor="habit1-color">Select Habit 1 Color:</label>
-        <input
-          type="color"
-          id="habit1-color"
-          value={habitColors.habit1}
-          onChange={(e) => handleColorChange('habit1', e.target.value)}
-        />
-
-        <label htmlFor="habit2-color">Select Habit 2 Color:</label>
-        <input
-          type="color"
-          id="habit2-color"
-          value={habitColors.habit2}
-          onChange={(e) => handleColorChange('habit2', e.target.value)}
-        />
+        {habitsProgress.map((habit, index) => (
+          <div key={index}>
+            <label htmlFor={`habit${index + 1}-color`}>Select Color for {habit.name}:</label>
+            <input
+              type="color"
+              id={`habit${index + 1}-color`}
+              value={habitColors[`habit${index + 1}`]}
+              onChange={(e) => handleColorChange(`habit${index + 1}`, e.target.value)}
+            />
+          </div>
+        ))}
       </div>
 
       <button onClick={toggleCompareMode}>
@@ -64,43 +75,25 @@ const Progress = () => {
         {compareMode ? (
           // Compare Mode (Display two habits side-by-side)
           <div className="compare-mode">
-            {habitsProgress.length > 0 && (
-              <>
-                <div
-                  className="habit-item"
-                  style={{ backgroundColor: habitColors.habit1 }}
-                >
-                  <h3>{habitsProgress[0]?.name || 'Habit 1'}</h3>
-                  <div className="progress-bar">
-                    <div
-                      className="progress-fill"
-                      style={{
-                        width: `${habitsProgress[0]?.completionPercentage || 0}%`,
-                        backgroundColor: habitColors.habit1,
-                      }}
-                    ></div>
-                  </div>
-                  <p>{habitsProgress[0]?.completionPercentage}% completed</p>
+            {habitsProgress.length > 0 && habitsProgress.slice(0, 2).map((habit, index) => (
+              <div
+                key={index}
+                className="habit-item"
+                style={{ backgroundColor: habitColors[`habit${index + 1}`] }}
+              >
+                <h3>{habit.name}</h3>
+                <div className="progress-bar">
+                  <div
+                    className="progress-fill"
+                    style={{
+                      width: `${habit.completionPercentage || 0}%`,
+                      backgroundColor: habitColors[`habit${index + 1}`],
+                    }}
+                  ></div>
                 </div>
-
-                <div
-                  className="habit-item"
-                  style={{ backgroundColor: habitColors.habit2 }}
-                >
-                  <h3>{habitsProgress[1]?.name || 'Habit 2'}</h3>
-                  <div className="progress-bar">
-                    <div
-                      className="progress-fill"
-                      style={{
-                        width: `${habitsProgress[1]?.completionPercentage || 0}%`,
-                        backgroundColor: habitColors.habit2,
-                      }}
-                    ></div>
-                  </div>
-                  <p>{habitsProgress[1]?.completionPercentage}% completed</p>
-                </div>
-              </>
-            )}
+                <p>{habit.completionPercentage}% completed</p>
+              </div>
+            ))}
           </div>
         ) : (
           // Single Habit View
