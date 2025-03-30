@@ -17,27 +17,28 @@
   --transition-duration: 0.3s;
 }
 
-/* General Body Styling for Both Themes */
+/* 🌎 General Body Styling */
 body {
   font-family: "Arial", sans-serif;
   transition: all var(--transition-duration) ease;
   margin: 0;
   padding: 0;
+  text-align: center;
 }
 
-/* Light Theme */
+/* 🌞 Light Theme */
 body.light-theme {
   background-color: var(--background-light);
   color: var(--text-light);
 }
 
-/* Dark Theme */
+/* 🌑 Dark Theme */
 body.dark-theme {
   background-color: var(--background-dark);
   color: var(--text-dark);
 }
 
-/* Universal Button Styles */
+/* 🎛️ Universal Button Styles */
 button {
   display: block;
   margin: 10px auto;
@@ -68,7 +69,76 @@ body.dark-theme button:hover {
   background-color: var(--button-hover-dark);
 }
 
-/* Slider button */
+/* ⚡ Accessibility Focus */
+button:focus,
+.input-box:focus {
+  outline: 2px solid #ffbf47;
+  outline-offset: 2px;
+}
+
+/* 🌍 Link Styles */
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* 🖊️ Input Box Styles */
+.input-box {
+  width: 100%;
+  padding: 12px;
+  font-size: 1rem;
+  margin: 10px 0;
+  border-radius: 5px;
+  text-align: center;
+  transition: background var(--transition-duration), color var(--transition-duration);
+}
+
+.settings-box {
+  background: gray !important;
+  color: white;
+  border: 1px solid #777;
+}
+
+.dynamic-box {
+  border: 1px solid var(--input-light-border);
+}
+
+body.light-theme .dynamic-box {
+  background: var(--background-light);
+  color: var(--text-light);
+}
+
+body.dark-theme .dynamic-box {
+  background: var(--background-dark);
+  color: var(--text-dark);
+}
+
+/* 📌 Taskbar Styling */
+.taskbar {
+  width: auto;
+  display: flex;
+  justify-content: center;
+  padding: 10px 0;
+}
+
+.taskbar nav ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  gap: 15px;
+}
+
+.taskbar nav ul li a {
+  text-decoration: none;
+  font-weight: bold;
+}
+
+/* 🏷️ Theme Toggle (Slider Button) */
 .switch {
   position: relative;
   display: inline-block;
@@ -106,7 +176,6 @@ body.dark-theme button:hover {
   transition: .4s;
 }
 
-/* When the checkbox is checked, change the background color of the slider */
 input:checked + .slider {
   background-color: #2196F3;
 }
@@ -115,66 +184,47 @@ input:checked + .slider:before {
   transform: translateX(26px);
 }
 
+/* 🗑️ Delete Button */
+.delete-btn {
+  background-color: red;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 3px;
+  text-decoration: none;
+  transition: background var(--transition-duration);
+}
 
-/* Mobile Responsiveness */
+.delete-btn:hover {
+  background-color: darkred;
+}
+
+/* ✅ Habit Item Styles */
+.habit-item {
+  background: #e8e8e8;
+  padding: 12px;
+  margin: 5px 0;
+  border-radius: 5px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: background var(--transition-duration);
+}
+
+body.dark-theme .habit-item {
+  background: #333;
+}
+
+/* 📱 Mobile Responsiveness */
 @media (max-width: 768px) {
   .taskbar {
-    width: 200px; /* Slightly smaller taskbar for mobile */
-  }
-
-  #toggle-btn {
-    top: 10px;
-    right: 10px;
-    font-size: 24px; /* Adjust button size on mobile */
+    width: 200px;
   }
 
   .taskbar nav ul li a {
-    font-size: 16px; /* Slightly smaller font for mobile */
+    font-size: 16px;
   }
-}
-/* Slider button (for dark/light toggle) */
-.switch {
-  position: relative;
-  display: inline-block;
-  width: 60px;
-  height: 34px;
-}
 
-.switch input {
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-
-.slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: #ccc;
-  transition: .4s;
-  border-radius: 34px;
-}
-
-.slider:before {
-  position: absolute;
-  content: "";
-  height: 26px;
-  width: 26px;
-  border-radius: 50%;
-  left: 4px;
-  bottom: 4px;
-  background-color: white;
-  transition: .4s;
-}
-
-/* When the checkbox is checked, change the background color of the slider */
-input:checked + .slider {
-  background-color: #2196F3;
-}
-
-input:checked + .slider:before {
-  transform: translateX(26px);
+  button {
+    font-size: 14px;
+  }
 }

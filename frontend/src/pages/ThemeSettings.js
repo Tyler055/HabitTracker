@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import '../styles/styles.css'; // Import your CSS file for styling
 
 const ThemeSettings = () => {
   const [fontSize, setFontSize] = useState('16px');
@@ -13,6 +14,7 @@ const ThemeSettings = () => {
     const currentTextColor = isDarkMode ? '#ffffff' : textColor;
     const currentButtonColor = buttonColor;
 
+    // Apply styles to the document body
     document.documentElement.style.setProperty('--bg-color', currentBgColor);
     document.documentElement.style.setProperty('--text-color', currentTextColor);
     document.documentElement.style.setProperty('--button-color', currentButtonColor);
@@ -23,13 +25,23 @@ const ThemeSettings = () => {
       btn.style.backgroundColor = currentButtonColor;
     });
 
+    // Apply dark or light theme class to body
+    if (isDarkMode) {
+      document.body.classList.add('dark-theme');
+      document.body.classList.remove('light-theme');
+    } else {
+      document.body.classList.add('light-theme');
+      document.body.classList.remove('dark-theme');
+    }
+
+    // Store settings in localStorage
     localStorage.setItem('bgColor', currentBgColor);
     localStorage.setItem('textColor', currentTextColor);
     localStorage.setItem('buttonColor', currentButtonColor);
     localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
   }, [isDarkMode, bgColor, textColor, buttonColor]);
 
-  // Load settings from localStorage on component mount
+  // Load settings from localStorage when the component mounts
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme');
     const savedFontSize = localStorage.getItem('font-size');
@@ -38,7 +50,7 @@ const ThemeSettings = () => {
     const savedTextColor = localStorage.getItem('textColor') || '#000000';
 
     if (savedTheme === 'dark') {
-      setIsDarkMode(true); // Set dark mode when it's saved in localStorage
+      setIsDarkMode(true); // Set dark mode if saved in localStorage
     } else {
       setIsDarkMode(false); // Default to light theme
     }
@@ -55,7 +67,7 @@ const ThemeSettings = () => {
     setBgColor(savedBgColor);
     setTextColor(savedTextColor);
 
-    applyTheme(); // Apply the theme based on saved settings
+    applyTheme(); // Apply the saved theme on mount
   }, [applyTheme]);
 
   const handleFontSizeChange = (event) => {
@@ -175,4 +187,4 @@ const ThemeSettings = () => {
   );
 };
 
-export default ThemeSettings;
+export default ThemeSettings; // Ensure you export ThemeSettings correctly
