@@ -129,7 +129,8 @@ document.addEventListener("DOMContentLoaded", () => {
     habit.querySelector(".delete-btn")?.addEventListener("click", async (e) => {
       e.preventDefault();
       const habitId = habit.dataset.habitId;
-      if (!confirm("Delete this habit?")) return;
+      const userConfirmed = window.confirm("Delete this habit?");
+      if (!userConfirmed) return;
       try {
         const res = await fetch(`/api/delete-habit/${habitId}`, { method: "DELETE" });
         if (!res.ok) throw new Error("Delete failed");
@@ -141,6 +142,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   }
+
 
   // Update habit statistics
   function updateStatistics() {
@@ -192,16 +194,66 @@ document.addEventListener("DOMContentLoaded", () => {
         const nameB = b.querySelector(".habit-name").textContent;
         return nameA.localeCompare(nameB);
       }
+      return 0; // Default case to satisfy ESLint
     });
     elements.habitList.innerHTML = "";
     items.forEach((item) => elements.habitList.appendChild(item));
   }
 
+
   // Reset habits (local only)
   function resetHabits() {
-    if (confirm("Are you sure you want to reset all habits?")) {
+    const userConfirmed = window.confirm("Are you sure you want to reset all habits?");
+    if (userConfirmed) {
       document.querySelectorAll(".habit-item").forEach((el) => el.remove());
       updateStatistics();
     }
+  }
+
+});
+// Initial Setup: Check saved theme from localStorage
+const savedTheme = localStorage.getItem('theme') || 'light-theme';
+document.body.classList.add(savedTheme);
+
+// Theme Toggle Handler
+const toggle = document.getElementById('theme-toggle');
+const label = document.getElementById('theme-label');
+
+toggle.addEventListener('change', () => {
+  if (toggle.checked) {
+    document.body.classList.remove('light-theme');
+    document.body.classList.add('dark-theme');
+    label.textContent = 'Light Mode';
+  } else {
+    document.body.classList.remove('dark-theme');
+    document.body.classList.add('light-theme');
+    label.textContent = 'Dark Mode';
+  }
+
+  // Save theme choice in localStorage
+  localStorage.setItem('theme', toggle.checked ? 'dark-theme' : 'light-theme');
+});
+
+// Habit Form Handling
+const habitForm = document.getElementById('habit-form');
+const habitList = document.getElementById('habit-list');
+
+habitForm.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const habitName = document.getElementById('habit-name').value;
+  const habitItem = document.createElement('li');
+  habitItem.classList.add('habit-item');
+  habitItem.textContent = habitName;
+
+  habitList.appendChild(habitItem);
+  document.getElementById('habit-name').value = ''; // Reset input field
+});
+
+// Custom Theme Save Handler
+const saveThemeBtn = document.getElementById('save-theme-btn');
+saveThemeBtn.addEventListener('click', () => {
+  const customThemeName = prompt("Enter a name for your custom theme:");
+  if (customThemeName) {
+    alert(`Your custom theme "${customThemeName}" has been saved.`);
   }
 });

@@ -1,3 +1,194 @@
+/* 🎨 Global Styles */
+body {
+  font-family: Arial, sans-serif; /* Clean, readable font */
+  background-color: var(--background-dark); /* Dark background */
+  color: var(--text-dark); /* Light gray text color for dark theme */
+  margin: 0; /* Removes default margin */
+  padding: 0; /* Removes default padding */
+}
+
+/* 🎨 Default Theme Variables */
+:root {
+  /* Light theme colors */
+  --background-light: #f0f0f0; /* Light gray background */
+  --text-light: #333; /* Dark gray text */
+  --button-light: #007bff; /* Blue button */
+  --button-hover-light: #0056b3; /* Darker blue when hovering */
+  --input-light-bg: #fff; /* White input background */
+  --input-light-border: #ccc; /* Light gray input border */
+  --input-light-text: #333; /* Text color in input for light theme */
+
+  /* Dark theme colors */
+  --background-dark: #181818; /* Dark background */
+  --text-dark: #e0e0e0; /* Light gray text for dark mode */
+  --button-dark: #00ccff; /* Cyan button */
+  --button-hover-dark: #00aaff; /* Darker cyan on hover */
+  --input-dark-bg: #333; /* Dark input background */
+  --input-dark-border: #555; /* Darker input border */
+  --input-dark-text: #fff; /* Text color in input for dark theme */
+
+  /* Hover effect for delete button in dark mode */
+  --delete-btn-hover-dark: darkred;
+
+  /* Transition duration for smooth effect */
+  --transition-duration: 0.3s;
+}
+
+/* 🟡 Light Theme Styles */
+body.light-theme {
+  background-color: var(--background-light);
+  color: var(--text-light);
+}
+
+/* 🟣 Dark Theme Styles */
+body.dark-theme {
+  background-color: var(--background-dark);
+  color: var(--text-dark);
+}
+
+/* 📦 Content Wrapper */
+.container {
+  max-width: 600px;
+  margin: auto;
+  padding: 20px;
+  background: var(--input-light-bg);
+  border-radius: 10px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+  transition: background var(--transition-duration);
+}
+
+body.dark-theme .container {
+  background: #242424;
+}
+
+/* 📝 Header Styling */
+h1,
+h2 {
+  text-align: center;
+  font-size: 1.8rem;
+}
+
+/* ✅ Button Styles */
+button {
+  display: block;
+  margin: 10px auto;
+  padding: 12px 18px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 1rem;
+  transition: background var(--transition-duration), color var(--transition-duration);
+}
+
+/* Light Theme Button */
+body.light-theme button {
+  background-color: var(--button-light);
+  color: white;
+}
+
+body.light-theme button:hover {
+  background-color: var(--button-hover-light);
+}
+
+/* Dark Theme Button */
+body.dark-theme button {
+  background-color: var(--button-dark);
+  color: white;
+}
+
+body.dark-theme button:hover {
+  background-color: var(--button-hover-dark);
+}
+
+/* 🏗️ Habit List Items */
+.habit-item {
+  background: #e8e8e8;
+  padding: 12px;
+  margin: 10px 0;
+  border-radius: 5px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: background var(--transition-duration);
+  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+body.dark-theme .habit-item {
+  background: #333;
+}
+
+/* 🖊️ Input Fields */
+.input-box {
+  width: 100%; /* Make it span the full width */
+  padding: 12px;
+  font-size: 1rem;
+  margin-top: 20px; /* Space above the input box */
+  border: 1px solid var(--input-light-border);
+  border-radius: 5px;
+  transition: background var(--transition-duration), color var(--transition-duration);
+  background-color: var(--input-light-bg);
+  color: var(--input-light-text);
+}
+
+/* Dark Theme Input Box */
+body.dark-theme .input-box {
+  background-color: var(--input-dark-bg);
+  color: var(--input-dark-text);
+  border: 1px solid var(--input-dark-border);
+}
+
+/* ❌ Delete Button */
+.delete-btn {
+  background-color: red;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 3px;
+  text-decoration: none;
+  transition: background var(--transition-duration);
+}
+
+.delete-btn:hover {
+  background-color: var(--delete-btn-hover-dark);
+}
+
+/* 🔍 Focus Styles */
+button:focus,
+.input-box:focus,
+.delete-btn:focus {
+  outline: 2px solid #ffbf47;
+  outline-offset: 2px;
+}
+
+/* 🌎 Global Link Styles */
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* 📱 Mobile Responsiveness */
+@media (max-width: 768px) {
+  .container {
+    padding: 15px;
+    margin: 10px;
+  }
+
+  h1,
+  h2 {
+    font-size: 1.5rem;
+  }
+
+  button {
+    font-size: 1rem;
+    padding: 10px 14px;
+  }
+}
+
+/* 🎨 Task Bar */
 .task-bar {
   position: fixed;
   top: 0;
