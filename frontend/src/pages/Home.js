@@ -1,12 +1,22 @@
-// Example for Home.js
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
+const Home = ({ autoColorAdjustment }) => {
+  const navigate = useNavigate();
 
-const Home = () => (
-  <div>
-    <h2>Welcome to the Habit Tracker App</h2>
-    <p>Start tracking your habits and stay productive!</p>
-  </div>
-);
+  // Redirect to Habit Tracker page on load if auto-color adjustment is disabled
+  useEffect(() => {
+    if (!autoColorAdjustment) {
+      navigate('/habit-tracker');
+    }
+  }, [autoColorAdjustment, navigate]);
+
+  return (
+    <div>
+      <h1>Welcome to Your Habit Tracker</h1>
+      <p>Customize your page colors here!</p>
+    </div>
+  );
+};
 
 export default Home;

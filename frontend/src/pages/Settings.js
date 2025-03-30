@@ -1,87 +1,117 @@
-document.addEventListener("DOMContentLoaded", () => {
-    const root = document.getElementById("settings-root");
+import React, { useEffect, useState } from 'react';
 
-    const settingsContainer = document.createElement("div");
-    const heading = document.createElement("h2");
-    heading.textContent = "Settings Page";
+const Settings = () => {
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [fontSize, setFontSize] = useState('16px');
+  const [buttonColor, setButtonColor] = useState('#007bff');
 
-    // Theme Toggle Section
-    const themeToggleLabel = document.createElement("label");
-    themeToggleLabel.textContent = "Dark Mode: ";
-    const themeToggle = document.createElement("input");
-    themeToggle.type = "checkbox";
-    themeToggle.classList.add("theme-toggle");
+  // Load settings from localStorage
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('theme');
+    const savedFontSize = localStorage.getItem('font-size');
+    const savedButtonColor = localStorage.getItem('button-color');
 
-    themeToggle.addEventListener("change", () => {
-        if (themeToggle.checked) {
-            document.body.classList.add("dark-theme");
-            localStorage.setItem("theme", "dark");
-        } else {
-            document.body.classList.remove("dark-theme");
-            localStorage.setItem("theme", "light");
-        }
-    });
-
-    // Check if dark theme is previously selected
-    if (localStorage.getItem("theme") === "dark") {
-        themeToggle.checked = true;
-        document.body.classList.add("dark-theme");
+    if (savedTheme === 'dark') {
+      setIsDarkMode(true);
+      document.body.classList.add('dark-theme');
     }
 
-    themeToggleLabel.appendChild(themeToggle);
-
-    // Font Size Section
-    const fontSizeLabel = document.createElement("label");
-    fontSizeLabel.textContent = "Font Size: ";
-    const fontSizeSelect = document.createElement("select");
-    const fontSizeOptions = ["14px", "16px", "18px", "20px"];
-
-    fontSizeOptions.forEach(size => {
-        const option = document.createElement("option");
-        option.value = size;
-        option.textContent = size;
-        fontSizeSelect.appendChild(option);
-    });
-
-    fontSizeSelect.addEventListener("change", () => {
-        document.body.style.fontSize = fontSizeSelect.value;
-        localStorage.setItem("font-size", fontSizeSelect.value);
-    });
-
-    // Set the previously selected font size from localStorage
-    if (localStorage.getItem("font-size")) {
-        document.body.style.fontSize = localStorage.getItem("font-size");
-        fontSizeSelect.value = localStorage.getItem("font-size");
+    if (savedFontSize) {
+      setFontSize(savedFontSize);
+      document.body.style.fontSize = savedFontSize;
     }
 
-    // Button Color Section
-    const buttonColorLabel = document.createElement("label");
-    buttonColorLabel.textContent = "Button Color: ";
-    const buttonColorInput = document.createElement("input");
-    buttonColorInput.type = "color";
-    buttonColorInput.value = "#007bff"; // default color
-
-    buttonColorInput.addEventListener("input", () => {
-        document.documentElement.style.setProperty('--button-color', buttonColorInput.value);
-        localStorage.setItem("button-color", buttonColorInput.value);
-    });
-
-    // Set the previously selected button color from localStorage
-    if (localStorage.getItem("button-color")) {
-        buttonColorInput.value = localStorage.getItem("button-color");
-        document.documentElement.style.setProperty('--button-color', localStorage.getItem("button-color"));
+    if (savedButtonColor) {
+      setButtonColor(savedButtonColor);
+      document.documentElement.style.setProperty('--button-color', savedButtonColor);
     }
+  }, []);
 
-    // Append all settings options to the settings container
-    settingsContainer.appendChild(heading);
-    settingsContainer.appendChild(themeToggleLabel);
-    settingsContainer.appendChild(document.createElement("br")); // for line break
-    settingsContainer.appendChild(fontSizeLabel);
-    settingsContainer.appendChild(fontSizeSelect);
-    settingsContainer.appendChild(document.createElement("br"));
-    settingsContainer.appendChild(buttonColorLabel);
-    settingsContainer.appendChild(buttonColorInput);
+  // Handle theme toggle
+  const handleThemeToggle = () => {
+    setIsDarkMode((prevState) => {
+      const newState = !prevState;
+      if (newState) {
+        document.body.classList.add('dark-theme');
+        localStorage.setItem('theme', 'dark');
+      } else {
+        document.body.classList.remove('dark-theme');
+        localStorage.setItem('theme', 'light');
+      }
+      return newState;
+    });
+  };
 
-    // Append settings container to root
-    root.appendChild(settingsContainer);
-});
+  // Handle font size change
+  const handleFontSizeChange = (event) => {
+    const newFontSize = event.target.value;
+    setFontSize(newFontSize);
+    document.body.style.fontSize = newFontSize;
+    localStorage.setItem('font-size', newFontSize);
+  };
+
+  // Handle button color change
+  const handleButtonColorChange = (event) => {
+    const newButtonColor = event.target.value;
+    setButtonColor(newButtonColor);
+    document.documentElement.style.setProperty('--button-color', newButtonColor);
+    localStorage.setItem('button-color', newButtonColor);
+  };
+
+  // Reset to default theme
+  const resetTheme = () => {
+    document.body.classList.remove('dark-theme');
+    localStorage.removeItem('theme');
+    setIsDarkMode(false);
+    document.body.style.fontSize = '16px';
+    localStorage.setItem('font-size', '16px');
+    setFontSize('16px');
+  };
+
+  return (
+    <div className="settings-container">
+      <h2>Settings</h2>
+
+      {/* Dark Mode Toggle */}
+      <div className="setting-item">
+        <label htmlFor="theme-toggle">Dark Mode: </label>
+        <input
+          type="checkbox"
+          id="theme-toggle"
+          checked={isDarkMode}
+          onChange={handleThemeToggle}
+        />
+        <span>{isDarkMode ? 'Light' : 'Dark'}</span> {/* Dynamically update text */}
+      </div>
+
+      {/* Font Size Selector */}
+      <div className="setting-item">
+        <label htmlFor="font-size">Font Size: </label>
+        <select id="font-size" value={fontSize} onChange={handleFontSizeChange}>
+          <option value="14px">14px</option>
+          <option value="16px">16px</option>
+          <option value="18px">18px</option>
+          <option value="20px">20px</option>
+        </select>
+      </div>
+
+      {/* Button Color Picker */}
+      <div className="setting-item">
+        <label htmlFor="button-color">Button Color: </label>
+        <input
+          type="color"
+          id="button-color"
+          value={buttonColor}
+          onChange={handleButtonColorChange}
+        />
+      </div>
+
+      {/* Reset Theme Button */}
+      <button onClick={resetTheme} className="reset-theme-btn">
+        Reset Current Theme
+      </button>
+    </div>
+  );
+};
+
+export default Settings;

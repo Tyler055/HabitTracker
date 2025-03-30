@@ -1,0 +1,44 @@
+<!-- Habit Progress Page -->
+<div class="habit-progress-page">
+  <div class="habit-selection">
+    <button onclick="showHabit('habit1')">Habit 1</button>
+    <button onclick="showHabit('habit2')">Habit 2</button>
+    <button onclick="compareHabits()">Compare Mode</button>
+  </div>
+
+  <div id="habit-details">
+    <!-- Habit Details will appear here based on selection -->
+  </div>
+
+  <!-- Compare Mode Display -->
+  <div id="compare-mode" class="compare-mode">
+    <div class="habit-item" style="background-color: var(--habit1-bg-color)">
+      <h3>Habit 1</h3>
+      <div class="progress-bar">
+        <div
+          class="progress-fill"
+          style="width: 50%; background-color: var(--habit1-progress-color)"
+        ></div>
+      </div>
+    </div>
+
+    <div class="habit-item" style="background-color: var(--habit2-bg-color)">
+      <h3>Habit 2</h3>
+      <div class="progress-bar">
+        <div
+          class="progress-fill"
+          style="width: 80%; background-color: var(--habit2-progress-color)"
+        ></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Color Customization Controls -->
+<div class="color-customization">
+  <label for="habit1-color">Select Habit 1 Color:</label>
+  <input type="color" id="habit1-color" onchange="updateHabitColor('habit1')" />
+
+  <label for="habit2-color">Select Habit 2 Color:</label>
+  <input type="color" id="habit2-color" onchange="updateHabitColor('habit2')" />
+</div>

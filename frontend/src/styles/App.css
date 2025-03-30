@@ -36,3 +36,54 @@
     transform: rotate(360deg);
   }
 }
+/* Base styles for light theme */
+body {
+  background-color: #ffffff;
+  color: #000000;
+  font-size: 16px;
+  transition: background-color 0.3s, color 0.3s, font-size 0.3s;
+}
+
+/* Dark theme styles */
+body.dark-theme {
+  background-color: #121212;
+  color: #ffffff;
+}
+
+/* Button color */
+button {
+  background-color: var(--button-color, #007bff);
+  transition: background-color 0.3s;
+}
+
+/* Settings container */
+.settings-container {
+  padding: 20px;
+}
+
+/* Styling for input elements and selectors */
+.setting-item {
+  margin-bottom: 15px;
+}
+
+input[type="checkbox"] {
+  margin-left: 10px;
+}
+
+select, input[type="color"] {
+  margin-left: 10px;
+}
+
+/* Reset button styling */
+.reset-theme-btn {
+  background-color: #f0f0f0;
+  border: 1px solid #ccc;
+  padding: 10px;
+  cursor: pointer;
+  margin-top: 20px;
+  transition: background-color 0.3s;
+}
+
+.reset-theme-btn:hover {
+  background-color: #e0e0e0;
+}
