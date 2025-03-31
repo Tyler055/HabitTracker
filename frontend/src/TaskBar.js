@@ -1,30 +1,33 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import "./styles/TaskBar.css";
+import "./styles/styles.css"; // Ensure correct path
 
-const TaskBar = ({ isDarkMode, toggleTaskbar, isVisible }) => (
-  <div
-    className={`taskbar ${isVisible ? "show" : ""}`}
-    style={{
-      backgroundColor: isDarkMode ? "#333" : "#f0f0f0",
-      color: isDarkMode ? "white" : "black",
-    }}
-  >
-    <button className="taskbar-toggle-btn" onClick={toggleTaskbar} aria-label="Toggle Taskbar">
-      ☰
-    </button>
-    <div className="sidebar">
+const TaskBar = ({ isDarkMode, toggleTaskbar, isVisible }) => {
+  return (
+    <nav className={`taskbar ${isVisible ? "show" : ""}`}>
+      {/* Taskbar Toggle Button */}
+      <button
+        className="taskbar-toggle-btn"
+        onClick={toggleTaskbar}
+        aria-label="Toggle Taskbar"
+      >
+        ☰
+      </button>
+
+      {/* Taskbar Links */}
       <ul>
-        {["Home", "Habit Tracker", "Progress", "Settings", "Profile", "Login/Sign Up"].map((text, index) => (
-          <li key={index}>
-            <Link to={`/${text.replace(/\s+/g, '-').toLowerCase()}`} onClick={toggleTaskbar}>
-              {text}
-            </Link>
-          </li>
-        ))}
+        {["Home", "Habit Tracker", "Progress", "Settings", "Profile", "Login/Sign Up"].map(
+          (text, index) => (
+            <li key={index}>
+              <Link to={`/${text.replace(/\s+/g, "-").toLowerCase()}`} onClick={toggleTaskbar}>
+                {text}
+              </Link>
+            </li>
+          )
+        )}
       </ul>
-    </div>
-  </div>
-);
+    </nav>
+  );
+};
 
 export default TaskBar;

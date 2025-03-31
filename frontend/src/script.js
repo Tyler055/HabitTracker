@@ -17,6 +17,8 @@ document.addEventListener("DOMContentLoaded", () => {
     themeSwitch: document.getElementById('themeSwitch'),
     toggleThemeButton: document.getElementById('toggle-theme-btn'),
     taskbar: document.querySelector('.taskbar'),
+    customBgColor: document.getElementById('custom-bg-color'),
+    customTextColor: document.getElementById('custom-text-color'),
   };
 
   // Initial Setup
@@ -35,6 +37,8 @@ document.addEventListener("DOMContentLoaded", () => {
   elements.saveThemeBtn?.addEventListener('click', saveCustomTheme);
   elements.themeSwitch?.addEventListener('change', toggleCustomTheme);
   elements.toggleThemeButton?.addEventListener('click', toggleTheme);
+  elements.customBgColor?.addEventListener('input', updateCustomTheme);
+  elements.customTextColor?.addEventListener('input', updateCustomTheme);
 
   // Toggle between dark and light themes
   function toggleTheme() {
@@ -58,21 +62,21 @@ document.addEventListener("DOMContentLoaded", () => {
       currentTheme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode";
   }
 
-  // Save custom theme
+  // Save custom theme settings (background and text colors)
   function saveCustomTheme() {
     const customThemeName = prompt("Enter a name for your custom theme:");
     if (customThemeName) {
       const themeSettings = {
         name: customThemeName,
-        background: document.body.style.backgroundColor,
-        color: document.body.style.color,
+        background: elements.customBgColor.value,
+        color: elements.customTextColor.value,
       };
       localStorage.setItem("customTheme", JSON.stringify(themeSettings));
       alert(`Your custom theme "${customThemeName}" has been saved.`);
     }
   }
 
-  // Toggle between custom themes
+  // Toggle between custom themes (dark and light)
   function toggleCustomTheme() {
     if (elements.themeSwitch.checked) {
       applyTheme("dark");
@@ -81,6 +85,18 @@ document.addEventListener("DOMContentLoaded", () => {
       applyTheme("light");
       localStorage.setItem('theme', 'light');
     }
+  }
+
+  // Update the background and text color for custom themes
+  function updateCustomTheme() {
+    const bgColor = elements.customBgColor.value;
+    const textColor = elements.customTextColor.value;
+
+    document.body.style.backgroundColor = bgColor;
+    document.body.style.color = textColor;
+
+    localStorage.setItem('customBgColor', bgColor);
+    localStorage.setItem('customTextColor', textColor);
   }
 
   // Load habits from the backend

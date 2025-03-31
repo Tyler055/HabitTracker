@@ -1,137 +1,94 @@
-/* 🎨 Taskbar */
+/* 🎨 Taskbar Styles */
 .taskbar {
   position: fixed;
   top: 0;
-  left: -250px; /* Initially hidden */
+  left: 0;
   width: 250px;
   height: 100%;
   padding-top: 20px;
   background-color: var(--background-light);
   color: var(--text-light);
+  transform: translateX(-100%); /* Hidden by default */
   transition: transform 0.3s ease-in-out, opacity 0.3s ease;
   z-index: 1000;
+  box-shadow: 4px 0 6px rgba(0, 0, 0, 0.1); /* Soft shadow */
+  border-right: 1px solid #ddd; /* Subtle border */
 }
 
+/* Show taskbar when needed */
 .taskbar.show {
-  transform: translateX(250px); /* Slide taskbar in */
+  transform: translateX(0); /* Slide into view */
   opacity: 1;
 }
 
-/* 📌 Taskbar Navigation */
-.taskbar nav ul,
-.taskbar ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.taskbar li {
-  padding: 12px;
-  font-size: 1.2rem;
-  text-align: left;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.taskbar li:hover {
-  background-color: var(--button-hover-light);
-}
-
-.taskbar li.active {
-  background-color: var(--button-dark);
-  color: white;
-}
-
-/* 🔗 Taskbar Links */
+/* 🎨 Taskbar Links */
 .taskbar a {
-  color: inherit;
+  color: var(--link-color, #ffffff); /* White by default */
   text-decoration: none;
+  padding: 10px;
   display: block;
-  padding: 10px;
-  border-radius: 5px;
-  transition: background-color 0.3s ease;
+  transition: background-color 0.3s, color 0.3s;
+  outline: none; /* Remove default focus outline */
 }
 
-.taskbar a:hover {
-  background-color: #575757;
+/* 🎨 Taskbar link hover and focus state */
+.taskbar a:hover,
+.taskbar a:focus {
+  background-color: var(--link-hover-bg, #555); /* Dark background on hover */
+  color: var(--link-hover-color, #fff); /* White text on hover */
+  outline: 3px solid var(--focus-outline, #ffbf47); /* Custom outline for focus state */
 }
 
-/* 🎛️ Taskbar Toggle Button */
-#toggle-btn {
-  position: fixed;
-  top: 20px;
-  left: 20px;
-  background-color: #333;
-  color: white;
-  font-size: 30px;
+/* 🎨 Taskbar toggle button (hamburger icon) */
+.taskbar-toggle-btn {
+  background-color: var(--button-color, #007bff); /* Blue color by default */
+  color: var(--button-text-color, #ffffff); /* White text */
   border: none;
-  cursor: pointer;
-  z-index: 1100;
   padding: 10px;
-  border-radius: 5px;
-  transition: background-color 0.3s ease;
+  font-size: 30px;
+  cursor: pointer;
+  margin-bottom: 20px;
+  transition: background-color 0.3s, color 0.3s;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3); /* Shadow for emphasis */
+  outline: none; /* Remove default focus outline */
 }
 
-#toggle-btn:hover {
-  background-color: #444;
+/* 🎨 Hover and focus effect for taskbar toggle button */
+.taskbar-toggle-btn:hover,
+.taskbar-toggle-btn:focus {
+  background-color: var(
+    --button-hover-color,
+    #0056b3
+  ); /* Darker shade on hover */
+  color: var(--button-text-hover-color, #ffffff); /* White text on hover */
+  outline: 3px solid var(--focus-outline, #ffbf47); /* Custom outline for focus state */
 }
 
-#toggle-btn:focus {
-  outline: none;
+/* 🎨 Light theme taskbar toggle button */
+body.light-theme .taskbar-toggle-btn {
+  background-color: #007bff; /* Blue */
+  color: #ffffff; /* White text */
 }
 
-/* 📱 Mobile Responsiveness */
+/* 🎨 Dark theme taskbar toggle button */
+body.dark-theme .taskbar-toggle-btn {
+  background-color: #007bff; /* Blue */
+  color: #ffffff; /* White text */
+}
+
+/* 🎨 Mobile Responsiveness */
 @media (max-width: 768px) {
   .taskbar {
-    width: 200px;
+    width: 70%;
+    transform: translateX(-100%);
   }
 
-  #toggle-btn {
-    top: 10px;
-    left: 10px;
-    font-size: 24px;
+  .taskbar.show {
+    transform: translateX(0);
   }
 
-  .taskbar nav ul li a {
-    font-size: 16px;
+  .taskbar-toggle-btn {
+    font-size: 25px;
+    padding: 8px;
   }
-}
-
-/* 🌑 Dark & 🌞 Light Theme Adjustments */
-body.dark-theme .taskbar {
-  background-color: var(--background-dark);
-  color: var(--text-dark);
-}
-
-body.light-theme .taskbar {
-  background-color: var(--background-light);
-  color: var(--text-light);
-}
-
-/* 📂 Sidebar Styles */
-.sidebar {
-  padding: 10px;
-}
-
-.sidebar ul {
-  list-style: none;
-  padding: 0;
-}
-
-.sidebar ul li {
-  margin: 10px 0;
-}
-
-.sidebar ul li a {
-  color: rgb(141, 138, 138);
-  text-decoration: none;
-  font-size: 18px;
-  display: block;
-  padding: 5px 10px;
-  border-radius: 5px;
-  transition: background-color 0.3s ease;
-}
-
-.sidebar ul li a:hover {
-  background-color: #555;
 }
