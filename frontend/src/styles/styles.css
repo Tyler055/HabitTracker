@@ -1,919 +1,216 @@
-/* 🌎 General Body Styling */
+/* General Body Styling */
 body {
-  font-family: "Arial", sans-serif;
   margin: 0;
   padding: 0;
-  text-align: center; /* Center all text by default */
-  width: 100%;
-  max-width: 100vw; /* Prevent content from overflowing horizontally */
-  box-sizing: border-box; /* Ensure padding and margin are included in width calculations */
-  transition: background-color var(--transition-duration),
-    color var(--transition-duration);
-}
-
-/* 🌞 Light Theme */
-body.light-theme {
-  background-color: var(--background-light);
-  color: var(--text-light);
-}
-
-/* 🌑 Dark Theme */
-body.dark-theme {
-  background-color: var(--background-dark);
-  color: var(--text-dark);
-}
-
-/* 🎛️ Universal Button Styles */
-button {
-  display: block;
-  margin: 10px auto;
-  padding: 12px 18px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  font-weight: bold;
-  font-size: 1rem;
-  transition: background var(--transition-duration),
-    color var(--transition-duration);
-}
-
-button.light-theme {
-  background-color: var(--button-light);
-  color: white;
-}
-
-button.light-theme:hover {
-  background-color: var(--button-hover-light);
-}
-
-button.dark-theme {
-  background-color: var(--button-dark);
-  color: white;
-}
-
-button.dark-theme:hover {
-  background-color: var(--button-hover-dark);
-}
-
-/* 🖊️ Input Box Styles */
-.input-box {
-  width: 100%;
-  padding: 12px;
-  font-size: 1rem;
-  margin: 10px 0;
-  border-radius: 5px;
-  text-align: center; /* Center text inside input */
-  transition: background var(--transition-duration),
-    color var(--transition-duration);
-}
-
-body.light-theme .input-box {
-  background: var(--input-light-bg);
-  color: var(--text-light);
-  border: 1px solid var(--input-light-border);
-}
-
-body.dark-theme .input-box {
-  background: var(--input-dark-bg);
-  color: var(--text-dark);
-  border: 1px solid var(--input-dark-border);
-}
-
-/* ⚡ Accessibility Focus */
-button:focus,
-.input-box:focus {
-  outline: 2px solid #ffbf47;
-  outline-offset: 2px;
-}
-
-/* 🏷️ Links Styling */
-a {
-  text-align: left; /* Override center alignment for links */
-  color: inherit; /* Make sure links inherit text color */
-  text-decoration: none;
-}
-
-a:hover {
-  text-decoration: underline;
-}
-
-/* 📌 Taskbar Styling */
-.taskbar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 250px;
-  height: 100%;
-  background-color: var(--background-light);
-  color: var(--text-light);
-  transform: translateX(100%); /* Hidden by default */
-  transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
-  z-index: 1000;
-  box-shadow: 4px 0 6px rgba(0, 0, 0, 0.1); /* Soft shadow */
-  border-right: 1px solid #ddd; /* Subtle border */
-}
-
-.taskbar.show {
-  transform: translateX(0); /* Slide into view */
-  opacity: 1;
-  visibility: visible;
-}
-
-/* 📱 Mobile Responsiveness */
-@media (max-width: 768px) {
-  .taskbar {
-    width: 70%;
-  }
-
-  button {
-    font-size: 14px;
-  }
-}
-
-/* 🏷️ Theme Toggle (Slider Button) */
-.switch {
-  position: relative;
-  display: inline-block;
-  width: 60px;
-  height: 34px;
-  margin-bottom: 10px;
-}
-
-.switch input {
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-
-.slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: var(--button-light);
-  transition: 0.4s;
-  border-radius: 34px;
-}
-
-.slider:before {
-  position: absolute;
-  content: "";
-  height: 26px;
-  width: 26px;
-  border-radius: 50%;
-  left: 4px;
-  bottom: 4px;
-  background-color: white;
-  transition: 0.4s;
-}
-
-input:checked + .slider {
-  background-color: var(--button-dark);
-}
-
-input:checked + .slider:before {
-  transform: translateX(26px);
-}
-
-/* 🎨 Settings Section */
-.settings-container {
-  margin-top: 20px;
-  padding: 20px;
+  font-family: 'Arial', sans-serif;
+  line-height: 1.6;
   background-color: #f4f4f4;
-  width: 300px;
-  border-radius: 8px;
-  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.setting-item {
-  margin-bottom: 15px;
-}
-
-.setting-item label {
-  font-size: 14px;
-  margin-right: 10px;
-}
-
-.setting-item select,
-.setting-item input {
-  width: 100%;
-  padding: 8px;
-  font-size: 14px;
-}
-
-.apply-btn {
-  width: 100%;
-  padding: 10px;
-  background-color: var(--button-light);
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-}
-
-.apply-btn:hover {
-  background-color: var(--button-hover-light);
-}
-
-/* 🎨 Taskbar Visibility Toggle */
-.taskbar-toggle-btn {
-  position: absolute;
-  top: 20px;
-  left: 20px;
-  background-color: transparent;
-  border: none;
-  font-size: 30px;
-  cursor: pointer;
-  z-index: 1500;
-}
-
-/* Timer to Hide Taskbar (5 min) */
-.taskbar.visible {
-  opacity: 1;
-  transform: translateX(0);
-  visibility: visible;
-}
-
-.taskbar.visible .taskbar-toggle-btn {
-  visibility: hidden;
-}
-
-/* Navigation Menu (fixed at top) */
-.navigation-menu {
-  position: fixed; /* Fixes it to the top */
-  top: 0;
-  left: 0;
-  width: 100%;
-  background-color: #333; /* For demonstration */
-  color: white;
-  z-index: 100; /* Lower z-index to keep it behind other elements */
-  padding: 20px;
-  box-sizing: border-box;
-  margin-bottom: 50px; /* Add a margin so that the settings panel doesn't overlap */
-}
-
-/* Settings Panel (could be absolute or relative) */
-.settings-panel {
-  position: relative; /* Or absolute if needed */
-  top: 100px; /* Adjust this value based on your design */
-  left: 0;
-  width: 300px; /* Adjust width based on your layout */
-  padding: 20px;
-  background-color: #f4f4f4;
-  z-index: 200; /* Higher z-index to appear in front of navigation menu */
-}
-
-/* Optional - Add more styling to enhance the look */
-.settings-panel input,
-.settings-panel button {
-  width: 100%;
-  padding: 10px;
-  margin-bottom: 10px;
-  box-sizing: border-box;
-}
-
-/* General Layout Styling */
-.container {
-  display: flex; /* Ensures navigation and settings are side-by-side */
-}
-
-/* Navigation Menu */
-.nav-menu {
-  flex: 0 0 200px; /* Fixed width for the menu */
-  z-index: 1; /* Lower priority for layering */
-  position: relative; /* Keeps menu within its bounds */
-}
-
-/* Settings Panel */
-.settings-panel {
-  flex: 1; /* Takes remaining space */
-  z-index: 10; /* Higher priority for layering */
-  position: relative; /* Ensures no unintended overlaps */
-  overflow: auto; /* Handles overflowing content gracefully */
-}
-
-/* Media Query for Responsive Layouts */
-@media (max-width: 768px) {
-  .container {
-    flex-direction: column; /* Stacks elements vertically */
-  }
-  .nav-menu,
-  .settings-panel {
-    flex: 1;
-  }
-}
-
-/* 🎨 Taskbar */
-.taskbar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 250px;
-  height: 100%;
-  padding-top: 20px;
-  background-color: var(--background-light);
-  color: var(--text-light);
-  transform: translateX(-100%); /* Hidden by default */
-  transition: transform 0.3s ease-in-out, opacity 0.3s ease;
-  z-index: 1000;
-  box-shadow: 4px 0 6px rgba(0, 0, 0, 0.1); /* Soft shadow */
-  border-right: 1px solid #ddd; /* Subtle border */
-}
-
-/* 🎨 Show taskbar when needed */
-.taskbar.show {
-  transform: translateX(0); /* Slide into view */
-}
-
-/* 🎨 Taskbar Links */
-.taskbar a {
-  color: var(--link-color, #ffffff); /* White by default */
-  text-decoration: none;
-  padding: 10px;
-  display: block;
-  transition: background-color 0.3s, color 0.3s;
-  outline: none; /* Remove default focus outline */
-}
-
-/* 🎨 Taskbar link hover and focus state */
-.taskbar a:hover,
-.taskbar a:focus {
-  background-color: var(--link-hover-bg, #555); /* Dark background on hover */
-  color: var(--link-hover-color, #fff); /* White text on hover */
-  outline: 3px solid var(--focus-outline, #ffbf47); /* Custom outline for focus state */
-}
-
-/* 🎨 Taskbar toggle button (hamburger icon) */
-.taskbar-toggle-btn {
-  background-color: var(--button-color, #007bff); /* Blue color by default */
-  color: var(--button-text-color, #ffffff); /* White text */
-  border: none;
-  padding: 10px;
-  font-size: 30px;
-  cursor: pointer;
-  margin-bottom: 20px;
-  transition: background-color 0.3s, color 0.3s;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3); /* Shadow for emphasis */
-  outline: none; /* Remove default focus outline */
-}
-
-/* 🎨 Hover and focus effect for taskbar toggle button */
-.taskbar-toggle-btn:hover,
-.taskbar-toggle-btn:focus {
-  background-color: var(
-    --button-hover-color,
-    #0056b3
-  ); /* Darker shade on hover */
-  color: var(--button-text-hover-color, #ffffff); /* White text on hover */
-  outline: 3px solid var(--focus-outline, #ffbf47); /* Custom outline for focus state */
-}
-
-/* 🎨 Light theme taskbar toggle button */
-body.light-theme .taskbar-toggle-btn {
-  background-color: #007bff; /* Blue */
-  color: #ffffff; /* White text */
-}
-
-/* 🎨 Dark theme taskbar toggle button */
-body.dark-theme .taskbar-toggle-btn {
-  background-color: #007bff; /* Blue */
-  color: #ffffff; /* White text */
-}
-
-/* 🎨 Mobile Responsiveness */
-@media (max-width: 768px) {
-  .taskbar {
-    width: 70%;
-    transform: translateX(-100%);
-  }
-
-  .taskbar.show {
-    transform: translateX(0);
-  }
-
-  .taskbar-toggle-btn {
-    font-size: 25px;
-    padding: 8px;
-  }
-}
-/* 🌎 General Body Styling */
-body {
-  font-family: "Arial", sans-serif;
-  margin: 0;
-  padding: 0;
-  text-align: center; /* Center all text by default */
-  width: 100%;
-  max-width: 100vw;
-  box-sizing: border-box;
-  transition: background-color var(--transition-duration),
-    color var(--transition-duration);
-  background-color: var(
-    --background-light
-  ); /* Default light theme background */
-}
-
-/* 🌞 Light Theme */
-body.light-theme {
-  background-color: var(--background-light);
-  color: var(--text-light);
-}
-
-/* 🌑 Dark Theme */
-body.dark-theme {
-  background-color: var(--background-dark);
-  color: var(--text-dark);
-}
-
-/* 🎛️ Universal Button Styles */
-button {
-  display: block;
-  margin: 10px auto;
-  padding: 12px 18px;
-  border: none;
-  border-radius: 8px; /* Rounded corners for a softer look */
-  cursor: pointer;
-  font-weight: bold;
-  font-size: 1rem;
-  transition: background 0.3s ease, color 0.3s ease;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
-}
-
-button.light-theme {
-  background-color: var(--button-light);
-  color: white;
-}
-
-button.light-theme:hover {
-  background-color: var(--button-hover-light);
-}
-
-button.dark-theme {
-  background-color: var(--button-dark);
-  color: white;
-}
-
-button.dark-theme:hover {
-  background-color: var(--button-hover-dark);
-}
-
-/* 🖊️ Input Box Styles */
-.input-box {
-  width: 100%;
-  padding: 14px;
-  font-size: 1rem;
-  margin: 12px 0;
-  border-radius: 8px;
+  color: #333;
   text-align: center;
-  transition: background 0.3s ease, color 0.3s ease;
+  overflow-x: hidden;
+  box-sizing: border-box;
 }
 
-body.light-theme .input-box {
-  background: var(--input-light-bg);
-  color: var(--text-light);
-  border: 1px solid var(--input-light-border);
+/* Global reset for box-sizing to make layout more predictable */
+*,
+*::before,
+*::after {
+  box-sizing: inherit;
 }
 
-body.dark-theme .input-box {
-  background: var(--input-dark-bg);
-  color: var(--text-dark);
-  border: 1px solid var(--input-dark-border);
+/* Ensure that all images scale properly */
+img {
+  max-width: 100%;
+  height: auto;
 }
 
-/* ⚡ Accessibility Focus */
-button:focus,
-.input-box:focus {
-  outline: 2px solid #ffbf47;
-  outline-offset: 2px;
-}
-
-/* 🏷️ Links Styling */
+/* Links Styling */
 a {
-  color: inherit;
   text-decoration: none;
-  display: inline-block;
-  margin: 5px 0;
-  font-size: 1rem;
-  transition: color 0.3s ease, text-decoration 0.3s ease;
+  color: inherit;
 }
 
 a:hover {
-  text-decoration: underline;
+  color: #007BFF;
 }
 
-/* 📌 Taskbar Styling */
-.taskbar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 250px;
-  height: 100%;
-  background-color: var(--background-light);
-  color: var(--text-light);
-  transform: translateX(-100%); /* Hidden by default */
-  transition: transform 0.3s ease-in-out, opacity 0.3s ease;
-  z-index: 1000;
-  box-shadow: 4px 0 6px rgba(0, 0, 0, 0.1); /* Soft shadow */
-  border-right: 1px solid #ddd;
+/* Header Styling */
+header {
+  background-color: #333;
+  color: white;
+  padding: 20px 0;
+  font-size: 2rem;
+  text-align: center;
 }
 
-.taskbar.show {
-  transform: translateX(0); /* Slide into view */
-  opacity: 1;
+/* Main Content Styling */
+main {
+  padding: 40px 20px;
 }
 
-/* 📱 Mobile Responsiveness */
-@media (max-width: 768px) {
-  .taskbar {
-    width: 70%;
-    transform: translateX(-100%);
-  }
-
-  .taskbar.show {
-    transform: translateX(0);
-  }
-
-  button {
-    font-size: 14px;
-  }
-
-  .taskbar-toggle-btn {
-    font-size: 25px;
-    padding: 8px;
-  }
+/* Section Styling */
+section {
+  margin-bottom: 20px;
 }
 
-/* 🎨 Theme Toggle (Slider Button) */
-.switch {
-  position: relative;
-  display: inline-block;
-  width: 60px;
-  height: 34px;
-  margin-bottom: 10px;
-}
-
-.switch input {
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-
-.slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: var(--button-light);
-  transition: 0.4s;
-  border-radius: 34px;
-}
-
-.slider:before {
-  position: absolute;
-  content: "";
-  height: 26px;
-  width: 26px;
-  border-radius: 50%;
-  left: 4px;
-  bottom: 4px;
-  background-color: white;
-  transition: 0.4s;
-}
-
-input:checked + .slider {
-  background-color: var(--button-dark);
-}
-
-input:checked + .slider:before {
-  transform: translateX(26px);
-}
-
-/* 🎨 Settings Section */
-.settings-container {
-  margin-top: 20px;
-  padding: 20px;
-  background-color: #f4f4f4;
-  width: 320px;
-  border-radius: 8px;
-  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-  text-align: left; /* Left-align text within settings */
-}
-
-.setting-item {
-  margin-bottom: 15px;
-}
-
-.setting-item label {
-  font-size: 14px;
-  margin-right: 10px;
-}
-
-.setting-item select,
-.setting-item input {
-  width: 100%;
-  padding: 10px;
-  font-size: 14px;
-  border-radius: 5px;
-}
-
-.apply-btn {
-  width: 100%;
-  padding: 10px;
-  background-color: var(--button-light);
+/* Button Styling */
+button {
+  padding: 10px 20px;
+  background-color: #007BFF;
   color: white;
   border: none;
-  border-radius: 5px;
   cursor: pointer;
+  font-size: 1rem;
+  border-radius: 5px;
   transition: background-color 0.3s ease;
 }
 
-.apply-btn:hover {
-  background-color: var(--button-hover-light);
+button:hover {
+  background-color: #0056b3;
 }
 
-/* 🎨 Taskbar Visibility Toggle */
-.taskbar-toggle-btn {
-  position: absolute;
-  top: 20px;
-  left: 20px;
-  background-color: transparent;
-  border: none;
-  font-size: 30px;
-  cursor: pointer;
-  z-index: 1500;
-  transition: background-color 0.3s, color 0.3s;
+button:disabled {
+  background-color: #dcdcdc;
+  cursor: not-allowed;
 }
 
-/* 🎨 Mobile Responsiveness */
+/* Center Settings */
+.settings-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.settings-box {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  max-width: 400px;
+  width: 100%;
+}
+
+.settings-box h2 {
+  margin-bottom: 15px;
+}
+
+.settings-box label {
+  display: block;
+  margin-bottom: 10px;
+  font-weight: bold;
+}
+/* 📱 Mobile Responsiveness */
 @media (max-width: 768px) {
-  .container {
-    flex-direction: column;
+  body {
+    font-size: 14px;
   }
 
-  .nav-menu,
-  .settings-panel {
-    flex: 1;
-    margin-left: 0;
+  header {
+    font-size: 1.5rem;
   }
 
-  .nav-menu {
-    margin-bottom: 20px; /* Add spacing below navigation */
+  button {
+    padding: 8px 16px;
   }
 
   .taskbar {
-    width: 100%;
-    max-width: 100%;
+    flex-direction: column;
+    align-items: center;
   }
-}
 
-/* 🌎 General Body Styling */
-.container {
-  display: flex; /* Ensures navigation and settings are side-by-side */
-  flex-wrap: wrap; /* Ensure content wraps on small screens */
-  width: 100%;
-  max-width: 100vw;
-  box-sizing: border-box;
-}
-
-.nav-menu {
-  flex: 0 0 250px; /* Fixed width for the menu */
-  background-color: var(--background-light);
-  z-index: 1;
-  padding: 20px;
-  box-shadow: 4px 0 6px rgba(0, 0, 0, 0.1); /* Soft shadow */
-}
-
-.settings-panel {
-  flex: 1;
-  z-index: 10;
-  position: relative;
-  padding: 20px;
-  background-color: var(--background-light);
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  overflow: auto;
-  text-align: center; /* Center the text */
-}
-
-/* Navigation Menu */
-.navigation-menu {
-  position: fixed; /* Fixes it to the top */
-  top: 0;
-  left: 0;
-  width: 100%;
-  background-color: #333;
-  color: white;
-  z-index: 100;
-  padding: 20px;
-  box-sizing: border-box;
-  margin-bottom: 50px; /* Add a margin so that the settings panel doesn't overlap */
-}
-.taskbar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 250px;
-  background-color: var(--background-light);
-  color: var(--text-light);
-  transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
-  z-index: 1000;
-  box-shadow: 4px 0 6px rgba(0, 0, 0, 0.1);
-  border-right: 1px solid #ddd;
-  padding: 20px 0; /* Ensures content spacing without forcing extra height */
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start; /* Ensures links align properly */
-}
-
-/* Ensure links only take up necessary space */
-.taskbar a {
-  padding: 10px 20px;
-  display: block;
-  width: 100%;
-  text-align: left;
-}
-
-/* Hide extra space */
-.taskbar::after {
-  content: "";
-  display: block;
-  height: 0;
-}
-
-.taskbar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 250px;
-  background-color: var(--background-light);
-  color: var(--text-light);
-  transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
-  z-index: 1000;
-  box-shadow: 4px 0 6px rgba(0, 0, 0, 0.1);
-  border-right: 1px solid #ddd;
-  padding: 20px 0; /* Ensures content spacing without forcing extra height */
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start; /* Ensures links align properly */
-}
-
-/* Ensure links only take up necessary space */
-.taskbar a {
-  padding: 10px 20px;
-  display: block;
-  width: 100%;
-  text-align: left;
-}
-
-/* Hide extra space */
-.taskbar::after {
-  content: "";
-  display: block;
-  height: 0;
-}
-.taskbar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 250px;
-  background-color: var(--background-light);
-  color: var(--text-light);
-  transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
-  z-index: 1000;
-  box-shadow: 4px 0 6px rgba(0, 0, 0, 0.1);
-  border-right: 1px solid #ddd;
-  padding: 20px 0; /* Ensures content spacing without forcing extra height */
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start; /* Ensures links align properly */
-}
-
-/* Ensure links only take up necessary space */
-.taskbar a {
-  padding: 10px 20px;
-  display: block;
-  width: 100%;
-  text-align: left;
-}
-
-/* Hide extra space */
-.taskbar::after {
-  content: "";
-  display: block;
-  height: 0;
-}
-/* 🌎 General Body Styling */
-body {
-  font-family: "Arial", sans-serif;
-  margin: 0;
-  padding: 0;
-  text-align: center; /* Center all text by default */
-  width: 100%;
-  max-width: 100vw; /* Prevent content from overflowing horizontally */
-  box-sizing: border-box; /* Ensure padding and margin are included in width calculations */
-  transition: background-color 0.3s ease, color 0.3s ease;
-}
-
-/* 🌞 Light Theme */
-body.light-theme {
-  background-color: #f5f5f5; /* Light background color */
-  color: #333; /* Dark text color for light theme */
-}
-
-/* 🌑 Dark Theme */
-body.dark-theme {
-  background-color: #333; /* Dark background color */
-  color: #f5f5f5; /* Light text color for dark theme */
-}
-
-/* 🎛️ Universal Button Styles */
-button {
-  display: block;
-  margin: 10px auto;
-  padding: 12px 18px;
-  border: none;
-  border-radius: 8px; /* Rounded corners for buttons */
-  cursor: pointer;
-  font-weight: bold;
-  font-size: 1rem;
-  transition: background-color 0.3s ease, color 0.3s ease;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
-}
-
-/* Button styling for light theme */
-button.light-theme {
-  background-color: #007bff; /* Light blue background */
-  color: white;
-}
-
-button.light-theme:hover {
-  background-color: #0056b3; /* Darker shade on hover */
-}
-
-/* Button styling for dark theme */
-button.dark-theme {
-  background-color: #444; /* Dark background */
-  color: white;
-}
-
-button.dark-theme:hover {
-  background-color: #222; /* Darker shade on hover */
-}
-
-/* 🖊️ Input Box Styles */
-.input-box {
-  width: 150px;
-  max-width: 100%;
-  padding: 14px;
-  font-size: 1rem;
-  margin: 12px 0;
-  border-radius: 8px;
-  text-align: center; /* Center text inside input box */
-  transition: background-color 0.3s ease, color 0.3s ease;
-}
-
-/* Input box styling for light theme */
-body.light-theme .input-box {
-  background: #fff; /* White background */
-  color: #333; /* Dark text color */
-  border: 1px solid #ccc; /* Light border */
-}
-
-/* Input box styling for dark theme */
-body.dark-theme .input-box {
-  background: #444; /* Dark background */
-  color: #f5f5f5; /* Light text color */
-  border: 1px solid #666; /* Darker border */
+  .settings-box {
+    max-width: 90%;
+  }
 }
 
 /* ⚡ Accessibility Focus */
 button:focus,
-.input-box:focus {
-  outline: 2px solid #ffbf47;
+input:focus,
+textarea:focus {
+  outline: 3px solid #FFD700; /* Yellow outline for focus */
   outline-offset: 2px;
+}
+
+button:active {
+  background-color: #0056b3; /* Darker shade when active */
+}
+
+input:disabled,
+textarea:disabled {
+  background-color: #f2f2f2;
+  cursor: not-allowed;
 }
 
 /* 🏷️ Links Styling */
 a {
-  color: inherit; /* Inherit color from parent */
   text-decoration: none;
-  font-size: 1rem;
-  transition: color 0.3s ease, text-decoration 0.3s ease;
+  color: #333;
+}
+
+a:focus {
+  outline: 3px solid #FFD700; /* Highlight focused links */
 }
 
 a:hover {
-  text-decoration: underline;
+  color: #007BFF;
 }
 
-/* 📱 Mobile Responsiveness */
-@media (max-width: 768px) {
-  button {
-    font-size: 14px;
-  }
+/* 🖊️ Input Box Styles */
+input[type="text"],
+textarea {
+  width: 260px;
+  max-width: 100%;
+  padding: 10px;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  margin-bottom: 15px;
+  box-sizing: border-box;
+}
 
-  .input-box {
-    font-size: 14px;
-  }
+input[type="text"]:focus,
+textarea:focus {
+  border-color: #007BFF;
+  outline: none;
+}
+
+/* 🌞 Light Theme */
+body.light-theme {
+  background-color: #f5f5f5; /* Light background */
+  color: #333; /* Dark text color */
+}
+
+/* 🌑 Dark Theme */
+body.dark-theme {
+  background-color: #333; /* Dark background */
+  color: #f5f5f5; /* Light text color */
+}
+
+/* Settings Section */
+.settings-section {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.settings-section h3 {
+  margin-bottom: 10px;
+}
+
+.settings-section input,
+.settings-section select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  margin-bottom: 15px;
+  box-sizing: border-box;
+}
+
+.settings-section input:focus,
+.settings-section select:focus {
+  border-color: #007BFF;
+  outline: none;
 }

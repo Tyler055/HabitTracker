@@ -75,14 +75,14 @@ const App = () => {
         className="taskbar-toggle-btn"
         aria-label="Toggle Taskbar"
       >
-        ☰
+        
       </button>
 
       <TaskBar isDarkMode={isDarkMode} toggleTaskbar={toggleTaskbar} isVisible={isTaskbarVisible} />
 
       <main style={{ marginTop: "60px", padding: "20px" }}>
         <Routes>
-          <Route path="/" element={<Home />} />
+          <Route path="/home" element={<Home />} />
           <Route path="/habit-tracker" element={<HabitTracker />} />
           <Route path="/progress" element={<Progress />} />
           <Route path="/settings" element={<Settings />} />

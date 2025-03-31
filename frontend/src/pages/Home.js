@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Route, Routes, Link, useNavigate } from "react-router-dom";
 
-const Home = () => {
+// Home Component (Login/Sign Up)
+const HomePage = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const navigate = useNavigate();
 
@@ -12,7 +13,7 @@ const Home = () => {
 
     // If logged in, redirect to Habit Tracker
     if (userLoggedIn) {
-      navigate("/habit-tracker");
+      navigate("/home");  // Redirect to home page if logged in
     }
   }, [navigate]);
 
@@ -20,14 +21,14 @@ const Home = () => {
     // Simulate the login process (replace with real API call for production)
     localStorage.setItem("isLoggedIn", "true");
     setIsLoggedIn(true);
-    navigate("/habit-tracker");
+    navigate("/home");  // Redirect to home after login
   };
 
   const handleLogout = () => {
     // Handle the logout process
     localStorage.removeItem("isLoggedIn");
     setIsLoggedIn(false);
-    navigate("/");
+    navigate("/");  // Redirect to the home page after logout
   };
 
   return (
@@ -51,4 +52,45 @@ const Home = () => {
   );
 };
 
-export default Home;
+// Component to display data from Flask API
+const HomeDataPage = () => {
+  const [data, setData] = useState(null);
+
+  useEffect(() => {
+    fetch('/api/get_html')  // Flask API endpoint
+      .then(response => response.json())
+      .then(data => setData(data))
+      .catch(error => console.error('Error fetching HTML:', error));
+  }, []);
+
+  return (
+    <div>
+      <h1>Home Page</h1>
+      {data ? <div dangerouslySetInnerHTML={{ __html: data.html }} /> : <p>Loading...</p>}
+      <nav>
+        <Link to="/other">Go to Another Page</Link>
+      </nav>
+    </div>
+  );
+};
+
+// Example of another page component
+const OtherPage = () => (
+  <div>
+    <h1>Other Page</h1>
+    <nav>
+      <Link to="/">Go back to Home Page</Link>
+    </nav>
+  </div>
+);
+
+// Main App Component (Handles Routes)
+const App = () => (
+  <Routes>
+    <Route path="/" element={<HomePage />} />  {/* Login / Sign Up page */}
+    <Route path="/home" element={<HomeDataPage />} />  {/* Main page after login */}
+    <Route path="/other" element={<OtherPage />} />  {/* Other page */}
+  </Routes>
+);
+
+export default App;

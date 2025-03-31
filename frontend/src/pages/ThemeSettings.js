@@ -1,57 +1,57 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import '../styles/styles.css';
+import React, { useState, useEffect, useCallback } from "react";
+import "../styles/styles.css";
 
 const ThemeSettings = () => {
-  const [fontSize, setFontSize] = useState('16px');
-  const [buttonColor, setButtonColor] = useState('#007bff');
-  const [bgColor, setBgColor] = useState('#ffffff');
-  const [textColor, setTextColor] = useState('#000000');
+  const [fontSize, setFontSize] = useState("16px");
+  const [buttonColor, setButtonColor] = useState("#007bff");
+  const [bgColor, setBgColor] = useState("#ffffff");
+  const [textColor, setTextColor] = useState("#000000");
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const [taskbarVisible, setTaskbarVisible] = useState(false);
+  // Removed unused taskbarVisible state
 
   // Apply theme dynamically using CSS variables
   const applyTheme = useCallback(() => {
-    const currentBgColor = isDarkMode ? '#333333' : bgColor;
-    const currentTextColor = isDarkMode ? '#ffffff' : textColor;
+    const currentBgColor = isDarkMode ? "#333333" : bgColor;
+    const currentTextColor = isDarkMode ? "#ffffff" : textColor;
     const currentButtonColor = buttonColor;
 
-    document.documentElement.style.setProperty('--bg-color', currentBgColor);
-    document.documentElement.style.setProperty('--text-color', currentTextColor);
-    document.documentElement.style.setProperty('--button-color', currentButtonColor);
-    document.documentElement.style.setProperty('--font-size', fontSize);
+    document.documentElement.style.setProperty("--bg-color", currentBgColor);
+    document.documentElement.style.setProperty("--text-color", currentTextColor);
+    document.documentElement.style.setProperty("--button-color", currentButtonColor);
+    document.documentElement.style.setProperty("--font-size", fontSize);
 
     document.body.style.backgroundColor = currentBgColor;
     document.body.style.color = currentTextColor;
     document.body.style.fontSize = fontSize;
-    document.querySelectorAll('button').forEach((btn) => {
+    document.querySelectorAll("button").forEach((btn) => {
       btn.style.backgroundColor = currentButtonColor;
     });
 
     if (isDarkMode) {
-      document.body.classList.add('dark-theme');
-      document.body.classList.remove('light-theme');
+      document.body.classList.add("dark-theme");
+      document.body.classList.remove("light-theme");
     } else {
-      document.body.classList.add('light-theme');
-      document.body.classList.remove('dark-theme');
+      document.body.classList.add("light-theme");
+      document.body.classList.remove("dark-theme");
     }
 
-    localStorage.setItem('bgColor', currentBgColor);
-    localStorage.setItem('textColor', currentTextColor);
-    localStorage.setItem('buttonColor', currentButtonColor);
-    localStorage.setItem('font-size', fontSize);
-    localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
+    localStorage.setItem("bgColor", currentBgColor);
+    localStorage.setItem("textColor", currentTextColor);
+    localStorage.setItem("buttonColor", currentButtonColor);
+    localStorage.setItem("font-size", fontSize);
+    localStorage.setItem("theme", isDarkMode ? "dark" : "light");
   }, [isDarkMode, bgColor, textColor, buttonColor, fontSize]);
 
   // Load saved settings from localStorage
   useEffect(() => {
-    const savedTheme = localStorage.getItem('theme');
-    const savedFontSize = localStorage.getItem('font-size');
-    const savedButtonColor = localStorage.getItem('button-color');
-    const savedBgColor = localStorage.getItem('bgColor') || '#ffffff';
-    const savedTextColor = localStorage.getItem('textColor') || '#000000';
-    const savedTaskbarVisibility = localStorage.getItem('taskbarVisible') === 'true';
+    const savedTheme = localStorage.getItem("theme");
+    const savedFontSize = localStorage.getItem("font-size");
+    const savedButtonColor = localStorage.getItem("button-color");
+    const savedBgColor = localStorage.getItem("bgColor") || "#ffffff";
+    const savedTextColor = localStorage.getItem("textColor") || "#000000";
+    // Removed unused taskbar visibility logic
 
-    if (savedTheme === 'dark') {
+    if (savedTheme === "dark") {
       setIsDarkMode(true);
     } else {
       setIsDarkMode(false);
@@ -67,7 +67,7 @@ const ThemeSettings = () => {
 
     setBgColor(savedBgColor);
     setTextColor(savedTextColor);
-    setTaskbarVisible(savedTaskbarVisibility);
+    // Removed unused taskbar visibility setter
 
     applyTheme(); // Apply saved settings when component mounts
   }, [applyTheme]);
@@ -77,13 +77,13 @@ const ThemeSettings = () => {
     const newFontSize = event.target.value;
     setFontSize(newFontSize);
     document.body.style.fontSize = newFontSize; // Apply immediately
-    localStorage.setItem('font-size', newFontSize);
+    localStorage.setItem("font-size", newFontSize);
   };
 
   const handleButtonColorChange = (event) => {
     const newButtonColor = event.target.value;
     setButtonColor(newButtonColor);
-    localStorage.setItem('button-color', newButtonColor);
+    localStorage.setItem("button-color", newButtonColor);
   };
 
   const handleBgColorChange = (event) => {
@@ -97,33 +97,24 @@ const ThemeSettings = () => {
   };
 
   const resetTheme = () => {
-    localStorage.removeItem('theme');
-    localStorage.removeItem('bgColor');
-    localStorage.removeItem('textColor');
-    localStorage.removeItem('buttonColor');
-    localStorage.removeItem('font-size');
-    localStorage.removeItem('taskbarVisible');
+    localStorage.removeItem("theme");
+    localStorage.removeItem("bgColor");
+    localStorage.removeItem("textColor");
+    localStorage.removeItem("buttonColor");
+    localStorage.removeItem("font-size");
+    localStorage.removeItem("taskbarVisible");
 
-    setFontSize('16px');
-    setBgColor('#ffffff');
-    setTextColor('#000000');
-    setButtonColor('#007bff');
+    setFontSize("16px");
+    setBgColor("#ffffff");
+    setTextColor("#000000");
+    setButtonColor("#007bff");
     setIsDarkMode(false);
-    setTaskbarVisible(false);
     applyTheme();
   };
 
-  const toggleDarkMode = () => {
-    setIsDarkMode((prevMode) => !prevMode);
-  };
+  // Removed unused toggleDarkMode function
 
-  const toggleTaskbar = () => {
-    setTaskbarVisible((prevState) => {
-      const newState = !prevState;
-      localStorage.setItem('taskbarVisible', newState);
-      return newState;
-    });
-  };
+  // Removed unused toggleTaskbar function
 
   return (
     <div className="settings-container">
@@ -176,20 +167,9 @@ const ThemeSettings = () => {
       {/* Reset Theme */}
       <button onClick={resetTheme} className="reset-btn">Reset Theme</button>
 
-      {/* Toggle Taskbar */}
-      <div className="setting-item">
-        <label htmlFor="taskbar-toggle" className="switch">
-          <input
-            type="checkbox"
-            id="taskbar-toggle"
-            checked={taskbarVisible}
-            onChange={toggleTaskbar}
-          />
-          <span className="slider"></span>
-        </label>
-        <span>{taskbarVisible ? 'Taskbar Visible' : 'Taskbar Hidden'}</span>
-      </div>
+      
 
+    
       {/* Apply Changes */}
       <button onClick={applyTheme} className="apply-btn">Apply</button>
     </div>
