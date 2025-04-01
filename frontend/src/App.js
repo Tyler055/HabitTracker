@@ -15,6 +15,7 @@ const App = () => {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [fontSize, setFontSize] = useState("16px");
   const [buttonColor, setButtonColor] = useState("#007bff");
+  const [flaskData, setFlaskData] = useState(null); // Store Flask API response
 
   // Load theme from localStorage on mount
   useEffect(() => {
@@ -26,11 +27,16 @@ const App = () => {
     setIsDarkMode(savedTheme === "dark");
     setFontSize(savedFontSize);
     setButtonColor(savedButtonColor);
-
     applyTheme(savedFontSize, savedButtonColor, savedTheme === "dark");
+
+    // Fetch data from Flask API
+    fetch("http://127.0.0.1:5000/test")
+      .then(response => response.json())
+      .then(data => setFlaskData(data.message))
+      .catch(error => console.error("Error fetching data:", error));
   }, []);
 
-  // Handle dark mode toggle
+  // Toggle dark mode
   const toggleDarkMode = () => {
     const newTheme = isDarkMode ? "light" : "dark";
     setIsDarkMode(!isDarkMode);
@@ -40,7 +46,7 @@ const App = () => {
     applyTheme(fontSize, buttonColor, !isDarkMode);
   };
 
-  // Apply theme dynamically using CSS variables
+  // Apply theme dynamically
   const applyTheme = (fontSize, buttonColor, isDark) => {
     document.documentElement.style.setProperty("--app-font-size", fontSize);
     document.documentElement.style.setProperty("--button-color", buttonColor);
@@ -51,12 +57,10 @@ const App = () => {
     localStorage.setItem("fontSize", fontSize);
     localStorage.setItem("buttonColor", buttonColor);
   };
-  <iframe src="http://localhost:3000/" width="100%" height="500px" title="Localhost Preview"></iframe>
 
-
-  // Handle taskbar visibility toggle
+  // Toggle taskbar
   const toggleTaskbar = () => {
-    setIsTaskbarVisible((prevState) => !prevState);
+    setIsTaskbarVisible(prevState => !prevState);
   };
 
   return (
@@ -77,7 +81,7 @@ const App = () => {
         className="taskbar-toggle-btn"
         aria-label="Toggle Taskbar"
       >
-        
+        Toggle Taskbar
       </button>
 
       <TaskBar isDarkMode={isDarkMode} toggleTaskbar={toggleTaskbar} isVisible={isTaskbarVisible} />
@@ -89,6 +93,8 @@ const App = () => {
           <Route path="/progress" element={<Progress />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/profile" element={<Profile />} />
+          {/* New Route to Display Flask API Data */}
+          <Route path="/test" element={<p>{flaskData ? flaskData : "Loading..."}</p>} />
           <Route path="*" element={<Home />} />
         </Routes>
       </main>
