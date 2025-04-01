@@ -15,6 +15,7 @@ class SoftDeleteQuery(Query):
 
     def with_deleted(self):
         self._with_deleted = True
+
         return self
 
     def get(self, ident):
