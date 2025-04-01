@@ -16,11 +16,22 @@ load_dotenv()
 jwt = JWTManager()
 migrate = Migrate()
 
+# Global error handlers
+def register_error_handlers(app):
+    @app.errorhandler(404)
+    def not_found(error):
+        return jsonify({"message": "Resource not found"}), 404
+
+    @app.errorhandler(500)
+    def internal_error(error):
+        return jsonify({"message": "Internal server error"}), 500
+
 def create_app(env_name=None):
     app = Flask(__name__)
     
     # Allow frontend (React) to communicate with backend
-    CORS(app, resources={r"/api/*": {"origins": "http://localhost:3000"}})
+    CORS(app, origins=["http://localhost:3000"])
+
 
     # Load config based on environment
     env = env_name or os.getenv('FLASK_ENV', 'development')
@@ -81,10 +92,15 @@ def create_app(env_name=None):
         except Exception as e:
             return f"Error connecting to MongoDB: {str(e)}"
 
-    # Test Route
-    @app.route("/test")
+    # Route
+    @app.route('/')
+    def index():
+        return render_template('index.html')  # Or any response you want to return
+
+    @app.route('/test', methods=['GET'])
     def test():
-        return render_template("test.html")
+        return jsonify({"message": "Success! Backend is working."})#return render_template('test.html')
+    
 
     return app
 
@@ -102,16 +118,6 @@ def serve_static(path):
 @app.route('/<path:path>')
 def serve_react_app(path):
     return send_from_directory('frontend/build', 'index.html')
-
-# Global error handlers
-def register_error_handlers(app):
-    @app.errorhandler(404)
-    def not_found(error):
-        return jsonify({"message": "Resource not found"}), 404
-
-    @app.errorhandler(500)
-    def internal_error(error):
-        return jsonify({"message": "Internal server error"}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -82,10 +82,7 @@ const App = () => {
 
       <button
         onClick={toggleTaskbar}
-        className="taskbar-toggle-btn"
-        aria-label="Toggle Taskbar"
-      >
-        Toggle Taskbar
+        className="taskbar-toggle-btn">
       </button>
 
       <TaskBar isDarkMode={isDarkMode} toggleTaskbar={toggleTaskbar} isVisible={isTaskbarVisible} />
