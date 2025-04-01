@@ -1,39 +1,43 @@
-/* Habit Progress Bar */
+/* 🏁 Habit Progress Bar */
 .progress-bar {
-  width: 100%;
-  height: 20px;
-  background-color: #e0e0e0;
-  border-radius: 5px;
-  margin-top: 10px;
+  width: 100%; /* 📏 Full width of the container */
+  height: 20px; /* 📐 Height of the progress bar */
+  background-color: #e0e0e0; /* 🌑 Light gray background */
+  border-radius: 5px; /* 🔲 Rounded corners */
+  margin-top: 10px; /* ⬆️ Space above the progress bar */
 }
 
 .progress-fill {
-  height: 100%;
-  transition: width 0.3s ease;
+  height: 100%; /* 📏 Fills the entire height */
+  transition: width 0.3s ease; /* ⚡ Smooth transition for width changes */
 }
 
+/* 🔄 Compare Mode */
 .compare-mode {
-  display: none; /* Hidden by default */
-  display: flex;
-  justify-content: space-around;
-  padding-top: 20px;
+  display: none; /* 🚫 Hidden by default */
+  display: flex; /* 📐 Flexbox layout */
+  justify-content: space-around; /* 🎯 Space out items evenly */
+  padding-top: 20px; /* ⬆️ Adds space at the top */
 }
 
+/* 📝 Habit Item */
 .habit-item {
-  padding: 15px;
-  border-radius: 5px;
-  background-color: white;
-  width: 40%;
-  margin: 10px;
-  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 15px; /* 📦 Adds padding inside the item */
+  border-radius: 5px; /* 🔲 Rounded corners */
+  background-color: white; /* ⚪ White background */
+  width: 40%; /* 📏 40% of the container width */
+  margin: 10px; /* ➖ Adds margin around the habit item */
+  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1); /* 🌑 Soft shadow around the habit item */
 }
 
+/* 🎨 Color Customization */
 .color-customization {
-  margin-top: 20px;
+  margin-top: 20px; /* ⬆️ Space above the color customization section */
 }
 
+/* 🎨 Color Picker */
 input[type="color"] {
-  width: 40px;
-  height: 40px;
-  margin: 5px;
+  width: 40px; /* 📏 Width of the color picker */
+  height: 40px; /* 📐 Height of the color picker */
+  margin: 5px; /* ➖ Margin around the color picker */
 }

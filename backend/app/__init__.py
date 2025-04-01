@@ -8,14 +8,16 @@ from config import config
 from app.utils.extensions import db
 from app.routes.completion_routes import completion_bp
 from app.routes.habit_routes import habit_bp
+from app.routes.auth_routes import auth_bp
+from app.routes.reminder_routes import reminder_routes
 from flask_pymongo import PyMongo
+from app.models.models import User, Habit  # Import your models
 
 # Initialize Flask extensions
 mongo = PyMongo()
 migrate = Migrate()
 
 def create_app():
-    from app.routes.auth_routes import auth_bp
     # Load environment variables from .env file
     load_dotenv()
 
@@ -45,23 +47,41 @@ def create_app():
     migrate.init_app(app, db)  # Initialize migration for SQLAlchemy
 
     # Register blueprints for different routes
-    app.register_blueprint(auth_bp) 
-    app.register_blueprint(completion_bp)  
+    app.register_blueprint(auth_bp)
+    app.register_blueprint(completion_bp)
     app.register_blueprint(habit_bp)
+    app.register_blueprint(reminder_routes)
 
-    # Set logging configuration (Optional)
+    # Seed default data
+    @app.before_first_request
+    def seed_default_data():
+        with app.app_context():
+            # Default MySQL Data (SQLAlchemy)
+            if not User.query.first():  # Avoid duplicate data
+                admin = User(username="admin", email="admin@example.com")
+                admin.password = "admin123"  # Will need hashing in real use
+                db.session.add(admin)
+                db.session.commit()
+                app.logger.info("Default user created")
+
+            if not Habit.query.first():
+                default_habit = Habit(name="Drink Water", user_id=1)
+                db.session.add(default_habit)
+                db.session.commit()
+                app.logger.info("Default habit created")
+
+            # Default MongoDB Data (PyMongo)
+            if mongo.db.habits.count_documents({}) == 0:
+                mongo.db.habits.insert_one({"name": "Exercise", "description": "Daily workout routine"})
+                app.logger.info("Default MongoDB habit inserted")
+
+    # Set logging configuration
     if app.config['DEBUG']:
         app.logger.setLevel(logging.DEBUG)
     else:
         app.logger.setLevel(logging.INFO)
 
-    # Example of custom configuration (Optional)
-    # You can add custom error handlers or logging here
-    # For example, if you want to log requests or errors
-    @app.before_request
-    def before_request():
-        app.logger.info("Request received for %s", request.url)
-
+    # Example of custom error handlers (Optional)
     # Custom error handler for 404 errors
     @app.errorhandler(404)
     def not_found(error):

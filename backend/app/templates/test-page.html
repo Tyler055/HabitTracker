@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/taskbar.css') }}" />
 
     <!-- Favicon -->
-    <link rel="ico" href="{{ url_for('static', filename='ico/website.ico') }}" type="image/x-ico" />
+    <link rel="icon" href="{{ url_for('static', filename='icon/website.ico') }}" type="image/x-icon" />
 
     <style>
         body {
@@ -35,6 +35,15 @@
             font-size: 18px;
             color: #666;
         }
+        .habit-list {
+            text-align: left;
+            margin-top: 20px;
+        }
+        .habit-list label {
+            display: block;
+            font-size: 16px;
+            margin: 5px 0;
+        }
     </style>
 </head>
 <body>
@@ -42,6 +51,20 @@
         <h1>Welcome to the Test Page</h1>
         <p>Your backend is working correctly!</p>
         <p>This is a simple, well-styled HTML page for testing purposes.</p>
+
+        <h2>Habit List</h2>
+        <div class="habit-list">
+            <label><input type="checkbox"> Morning Exercise</label>
+            <label><input type="checkbox"> Drink 8 Glasses of Water</label>
+            <label><input type="checkbox"> Read for 30 Minutes</label>
+            <label><input type="checkbox"> Meditation</label>
+            <label><input type="checkbox"> No Junk Food</label>
+            <label><input type="checkbox"> Learn a New Skill</label>
+            <label><input type="checkbox"> Organize Workspace</label>
+            <label><input type="checkbox"> Sleep Before 11 PM</label>
+            <label><input type="checkbox"> Journal Your Thoughts</label>
+            <label><input type="checkbox"> Social Media Detox</label>
+        </div>
     </div>
 </body>
 </html>

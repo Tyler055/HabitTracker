@@ -1,40 +1,40 @@
-/* App Logo */
+/* 🖼️ App Logo */
 .App-logo {
-  height: 40vmin;
-  pointer-events: none;
+  height: 40vmin; /* 📏 Size based on viewport */
+  pointer-events: none; /* 🚫 Disables interaction with the logo */
 }
 
 @media (prefers-reduced-motion: no-preference) {
   .App-logo {
-    animation: App-logo-spin infinite 20s linear;
+    animation: App-logo-spin infinite 20s linear; /* 🔄 Continuous spin animation */
   }
 }
 
-/* App Header */
+/* 🏠 App Header */
 .App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
-  text-align: center;
+  background-color: #282c34; /* 🌑 Dark background for the header */
+  min-height: 100vh; /* 📏 Ensures the header fills the entire viewport */
+  display: flex; /* 📐 Flexbox for layout */
+  flex-direction: column; /* 🧩 Stacks items vertically */
+  align-items: center; /* 🎯 Centers items horizontally */
+  justify-content: center; /* 🎯 Centers items vertically */
+  font-size: calc(10px + 2vmin); /* 🔢 Responsive font size */
+  color: white; /* ⚪ White text color */
+  text-align: center; /* 🔲 Center-aligns text */
 }
 
-/* App Link */
+/* 🔗 App Link */
 .App-link {
-  color: #61dafb;
-  text-decoration: none;
+  color: #61dafb; /* 🌊 Light blue color for the link */
+  text-decoration: none; /* 🚫 Removes underline */
 }
 
-/* Keyframe for Logo Spin */
+/* 🌀 Keyframe for Logo Spin */
 @keyframes App-logo-spin {
   from {
-    transform: rotate(0deg);
+    transform: rotate(0deg); /* 🔄 Starting rotation */
   }
   to {
-    transform: rotate(360deg);
+    transform: rotate(360deg); /* 🔄 Full rotation */
   }
 }

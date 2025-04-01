@@ -1,208 +1,118 @@
-/* 🎨 Default Theme Variables */
+/* 🌍 Global Theme Variables */
 :root {
-  --background-light: #f0f0f0;
-  --text-light: #333;
-  --button-light: #007bff;
-  --button-hover-light: #0056b3;
-  --input-light-bg: #fff;
-  --input-light-border: #ccc;
-
-  --background-dark: #181818; /* Slightly darker for better contrast */
-  --text-dark: #e0e0e0;
-  --button-dark: #00ccff;
-  --button-hover-dark: #00aaff;
-  --input-dark-bg: #333;
-  --input-dark-border: #555;
-
-  --delete-btn-hover-dark: darkred;
   --transition-duration: 0.3s;
+  --transition-speed: ease-in-out;
+  --button-hover-color: #0056b3;
+  --button-active-color: #003f7d;
+  --input-focus-color: #007BFF;
+  --container-hover-bg-color: #f0f0f0;
+  --container-hover-border-color: #ccc;
+  --header-light-color: #333;
+  --header-dark-color: #f5f5f5;
 }
 
-/* General Body Styling for Both Themes */
-body {
-  font-family: "Arial", sans-serif;
-  transition: all var(--transition-duration) ease;
-  margin: 0;
-  padding: 0;
-}
-
-/* 🟡 Light Theme */
-body.light-theme {
-  background-color: var(--background-light);
-  color: var(--text-light);
-}
-
-/* 🟣 Dark Theme */
-body.dark-theme {
-  background-color: var(--background-dark);
-  color: var(--text-dark);
-}
-
-/* 📦 Content Wrapper */
-.container {
-  max-width: 600px;
-  margin: auto;
-  padding: 20px;
-  background: var(--input-light-bg);
-  border-radius: 10px;
-  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
-  transition: background var(--transition-duration);
-}
-
-body.dark-theme .container {
-  background: #242424;
-}
-
-/* 📝 Headers */
-h1,
-h2 {
-  text-align: center;
-  font-size: 1.8rem;
-}
-
-/* ✅ Buttons */
-button {
-  display: block;
-  margin: 10px auto;
-  padding: 12px 18px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  font-weight: bold;
-  font-size: 1rem;
-  transition: background var(--transition-duration),
-    color var(--transition-duration);
-}
-
-body.light-theme button {
-  background-color: var(--button-light);
-  color: white;
-}
-
-body.light-theme button:hover {
-  background-color: var(--button-hover-light);
-}
-
-body.dark-theme button {
-  background-color: var(--button-dark);
-  color: white;
-}
-
-body.dark-theme button:hover {
-  background-color: var(--button-hover-dark);
-}
-
-/* 🏗️ Habit List */
-.habit-item {
-  background: #e8e8e8;
-  padding: 12px;
-  margin: 5px 0;
-  border-radius: 5px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  transition: background var(--transition-duration);
-}
-
-body.dark-theme .habit-item {
-  background: #333;
-}
-
-/* 🖊️ Input Fields */
-.input-box {
-  width: 225px;
-  max-width: 100%;
-  padding: 12px;
-  font-size: 1rem;
-  margin: 10px 0;
-  border: 1px solid var(--input-light-border);
-  border-radius: 5px;
-  transition: background var(--transition-duration),
-    color var(--transition-duration);
-}
-
-body.dark-theme .input-box {
-  background: var(--input-dark-bg);
-  color: white;
-  border: 1px solid var(--input-dark-border);
-}
-
-/* ❌ Delete Button */
-.delete-btn {
-  background-color: red;
-  color: white;
-  padding: 8px 12px;
-  border-radius: 3px;
-  text-decoration: none;
-  transition: background var(--transition-duration);
-}
-
-.delete-btn:hover {
-  background-color: var(--delete-btn-hover-dark);
-}
-
-/* 🔍 Focus Styles for Accessibility */
-button:focus,
-.input-box:focus,
-.delete-btn:focus {
-  outline: 2px solid #ffbf47;
-  outline-offset: 2px;
-}
-
-/* 🌎 Global Link Styles */
-a {
-  text-decoration: none;
-  color: inherit;
-}
-
-a:hover {
-  text-decoration: underline;
-}
-
-/* 📱 Mobile Responsiveness */
-@media (max-width: 768px) {
-  .container {
-    padding: 15px;
-    margin: 10px;
-  }
-
-  h1,
-  h2 {
-    font-size: 1.5rem;
-  }
-
-  button {
-    font-size: 1rem;
-    padding: 10px 14px;
-  }
-}
-/* General Body Styling */
+/* 🧑‍💻 General Body Styling */
 body {
   margin: 0;
   padding: 0;
-  font-family: 'Arial', sans-serif;
+  font-family: 'Roboto', sans-serif;
   line-height: 1.6;
   background-color: #f4f4f4;
   color: #333;
   text-align: center;
   overflow-x: hidden;
   box-sizing: border-box;
+  transition: background-color var(--transition-duration) var(--transition-speed), color var(--transition-duration) var(--transition-speed);
 }
 
-/* Global reset for box-sizing to make layout more predictable */
+/* 🌞 Light and 🌑 Dark Theme Body */
+body.light-theme {
+  background-color: #f5f5f5;
+  color: #333;
+}
+
+body.dark-theme {
+  background-color: #333;
+  color: #f5f5f5;
+}
+
+/* 🔲 Reusable Button & Input Styling */
+.button, button {
+  padding: 10px 20px;
+  font-size: 1rem;
+  border-radius: 5px;
+  transition: background-color var(--transition-duration);
+  cursor: pointer;
+}
+
+.button:hover, button:hover {
+  background-color: var(--button-hover-color);
+}
+
+.button:active, button:active {
+  background-color: var(--button-active-color);
+}
+
+.input, input[type="text"], textarea {
+  width: 260px;
+  padding: 10px;
+  font-size: 1rem;
+  border-radius: 5px;
+  transition: border-color var(--transition-duration);
+}
+
+.input:focus, textarea:focus, input[type="text"]:focus {
+  border-color: var(--input-focus-color);
+  outline: none;
+}
+
+/* 📝 Header Styling */
+h1, h2, h3 {
+  color: var(--header-light-color);
+}
+
+body.dark-theme h1, body.dark-theme h2, body.dark-theme h3 {
+  color: var(--header-dark-color);
+}
+
+/* 🖱️ Hover Effects for Containers */
+.container, .habit-card {
+  transition: background-color var(--transition-duration), border-color var(--transition-duration);
+}
+
+.container:hover, .habit-card:hover {
+  background-color: var(--container-hover-bg-color);
+  border-color: var(--container-hover-border-color);
+}
+
+/* 📱 Mobile Responsiveness */
+@media (max-width: 768px) {
+  body {
+    font-size: 14px;
+  }
+
+  button {
+    padding: 8px 16px;
+  }
+
+  .settings-box {
+    max-width: 90%;
+  }
+}
+
+/* 🔧 General Reset */
 *,
 *::before,
 *::after {
   box-sizing: inherit;
 }
 
-/* Ensure that all images scale properly */
 img {
   max-width: 100%;
   height: auto;
 }
 
-/* Links Styling */
+/* 🔗 Links Styling */
 a {
   text-decoration: none;
   color: inherit;
@@ -212,7 +122,7 @@ a:hover {
   color: #007BFF;
 }
 
-/* Header Styling */
+/* 🎯 Header Styling */
 header {
   background-color: #333;
   color: white;
@@ -221,17 +131,17 @@ header {
   text-align: center;
 }
 
-/* Main Content Styling */
+/* 🧳 Main Content Styling */
 main {
   padding: 40px 20px;
 }
 
-/* Section Styling */
+/* 📂 Section Styling */
 section {
   margin-bottom: 20px;
 }
 
-/* Button Styling */
+/* 🔘 Button Styling */
 button {
   padding: 10px 20px;
   background-color: #007BFF;
@@ -252,7 +162,7 @@ button:disabled {
   cursor: not-allowed;
 }
 
-/* Center Settings */
+/* 🎨 Center Settings */
 .settings-container {
   display: flex;
   justify-content: center;
@@ -278,31 +188,8 @@ button:disabled {
   margin-bottom: 10px;
   font-weight: bold;
 }
-/* 📱 Mobile Responsiveness */
-@media (max-width: 768px) {
-  body {
-    font-size: 14px;
-  }
 
-  header {
-    font-size: 1.5rem;
-  }
-
-  button {
-    padding: 8px 16px;
-  }
-
-  .taskbar {
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .settings-box {
-    max-width: 90%;
-  }
-}
-
-/* ⚡ Accessibility Focus */
+/* 🚀 Accessibility Focus */
 button:focus,
 input:focus,
 textarea:focus {
@@ -320,7 +207,7 @@ textarea:disabled {
   cursor: not-allowed;
 }
 
-/* 🏷️ Links Styling */
+/* 📎 Links Styling */
 a {
   text-decoration: none;
   color: #333;
@@ -334,7 +221,7 @@ a:hover {
   color: #007BFF;
 }
 
-/* 🖊️ Input Box Styles */
+/* ✍️ Input Box Styles */
 input[type="text"],
 textarea {
   width: 260px;
@@ -363,5 +250,40 @@ body.light-theme {
 body.dark-theme {
   background-color: #333; /* Dark background */
   color: #f5f5f5; /* Light text color */
+}
+
+/* 📊 Habit Progress Bar */
+.progress-bar {
+  width: 100%;
+  height: 20px;
+  background-color: #e0e0e0;
+  border-radius: 5px;
+  margin-top: 10px;
+}
+
+.progress-fill {
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+/* 📋 Habit Card Styling */
+.habit-item {
+  padding: 15px;
+  border-radius: 5px;
+  background-color: white;
+  width: 40%;
+  margin: 10px;
+  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* 🎨 Color Customization */
+.color-customization {
+  margin-top: 20px;
+}
+
+input[type="color"] {
+  width: 40px;
+  height: 40px;
+  margin: 5px;
 }
 

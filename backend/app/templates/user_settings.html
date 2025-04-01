@@ -25,8 +25,8 @@
         <div class="form-group">
             <label for="theme">Theme</label>
             <select name="theme" id="theme" onchange="updateTheme()">
-                <option value="light" {% if user.theme == 'light' %}selected{% endif %}>Light</option>
-                <option value="dark" {% if user.theme == 'dark' %}selected{% endif %}>Dark</option>
+                <option value="light" {% if user.theme = 'light' %}selected{% endif %}>Light</option>
+                <option value="dark" {% if user.theme = 'dark' %}selected{% endif %}>Dark</option>
             </select>
         </div>
 

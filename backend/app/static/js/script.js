@@ -1,86 +1,203 @@
 document.addEventListener("DOMContentLoaded", function () {
     // Initialize the current theme, defaulting to 'dark'
-    let currentTheme = localStorage.getItem('theme') || 'dark';
-
+    let currentTheme = localStorage.getItem("theme") || "dark";
+    
     // Elements
-    const themeButton = document.getElementById('theme-toggle');
-    const resetButton = document.getElementById('reset-button');
-    const submitButton = document.getElementById('submit-button');
-    const form = document.getElementById('form-id'); // Example form ID
-
+    const themeButton = document.getElementById("theme-toggle");
+    const resetButton = document.getElementById("reset-button");
+    const statsButton = document.getElementById("stats-button");
+    const statsModal = document.getElementById("stats-modal");
+    const removeStatsButton = document.getElementById("remove-stats-button");
+    const habitFilter = document.getElementById("habit-filter");
+    const habitSort = document.getElementById("habit-sort");
+    const habitList = document.getElementById("habit-list");
+  
     // Apply the saved theme
-    document.body.classList.add(`${currentTheme}-theme`);
-
+    document.body.classList.add(currentTheme + "-theme");
+  
     // Update the theme button text based on the current theme
     function updateButtonText() {
-        if (themeButton) {
-            themeButton.textContent = currentTheme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode';
-        }
+      themeButton.textContent =
+        currentTheme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode";
     }
-
-    // Initialize the button text on page load
-    if (themeButton) {
-        updateButtonText();
-        
-        // Toggle theme function when button is clicked
-        themeButton.addEventListener('click', () => {
-            // Toggle between dark and light themes
-            currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            document.body.classList.toggle('dark-theme');
-            document.body.classList.toggle('light-theme');
-
-            // Save the theme in localStorage
-            localStorage.setItem('theme', currentTheme);
-
-            // Update the button text after the theme change
-            updateButtonText();
-        });
-    }
-
-    // Reset button logic (reset habits and theme)
-    if (resetButton) {
-        resetButton.addEventListener('click', () => {
-            // Reset the theme to dark
-            currentTheme = 'dark';
-            document.body.classList.remove('light-theme');
-            document.body.classList.add('dark-theme');
-            localStorage.setItem('theme', currentTheme); // Save the reset theme
-
-            // Make an API call to reset the habits in the database
-            fetch('/reset_habits', { method: 'POST' })
-                .then(response => {
-                    if (response.ok) {
-                        window.location.reload(); // Reload the page to reflect changes
-                    } else {
-                        throw new Error("Error resetting habits.");
-                    }
-                })
-                .catch(error => {
-                    alert(error.message); // Show detailed error message
-                });
-        });
-    }
-
-    // Form submission logic (if needed)
-    if (submitButton && form) {
-        submitButton.addEventListener('click', () => {
-            // If this is part of a form submission, you can add validation here
-            if (form.checkValidity()) {
-                form.submit(); // Submit form programmatically if valid
-            } else {
-                alert("Please fill in all required fields correctly.");
-            }
-        });
-    }
-});
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-  } else {
-    init();
-  }
+    updateButtonText();
   
-  function init() {
-    // all your code from inside DOMContentLoaded goes here...
-  }
-  resetButton.disabled = true;
-resetButton.textContent = "Resetting...";
+    // Theme Toggle Button Listener
+    themeButton?.addEventListener("click", () => {
+      currentTheme = currentTheme === "dark" ? "light" : "dark";
+      document.body.classList.toggle("dark-theme");
+      document.body.classList.toggle("light-theme");
+      localStorage.setItem("theme", currentTheme);
+      updateButtonText();
+    });
+  
+    // Reset Button Listener
+    resetButton?.addEventListener("click", () => {
+      if (confirm("Are you sure you want to reset all habits?")) {
+        resetButton.disabled = true;  // Disable reset button during process
+        resetButton.textContent = "Resetting...";  // Change text while resetting
+        document.querySelectorAll(".habit-item").forEach((habit) => habit.remove());
+        updateStatistics();
+        resetButton.disabled = false;  // Re-enable button after process
+        resetButton.textContent = "Reset All Habits";  // Revert button text
+      }
+    });
+  
+    // Stats Button Logic
+    statsButton?.addEventListener("click", () => {
+      const statsSection = document.getElementById("stats-summary");
+      if (statsSection) statsSection.style.display = "block";
+      updateStatistics();
+      statsModal.style.display = "block";
+    });
+  
+    // Remove Stats Button Logic
+    removeStatsButton?.addEventListener("click", () => {
+      const statsSection = document.getElementById("stats-summary");
+      if (statsSection) {
+        statsSection.style.display = "none";
+        statsModal.style.display = "none";
+      }
+    });
+  
+    // Close Modal on Clicking Outside or Escape Key
+    window.addEventListener("click", (event) => {
+      if (event.target === statsModal) {
+        statsModal.style.display = "none";
+      }
+    });
+  
+    window.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        statsModal.style.display = "none";
+      }
+    });
+  
+    // Update Statistics Logic
+    function updateStatistics() {
+      const habits = document.querySelectorAll(".habit-item");
+      const totalHabits = habits.length;
+      const completedHabits = document.querySelectorAll(".habit-item.completed").length;
+      const completionRate = totalHabits ? ((completedHabits / totalHabits) * 100).toFixed(2) : 0;
+  
+      const statsSection = document.getElementById("stats-summary");
+      if (statsSection) statsSection.style.display = "block";
+  
+      document.getElementById("total-habits").textContent = totalHabits;
+      document.getElementById("completed-habits").textContent = completedHabits;
+      document.getElementById("completion-rate").textContent = `${completionRate}%`;
+    }
+  
+    // Habit Filter Logic
+    habitFilter?.addEventListener("change", () => {
+      const filterValue = habitFilter.value;
+      const habitItems = document.querySelectorAll(".habit-item");
+      habitItems.forEach((item) => {
+        if (filterValue === "active") {
+          item.style.display = item.classList.contains("completed") ? "none" : "block";
+        } else if (filterValue === "completed") {
+          item.style.display = item.classList.contains("completed") ? "block" : "none";
+        } else {
+          item.style.display = "block";
+        }
+      });
+    });
+  
+    // Habit Sorting Logic
+    habitSort?.addEventListener("change", () => {
+      const sortValue = habitSort.value;
+      const habitItems = Array.from(document.querySelectorAll(".habit-item"));
+      habitItems.sort((a, b) => {
+        if (sortValue === "recent") {
+          return new Date(b.dataset.createdAt) - new Date(a.dataset.createdAt);
+        } else if (sortValue === "oldest") {
+          return new Date(a.dataset.createdAt) - new Date(b.dataset.createdAt);
+        } else if (sortValue === "alphabetical") {
+          return a.querySelector(".habit-name").textContent.localeCompare(b.querySelector(".habit-name").textContent);
+        }
+      });
+      habitList.innerHTML = "";
+      habitItems.forEach((item) => habitList.appendChild(item));
+    });
+  
+    // Attach Event Listeners to Habit Items
+    function attachHabitListeners(habitElement) {
+      habitElement.querySelector(".complete-btn")?.addEventListener("click", function () {
+        const habitItem = this.closest(".habit-item");
+        habitItem.classList.toggle("completed");
+        updateStreaks(habitItem);
+        updateStatistics();
+      });
+  
+      habitElement.querySelector(".delete-btn")?.addEventListener("click", function (e) {
+        e.preventDefault();
+        const habitCard = this.closest(".habit-item");
+        if (confirm("Are you sure you want to delete this habit?")) {
+          habitCard.remove();
+          updateStatistics();
+        }
+      });
+    }
+  
+    document.querySelectorAll(".habit-item").forEach(attachHabitListeners);
+  
+    // Update Streaks Logic
+    function updateStreaks(habitItem) {
+      const currentSpan = habitItem.querySelector("[data-current-streak]");
+      const longestSpan = habitItem.querySelector("[data-longest-streak]");
+      const current = parseInt(currentSpan.dataset.currentStreak || 0) + 1;
+      const longest = Math.max(parseInt(longestSpan.dataset.longestStreak || 0), current);
+      currentSpan.dataset.currentStreak = current;
+      longestSpan.dataset.longestStreak = longest;
+      currentSpan.textContent = `${current} days`;
+      longestSpan.textContent = `${longest} days`;
+    }
+  
+    // Habit Form Submission Logic
+    document.querySelector(".habit-form")?.addEventListener("submit", function (e) {
+      e.preventDefault();
+      const name = this.habit_name.value.trim();
+      const frequency = this.habit_frequency.value;
+      if (name && frequency) {
+        const newHabit = document.createElement("div");
+        newHabit.className = "habit-card habit-item";
+        newHabit.dataset.habitId = Date.now();
+        newHabit.dataset.createdAt = new Date().toISOString();
+        newHabit.innerHTML = `
+            <div class="habit-header">
+              <h3 class="habit-name">${name}</h3>
+              <div class="habit-actions">
+                <button class="complete-btn" title="Mark as Complete"><i class="fas fa-check"></i></button>
+                <a href="#" class="delete-btn" title="Delete Habit"><i class="fas fa-trash-alt"></i></a>
+              </div>
+            </div>
+            <div class="habit-details">
+              <div class="habit-frequency">
+                <span class="label">Frequency:</span>
+                <span class="value">${frequency.charAt(0).toUpperCase() + frequency.slice(1)}</span>
+              </div>
+              <div class="habit-streak">
+                <div class="current-streak">
+                  <span class="label">Current Streak:</span>
+                  <span class="value" data-current-streak="0">0 days</span>
+                </div>
+                <div class="longest-streak">
+                  <span class="label">Longest Streak:</span>
+                  <span class="value" data-longest-streak="0">0 days</span>
+                </div>
+              </div>
+              <div class="habit-progress">
+                <div class="progress-bar">
+                  <div class="progress" style="width: 0%;"></div>
+                </div>
+                <span class="progress-percentage">0%</span>
+              </div>
+            </div>`;
+        habitList.appendChild(newHabit);
+        attachHabitListeners(newHabit);
+        this.reset();
+        updateStatistics();
+      }
+    });
+  });
+  
