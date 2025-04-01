@@ -30,8 +30,7 @@ def create_app(env_name=None):
     app = Flask(__name__)
     
     # Allow frontend (React) to communicate with backend
-    CORS(app, origins=["http://localhost:3000"])
-
+    CORS(app, origins=[os.getenv("FRONTEND_URL", "http://localhost:3000")])
 
     # Load config based on environment
     env = env_name or os.getenv('FLASK_ENV', 'development')
@@ -67,7 +66,7 @@ def create_app(env_name=None):
     # Register global error handlers
     register_error_handlers(app)
 
-    # API Endpoint Example
+    # API Test Endpoint
     @app.route('/api/data')
     def get_data():
         return jsonify({"message": "Hello from Flask!"})
@@ -92,32 +91,34 @@ def create_app(env_name=None):
         except Exception as e:
             return f"Error connecting to MongoDB: {str(e)}"
 
-    # Route
-    @app.route('/')
-    def index():
-        return render_template('index.html')  # Or any response you want to return
-
+    # Flask HTML Test Page
     @app.route('/test', methods=['GET'])
     def test():
-        return jsonify({"message": "Success! Backend is working."})#return render_template('test.html')
-    
+        return jsonify({"message": "Success! Backend is working."})  
+
+    @app.route('/test-page', methods=['GET'])
+    def test_page():
+        return render_template('test-page.html')
+
+    # Serve React Frontend
+    REACT_BUILD_DIR = os.getenv("REACT_BUILD_DIR", "frontend/build")
+
+    @app.route('/')
+    def serve_react():
+        return send_from_directory(REACT_BUILD_DIR, 'index.html')
+
+    @app.route('/static/<path:path>')
+    def serve_static(path):
+        return send_from_directory(f"{REACT_BUILD_DIR}/static", path)
+
+    @app.route('/<path:path>')
+    def serve_react_app(path):
+        return send_from_directory(REACT_BUILD_DIR, 'index.html')
 
     return app
 
-# Serve the React frontend build
+# Create the Flask application instance
 app = create_app()
-
-@app.route('/')
-def serve_react():
-    return send_from_directory('frontend/build', 'index.html')
-
-@app.route('/static/<path:path>')
-def serve_static(path):
-    return send_from_directory('frontend/build/static', path)
-
-@app.route('/<path:path>')
-def serve_react_app(path):
-    return send_from_directory('frontend/build', 'index.html')
 
 if __name__ == '__main__':
     app.run(debug=True)

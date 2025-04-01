@@ -3,13 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Page</title>
+
     <!-- Stylesheets -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}" />
     <link rel="stylesheet" href="{{ url_for('static', filename='css/taskbar.css') }}" />
 
-  <!-- Favicon (optional) -->
-  <link rel="icon" href="{{ url_for('static', filename='icons/website.ico') }}" type="image/x-icon" />
-    <title>Test Page</title>
+    <!-- Favicon -->
+    <link rel="ico" href="{{ url_for('static', filename='ico/website.ico') }}" type="image/x-ico" />
+
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -38,6 +40,7 @@
 <body>
     <div class="container">
         <h1>Welcome to the Test Page</h1>
+        <p>Your backend is working correctly!</p>
         <p>This is a simple, well-styled HTML page for testing purposes.</p>
     </div>
 </body>
