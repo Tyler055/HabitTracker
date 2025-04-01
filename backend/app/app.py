@@ -56,32 +56,6 @@ def create_app(env_name=None):
     # Register global error handlers
     register_error_handlers(app)
 
-    # Serve the React frontend build
-    @app.route('/')
-def serve_react():
-    return send_from_directory('build', 'index.html')
-
-@app.route('/static/<path:path>')
-def serve_static(path):
-    return send_from_directory('build/static', path)
-
-@app.route('/<path:path>')
-def serve_react_app(path):
-    return send_from_directory('build', 'index.html')
-
-    @app.route('/')
-    def serve_react():
-        return send_from_directory('frontend/build', 'index.html')
-
-    @app.route('/static/<path:path>')
-    def serve_static(path):
-        return send_from_directory('frontend/build/static', path)
-
-    # Serve frontend routes properly
-    @app.route('/<path:path>')
-    def serve_react_app(path):
-        return send_from_directory('frontend/build', 'index.html')
-
     # API Endpoint Example
     @app.route('/api/data')
     def get_data():
@@ -114,16 +88,30 @@ def serve_react_app(path):
 
     return app
 
+# Serve the React frontend build
+app = create_app()
+
+@app.route('/')
+def serve_react():
+    return send_from_directory('frontend/build', 'index.html')
+
+@app.route('/static/<path:path>')
+def serve_static(path):
+    return send_from_directory('frontend/build/static', path)
+
+@app.route('/<path:path>')
+def serve_react_app(path):
+    return send_from_directory('frontend/build', 'index.html')
+
 # Global error handlers
 def register_error_handlers(app):
     @app.errorhandler(404)
     def not_found(error):
-        return {"message": "Resource not found"}, 404
+        return jsonify({"message": "Resource not found"}), 404
 
     @app.errorhandler(500)
     def internal_error(error):
-        return {"message": "Internal server error"}, 500
+        return jsonify({"message": "Internal server error"}), 500
 
 if __name__ == '__main__':
-    app = create_app()
     app.run(debug=True)

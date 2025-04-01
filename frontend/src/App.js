@@ -15,7 +15,8 @@ const App = () => {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [fontSize, setFontSize] = useState("16px");
   const [buttonColor, setButtonColor] = useState("#007bff");
-  const [flaskData, setFlaskData] = useState(null); // Store Flask API response
+  const [flaskData, setFlaskData] = useState(null);
+  const [flaskError, setFlaskError] = useState(null); // Added state for error handling
 
   // Load theme from localStorage on mount
   useEffect(() => {
@@ -33,7 +34,10 @@ const App = () => {
     fetch("http://127.0.0.1:5000/test")
       .then(response => response.json())
       .then(data => setFlaskData(data.message))
-      .catch(error => console.error("Error fetching data:", error));
+      .catch(error => {
+        console.error("Error fetching data:", error);
+        setFlaskError("Failed to fetch data from Flask.");
+      });
   }, []);
 
   // Toggle dark mode
@@ -94,7 +98,20 @@ const App = () => {
           <Route path="/settings" element={<Settings />} />
           <Route path="/profile" element={<Profile />} />
           {/* New Route to Display Flask API Data */}
-          <Route path="/test" element={<p>{flaskData ? flaskData : "Loading..."}</p>} />
+          <Route 
+            path="/test" 
+            element={
+              <>
+                {flaskError ? (
+                  <p style={{ color: "red" }}>{flaskError}</p>
+                ) : flaskData ? (
+                  <p>{flaskData}</p>
+                ) : (
+                  <p>Loading data from backend...</p>
+                )}
+              </>
+            } 
+          />
           <Route path="*" element={<Home />} />
         </Routes>
       </main>
