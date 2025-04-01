@@ -57,6 +57,7 @@ def create_app(env_name=None):
     @app.route('/')
     def index():
         return render_template('index.html')  # This serves the React app
+    
 
     # Example API endpoint to fetch data
     @app.route('/api/data')
@@ -87,6 +88,10 @@ def create_app(env_name=None):
             return "MongoDB is connected and the route works!"
         except Exception as e:
             return f"Error connecting to MongoDB: {str(e)}"
+        
+    @app.route("/test")
+    def test():
+        return render_template("test.html")
 
     return app
 

@@ -17,7 +17,7 @@ const TaskBar = ({ isDarkMode, toggleTaskbar, isVisible }) => {
 
       {/* Taskbar Links */}
       <ul>
-        {["Home", "Habit Tracker", "Progress", "Settings", "Profile", "Login/Sign Up","other"].map(
+        {["Home", "Habit Tracker", "Progress", "Settings", "Profile", "Login/Sign Up","other","test"].map(
           (text, index) => (
             <li key={index}>
               <Link to={`/${text.replace(/\s+/g, "-").toLowerCase()}`} onClick={toggleTaskbar}>

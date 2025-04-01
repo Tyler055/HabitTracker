@@ -51,6 +51,8 @@ const App = () => {
     localStorage.setItem("fontSize", fontSize);
     localStorage.setItem("buttonColor", buttonColor);
   };
+  <iframe src="http://localhost:3000/" width="100%" height="500px" title="Localhost Preview"></iframe>
+
 
   // Handle taskbar visibility toggle
   const toggleTaskbar = () => {
