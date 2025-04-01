@@ -176,3 +176,192 @@ a:hover {
     padding: 10px 14px;
   }
 }
+/* General Body Styling */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Arial', sans-serif;
+  line-height: 1.6;
+  background-color: #f4f4f4;
+  color: #333;
+  text-align: center;
+  overflow-x: hidden;
+  box-sizing: border-box;
+}
+
+/* Global reset for box-sizing to make layout more predictable */
+*,
+*::before,
+*::after {
+  box-sizing: inherit;
+}
+
+/* Ensure that all images scale properly */
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Links Styling */
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+a:hover {
+  color: #007BFF;
+}
+
+/* Header Styling */
+header {
+  background-color: #333;
+  color: white;
+  padding: 20px 0;
+  font-size: 2rem;
+  text-align: center;
+}
+
+/* Main Content Styling */
+main {
+  padding: 40px 20px;
+}
+
+/* Section Styling */
+section {
+  margin-bottom: 20px;
+}
+
+/* Button Styling */
+button {
+  padding: 10px 20px;
+  background-color: #007BFF;
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  border-radius: 5px;
+  transition: background-color 0.3s ease;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
+button:disabled {
+  background-color: #dcdcdc;
+  cursor: not-allowed;
+}
+
+/* Center Settings */
+.settings-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.settings-box {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  max-width: 400px;
+  width: 100%;
+}
+
+.settings-box h2 {
+  margin-bottom: 15px;
+}
+
+.settings-box label {
+  display: block;
+  margin-bottom: 10px;
+  font-weight: bold;
+}
+/* 📱 Mobile Responsiveness */
+@media (max-width: 768px) {
+  body {
+    font-size: 14px;
+  }
+
+  header {
+    font-size: 1.5rem;
+  }
+
+  button {
+    padding: 8px 16px;
+  }
+
+  .taskbar {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .settings-box {
+    max-width: 90%;
+  }
+}
+
+/* ⚡ Accessibility Focus */
+button:focus,
+input:focus,
+textarea:focus {
+  outline: 3px solid #FFD700; /* Yellow outline for focus */
+  outline-offset: 2px;
+}
+
+button:active {
+  background-color: #0056b3; /* Darker shade when active */
+}
+
+input:disabled,
+textarea:disabled {
+  background-color: #f2f2f2;
+  cursor: not-allowed;
+}
+
+/* 🏷️ Links Styling */
+a {
+  text-decoration: none;
+  color: #333;
+}
+
+a:focus {
+  outline: 3px solid #FFD700; /* Highlight focused links */
+}
+
+a:hover {
+  color: #007BFF;
+}
+
+/* 🖊️ Input Box Styles */
+input[type="text"],
+textarea {
+  width: 260px;
+  max-width: 100%;
+  padding: 10px;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  margin-bottom: 15px;
+  box-sizing: border-box;
+}
+
+input[type="text"]:focus,
+textarea:focus {
+  border-color: #007BFF;
+  outline: none;
+}
+
+/* 🌞 Light Theme */
+body.light-theme {
+  background-color: #f5f5f5; /* Light background */
+  color: #333; /* Dark text color */
+}
+
+/* 🌑 Dark Theme */
+body.dark-theme {
+  background-color: #333; /* Dark background */
+  color: #f5f5f5; /* Light text color */
+}
+

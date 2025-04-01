@@ -1,6 +1,7 @@
 from flask import Flask, jsonify, render_template
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
+from flask_cors import CORS
 from dotenv import load_dotenv
 import os
 from config import config
@@ -17,6 +18,7 @@ migrate = Migrate()
 
 def create_app(env_name=None):
     app = Flask(__name__)
+    CORS(app, resources={r"/api/*": {"origins": "http://localhost:3000"}})
 
     # Load config by environment
     env = env_name or os.getenv('FLASK_ENV', 'development')

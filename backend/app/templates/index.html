@@ -6,16 +6,18 @@
   <title>Habit Tracker</title>
 
   <!-- Stylesheets -->
-  <link rel="stylesheet" href="%SATIC_URL%/css/styles.css" />
-  <link rel="stylesheet" href="%SATIC_URL%/css/taskbar.css" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/taskbar.css') }}" />
 
   <!-- Favicon (optional) -->
-  <link rel="icon" href="%SATIC_URL%/website.ico" type="image/x-ico" />
+  <link rel="icon" href="{{ url_for('static', filename='icons/website.ico') }}" type="image/x-icon" />
 </head>
 <body>
+
+  <h1>Welcome to the Habit Tracker</h1>
+  <p>Track your habits and stay productive!</p>
+  
   <!-- React will render the app inside this div -->
   <div id="root"></div>
 </body>
 </html>
-  </div>
-  

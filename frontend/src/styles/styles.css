@@ -187,30 +187,3 @@ body.dark-theme {
   color: #f5f5f5; /* Light text color */
 }
 
-/* Settings Section */
-.settings-section {
-  background-color: #fff;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-}
-
-.settings-section h3 {
-  margin-bottom: 10px;
-}
-
-.settings-section input,
-.settings-section select {
-  width: 100%;
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  margin-bottom: 15px;
-  box-sizing: border-box;
-}
-
-.settings-section input:focus,
-.settings-section select:focus {
-  border-color: #007BFF;
-  outline: none;
-}
