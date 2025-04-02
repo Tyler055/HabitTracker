@@ -100,6 +100,7 @@ button:disabled {
   margin-bottom: 10px;
   font-weight: bold;
 }
+
 /* 📱 Mobile Responsiveness */
 @media (max-width: 768px) {
   body {
@@ -185,5 +186,160 @@ body.light-theme {
 body.dark-theme {
   background-color: #333; /* Dark background */
   color: #f5f5f5; /* Light text color */
+}
+
+/* Apply Button Styling */
+.apply-btn {
+  background: red;  /* Apply button always red */
+  color: white;
+  transition: background-color 0.3s ease;
+}
+
+.apply-btn:hover {
+  background-color: #cc0000; /* Darker shade on hover */
+}
+
+/* Reset Button Styling */
+.reset-btn {
+  background: red;  /* Reset button always red */
+  color: white;
+  transition: background-color 0.3s ease;
+}
+
+.reset-btn:hover {
+  background-color: #cc0000; /* Darker shade on hover */
+}
+
+/* General Styling */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Arial', sans-serif;
+  text-align: center;
+  overflow-x: hidden;
+  box-sizing: border-box;
+  background-color: var(--bg-color, #f4f4f4);
+  color: var(--text-color, #333);
+}
+
+/* Taskbar and Textboxes - Only Dark Theme Controls These */
+.dark-theme .taskbar,
+.dark-theme input[type="text"],
+.dark-theme textarea {
+  background-color: #222;
+  color: #f5f5f5;
+}
+
+/* Layout */
+.settings-container {
+  max-width: 400px;
+  margin: auto;
+  padding: 20px;
+  background: var(--bg-color, #ffffff);
+  color: var(--text-color, #000000);
+  border-radius: 10px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Heading */
+.settings-title {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+/* Font Size Dropdown */
+select {
+  font-size: 1rem;
+  padding: 5px;
+  width: 100px;
+}
+
+/* Color Pickers */
+.setting-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+input[type="color"] {
+  width: 40px;
+  height: 40px;
+  border: none;
+  cursor: pointer;
+}
+
+/* Buttons */
+.button-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.apply-btn {
+  background-color: blue;
+  color: white;
+  padding: 10px;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+  border-radius: 5px;
+}
+
+.reset-btn {
+  background-color: red;
+  color: white;
+  padding: 10px;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+  border-radius: 5px;
+}
+
+/* Dark theme button styling */
+.dark-theme .apply-btn,
+.dark-theme .reset-btn {
+  background-color: #cc0000; /* Red color for dark theme buttons */
+  color: white;
+  border-radius: 5px;
+  padding: 10px;
+  cursor: pointer;
+}
+
+.dark-theme .apply-btn:hover,
+.dark-theme .reset-btn:hover {
+  background-color: #990000; /* Darker red on hover */
+}
+
+/* Dark Theme Input and Textarea Styling */
+.dark-theme input[type="text"],
+.dark-theme textarea {
+  background-color: #222;
+  color: #f5f5f5;
+  border: 1px solid #555; /* Slightly darker border in dark theme */
+}
+
+.dark-theme input[type="text"]:focus,
+.dark-theme textarea:focus {
+  border-color: #007BFF; /* Focus border stays blue for contrast */
+}
+
+/* Button active state in dark theme */
+.dark-theme .apply-btn:active,
+.dark-theme .reset-btn:active {
+  background-color: #660000; /* Even darker red when active */
+}
+body {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  font-size: var(--font-size);
+}
+
+button {
+  background-color: var(--button-color);
 }
 

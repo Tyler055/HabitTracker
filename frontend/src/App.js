@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react"; 
 import { Routes, Route } from "react-router-dom";
 import logo from "./logo.svg";
 import "./styles/App.css";
@@ -7,7 +7,7 @@ import TaskBar from "./TaskBar";
 import Home from "./pages/Home";
 import HabitTracker from "./components/HabitTracker";
 import Progress from "./pages/Progress";
-import Settings from "./pages/ThemeSettings";
+import Settings from "./pages/Settings";
 import Profile from "./pages/Profile";
 
 const App = () => {
@@ -16,7 +16,7 @@ const App = () => {
   const [fontSize, setFontSize] = useState("16px");
   const [buttonColor, setButtonColor] = useState("#007bff");
   const [flaskData, setFlaskData] = useState(null);
-  const [flaskError, setFlaskError] = useState(null); // Added state for error handling
+  const [flaskError, setFlaskError] = useState(null);
 
   // Load theme from localStorage on mount
   useEffect(() => {
@@ -24,11 +24,14 @@ const App = () => {
     const savedFontSize = localStorage.getItem("fontSize") || "16px";
     const savedButtonColor = localStorage.getItem("buttonColor") || "#007bff";
 
-    document.body.classList.add(`${savedTheme}-theme`);
     setIsDarkMode(savedTheme === "dark");
     setFontSize(savedFontSize);
     setButtonColor(savedButtonColor);
-    applyTheme(savedFontSize, savedButtonColor, savedTheme === "dark");
+
+    // Apply theme after setting states to avoid flashing
+    setTimeout(() => {
+      applyTheme(savedFontSize, savedButtonColor, savedTheme === "dark");
+    }, 0);
 
     // Fetch data from Flask API
     fetch("http://127.0.0.1:5000/test")
@@ -44,8 +47,6 @@ const App = () => {
   const toggleDarkMode = () => {
     const newTheme = isDarkMode ? "light" : "dark";
     setIsDarkMode(!isDarkMode);
-    document.body.classList.toggle("dark-theme", !isDarkMode);
-    document.body.classList.toggle("light-theme", isDarkMode);
     localStorage.setItem("theme", newTheme);
     applyTheme(fontSize, buttonColor, !isDarkMode);
   };
@@ -58,11 +59,14 @@ const App = () => {
     document.documentElement.style.setProperty("--link-hover-bg", isDark ? "#444" : "#ddd");
     document.documentElement.style.setProperty("--link-hover-color", isDark ? "#fff" : "#000");
 
+    document.body.classList.toggle("dark-theme", isDark);
+    document.body.classList.toggle("light-theme", !isDark);
+    
     localStorage.setItem("fontSize", fontSize);
     localStorage.setItem("buttonColor", buttonColor);
   };
 
-  // Toggle taskbar
+  // Toggle taskbar visibility
   const toggleTaskbar = () => {
     setIsTaskbarVisible(prevState => !prevState);
   };
@@ -82,14 +86,17 @@ const App = () => {
 
       <button
         onClick={toggleTaskbar}
-        className="taskbar-toggle-btn">
+        className="taskbar-toggle-btn"
+        aria-label="Toggle Taskbar"
+      >
+        ☰
       </button>
 
       <TaskBar isDarkMode={isDarkMode} toggleTaskbar={toggleTaskbar} isVisible={isTaskbarVisible} />
 
-      <main style={{ marginTop: "60px", padding: "20px" }}>
+      <main style={{ marginTop: "40px", padding: "20px" }}>
         <Routes>
-          <Route path="/home" element={<Home />} />
+          <Route path="/home/*" element={<Home />} />
           <Route path="/habit-tracker" element={<HabitTracker />} />
           <Route path="/progress" element={<Progress />} />
           <Route path="/settings" element={<Settings />} />
@@ -109,7 +116,7 @@ const App = () => {
               </>
             } 
           />
-          <Route path="*" element={<Home />} />
+          <Route path="*" element={<Home />} /> {/* Fallback route */}
         </Routes>
       </main>
     </div>

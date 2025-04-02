@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios"; // Assuming you're using axios to fetch data from an API
+import axios from "axios";
 
 const Habits = () => {
   const [habits, setHabits] = useState([]);
@@ -14,7 +14,7 @@ const Habits = () => {
         const response = await axios.get("/habits"); // Replace with your API endpoint
         setHabits(response.data); // Assuming the response contains an array of habits
       } catch (error) {
-        setError("Failed to fetch habits. Please try again later.");
+        setError(`Failed to fetch habits. Error: ${error.message}`);
       } finally {
         setLoading(false);
       }
@@ -35,8 +35,8 @@ const Habits = () => {
 
       <ul>
         {habits.map((habit) => (
-          <li key={habit.id || habit}> {/* Assuming each habit has a unique `id` */}
-            {habit.name || habit} {/* If habit is an object, display habit.name, else just display the habit */}
+          <li key={habit.id || habit.name || habit}> {/* Use habit.id or a fallback */}
+            {habit.name || habit} {/* Display habit.name or fallback to habit */}
           </li>
         ))}
       </ul>
