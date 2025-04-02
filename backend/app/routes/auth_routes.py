@@ -1,7 +1,6 @@
 from flask import Blueprint, request, jsonify
-from app.utils.extensions import db
+from app import db
 from app.models.models import User
-from werkzeug.security import generate_password_hash, check_password_hash
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 import datetime
 
@@ -12,7 +11,6 @@ auth_bp = Blueprint('auth', __name__)
 @auth_bp.route('/test', methods=['GET'])
 def test():
     return jsonify({"status": "success", "message": "Auth route is working!"}), 200
-
 
 # User Registration
 @auth_bp.route('/api/register', methods=['POST'])
@@ -31,11 +29,8 @@ def register_user():
             return jsonify({"status": "error", "message": "Username or email already exists"}), 400
 
         # Create new user
-        new_user = User(
-            username=username,
-            email=email,
-            password=generate_password_hash(password)  # Hash password before storing it
-        )
+        new_user = User(username=username, email=email)
+        new_user.set_password(password)  # Use the set_password method in the User model
         db.session.add(new_user)
         db.session.commit()
 
@@ -44,7 +39,6 @@ def register_user():
     except Exception as e:
         db.session.rollback()
         return jsonify({"status": "error", "message": str(e)}), 500
-
 
 # User Login
 @auth_bp.route('/api/login', methods=['POST'])
@@ -59,7 +53,7 @@ def login_user():
 
         user = User.query.filter_by(email=email).first()
 
-        if user and check_password_hash(user.password, password):  # Check password hash
+        if user and user.check_password(password):  # Use check_password method in User model
             access_token = create_access_token(identity=user.id, expires_delta=datetime.timedelta(days=1))
             return jsonify({"status": "success", "message": "Login successful", "token": access_token}), 200
         else:
@@ -68,7 +62,6 @@ def login_user():
     except Exception as e:
         db.session.rollback()
         return jsonify({"status": "error", "message": str(e)}), 500
-
 
 # Get Current User Info (Protected Route)
 @auth_bp.route('/api/user', methods=['GET'])
@@ -92,7 +85,6 @@ def get_user():
 
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
-
 
 # Logout Route (Optional - Frontend handles token removal)
 @auth_bp.route('/api/logout', methods=['POST'])

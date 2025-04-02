@@ -3,7 +3,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy.orm import Query
 from app.utils.extensions import db
 
-# -------------------- Soft Delete Base Query --------------------
+# -------------------- Soft Delete Query --------------------
 class SoftDeleteQuery(Query):
     def __new__(cls, *args, **kwargs):
         obj = super(SoftDeleteQuery, cls).__new__(cls)
@@ -15,7 +15,6 @@ class SoftDeleteQuery(Query):
 
     def with_deleted(self):
         self._with_deleted = True
-
         return self
 
     def get(self, ident):
@@ -32,38 +31,6 @@ class SoftDeleteQuery(Query):
         if hasattr(self._entities[0].entity_zero.class_, 'deleted_at'):
             return self._entities[0].entity_zero.class_.deleted_at.is_(None)
         return True
-
-# -------------------- User Model --------------------
-class User(db.Model):
-    __tablename__ = 'users'
-    query_class = SoftDeleteQuery
-
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(100), unique=True, nullable=False)
-    email = db.Column(db.String(100), unique=True, nullable=False)
-    password_hash = db.Column(db.String(255), nullable=False)
-    is_active = db.Column(db.Boolean, default=True)
-    deleted_at = db.Column(db.DateTime, nullable=True)
-
-    created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
-    updated_at = db.Column(db.DateTime, default=db.func.current_timestamp(), onupdate=db.func.current_timestamp())
-
-    habits = db.relationship('Habit', backref='user', lazy=True, cascade="all, delete-orphan")
-    habit_completions = db.relationship('HabitCompletion', backref='user', lazy=True, cascade="all, delete-orphan")
-
-    @property
-    def password(self):
-        raise AttributeError('Password is not a readable attribute')
-
-    @password.setter
-    def password(self, password):
-        self.password_hash = generate_password_hash(password)
-
-    def check_password(self, password):
-        return check_password_hash(self.password_hash, password)
-
-    def __repr__(self):
-        return f'<User {self.username}>'
 
 # -------------------- Habit Model --------------------
 class Habit(db.Model):
@@ -152,11 +119,33 @@ class HabitAnalytics(db.Model):
             else:
                 self.current_streak = 1
         else:
-            self.current_streak = 1
+            self.current_streak = 1  # First completion
 
         self.total_completions += 1
         self.longest_streak = max(self.longest_streak, self.current_streak)
         self.last_completed = now
+        db.session.commit()  # Ensure changes are saved
 
     def __repr__(self):
         return f'<HabitAnalytics habit_id={self.habit_id} total_completions={self.total_completions}>'
+
+# -------------------- User Model --------------------
+class User(db.Model):
+    __tablename__ = 'users'
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(50), unique=True, nullable=False)
+    password = db.Column(db.String(255), nullable=False)
+    created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
+    updated_at = db.Column(db.DateTime, default=db.func.current_timestamp(), onupdate=db.func.current_timestamp())
+
+    habits = db.relationship('Habit', backref='user', lazy=True)
+    completions = db.relationship('HabitCompletion', backref='user', lazy=True)
+
+    def set_password(self, password):
+        self.password = generate_password_hash(password)
+
+    def check_password(self, password):
+        return check_password_hash(self.password, password)
+
+    def __repr__(self):
+        return f'<User {self.username}>'

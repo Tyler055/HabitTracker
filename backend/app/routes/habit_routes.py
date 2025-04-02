@@ -1,7 +1,8 @@
+# routes/habits.py
 from flask import Blueprint, request, jsonify, current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from app.utils.extensions import db
-from app.models.models import Habit, HabitCompletion, User
+from app.models.models import Habit, HabitCompletion
 from marshmallow import Schema, fields, ValidationError
 from datetime import datetime
 

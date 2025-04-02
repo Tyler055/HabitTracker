@@ -11,7 +11,8 @@ from app.routes.habit_routes import habit_bp
 from app.routes.auth_routes import auth_bp
 from app.routes.reminder_routes import reminder_routes
 from flask_pymongo import PyMongo
-from app.models.models import User, Habit  # Import your models
+from app.models.models import User, Habit
+from werkzeug.security import generate_password_hash  # To hash passwords securely
 
 # Initialize Flask extensions
 mongo = PyMongo()
@@ -25,7 +26,7 @@ def create_app():
     env = os.getenv('FLASK_ENV', 'development')
     if env not in config:
         raise ValueError(f"Invalid FLASK_ENV: {env}. Must be one of {list(config.keys())}.")
-
+    
     # Initialize the Flask app with the selected configuration
     app = Flask(__name__)
     app.config.from_object(config[env])
@@ -59,7 +60,8 @@ def create_app():
             # Default MySQL Data (SQLAlchemy)
             if not User.query.first():  # Avoid duplicate data
                 admin = User(username="admin", email="admin@example.com")
-                admin.password = "admin123"  # Will need hashing in real use
+                # Securely hash the password before saving
+                admin.password = generate_password_hash("admin123", method='sha256')
                 db.session.add(admin)
                 db.session.commit()
                 app.logger.info("Default user created")
@@ -76,10 +78,9 @@ def create_app():
                 app.logger.info("Default MongoDB habit inserted")
 
     # Set logging configuration
-    if app.config['DEBUG']:
-        app.logger.setLevel(logging.DEBUG)
-    else:
-        app.logger.setLevel(logging.INFO)
+    handler = logging.StreamHandler()
+    handler.setLevel(logging.DEBUG if app.config['DEBUG'] else logging.INFO)
+    app.logger.addHandler(handler)
 
     # Example of custom error handlers (Optional)
     # Custom error handler for 404 errors

@@ -8,6 +8,7 @@ from config import config
 from app.utils.extensions import db, ma, mail, mongo  # Centralized extension objects
 from app.routes.habit_routes import habit_bp
 from app.routes.auth_routes import auth_bp
+from app.models.models import Habit  # Import the Habit model
 
 # Load environment variables
 load_dotenv()
@@ -26,14 +27,14 @@ def register_error_handlers(app):
     def internal_error(error):
         return jsonify({"message": "Internal server error"}), 500
 
-def create_app(env_name=None):
+def create_app(config_class=None):
     app = Flask(__name__)
-    
+
     # Allow frontend (React) to communicate with backend
     CORS(app, origins=[os.getenv("FRONTEND_URL", "http://localhost:3000")])
 
     # Load config based on environment
-    env = env_name or os.getenv('FLASK_ENV', 'development')
+    env = os.getenv('FLASK_ENV', 'development')
     app.config.from_object(config[env])
 
     # Override DB URL from environment if provided
@@ -81,6 +82,26 @@ def create_app(env_name=None):
         </div>
         """
         return jsonify({"html": dynamic_html})
+
+    # Route to fetch habits from database
+    @app.route('/fetch_habits')
+    def fetch_habits():
+        try:
+            # Fetch habits, checking for deleted_at field
+            habits = Habit.query.filter_by(deleted_at=None).all()  # Query to fetch active habits
+
+            if not habits:
+                return jsonify({"message": "No habits found."}), 404
+
+            # Prepare habit data
+            habit_data = [{"id": habit.id, "name": habit.name, "completed": habit.completed, "frequency": habit.frequency} for habit in habits]
+
+            return jsonify({"habits": habit_data}), 200
+
+        except Exception as e:
+            # Print the error to the logs
+            print(f"Error fetching habits: {e}")
+            return jsonify({"message": f"Error fetching habits: {str(e)}"}), 500
 
     # Test MongoDB connection
     @app.route("/test-mongo")

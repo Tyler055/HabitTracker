@@ -14,14 +14,17 @@ def get_habits():
         user_id = get_jwt_identity()  # Get current user ID from JWT
         habits = Habit.query.filter_by(user_id=user_id).all()  # Fetch habits for the current user
 
+        # Format habits into a JSON response
+        habits_data = [{"id": habit.id, "name": habit.name} for habit in habits]
+
         return jsonify({
             "status": "success",
-            "data": [{"id": habit.id, "name": habit.name} for habit in habits]
-        })
+            "data": habits_data
+        }), 200
     except Exception as e:
         return jsonify({
             "status": "error",
-            "message": str(e)
+            "message": f"Error fetching habits: {str(e)}"
         }), 500
 
 # Route to add a new habit (API)
@@ -32,6 +35,7 @@ def add_habit():
         data = request.get_json()
         habit_name = data.get('name')
 
+        # Validate input
         if not habit_name:
             return jsonify({
                 "status": "error",
@@ -41,12 +45,14 @@ def add_habit():
         user_id = get_jwt_identity()  # Get current user ID from JWT
 
         # Check if the habit already exists for the user
-        if Habit.query.filter_by(name=habit_name, user_id=user_id).first():
+        existing_habit = Habit.query.filter_by(name=habit_name, user_id=user_id).first()
+        if existing_habit:
             return jsonify({
                 "status": "error",
                 "message": "Habit already exists"
             }), 400
 
+        # Create a new habit
         new_habit = Habit(name=habit_name, user_id=user_id)
         db.session.add(new_habit)
         db.session.commit()
@@ -59,7 +65,7 @@ def add_habit():
     except Exception as e:
         return jsonify({
             "status": "error",
-            "message": str(e)
+            "message": f"Error adding habit: {str(e)}"
         }), 500
 
 # Route to delete a habit by ID (API)
@@ -76,6 +82,7 @@ def delete_habit(id):
                 "message": "Habit not found or not owned by user"
             }), 404
 
+        # Delete habit from the database
         db.session.delete(habit)
         db.session.commit()
 
@@ -86,7 +93,7 @@ def delete_habit(id):
     except Exception as e:
         return jsonify({
             "status": "error",
-            "message": str(e)
+            "message": f"Error deleting habit: {str(e)}"
         }), 500
 
 # Route to reset all habits for the current user (API)
@@ -95,6 +102,8 @@ def delete_habit(id):
 def reset_habits():
     try:
         user_id = get_jwt_identity()  # Get current user ID from JWT
+
+        # Delete all habits for the current user
         Habit.query.filter_by(user_id=user_id).delete()
         db.session.commit()
 
@@ -105,5 +114,5 @@ def reset_habits():
     except Exception as e:
         return jsonify({
             "status": "error",
-            "message": str(e)
+            "message": f"Error resetting habits: {str(e)}"
         }), 500
