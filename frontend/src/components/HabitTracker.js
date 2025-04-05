@@ -1,87 +1,83 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 
 const HabitTracker = () => {
   const [habit, setHabit] = useState("");
   const [habits, setHabits] = useState([]);
-  const [errorMessage, setErrorMessage] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");
+  const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  // Fetch habits from the backend on mount
-  useEffect(() => {
-    const fetchHabits = async () => {
-      setIsLoading(true);
-      try {
-        const response = await axios.get("/habits");
-        setHabits(response.data);
-      } catch (error) {
-        setErrorMessage("Failed to fetch habits.");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchHabits();
+  // Function to fetch habits
+  const fetchHabits = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const response = await axios.get("http://127.0.0.1:5000/habits");
+      setHabits(response.data);
+    } catch (error) {
+      setMessage("Failed to fetch habits.");
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
+
+  // Fetch habits on mount
+  useEffect(() => {
+    fetchHabits();
+  }, [fetchHabits]); // ✅ Fixed dependency issue
+
+  // Function to show messages
+  const showMessage = (msg) => {
+    setMessage(msg);
+    setTimeout(() => setMessage(""), 3000);
+  };
 
   // Handle adding a new habit
   const handleAddHabit = async (e) => {
     e.preventDefault();
     if (!habit.trim()) return;
 
-    // Optimistically update UI
     const newHabit = { id: Date.now(), name: habit };
-    setHabits((prevHabits) => [...prevHabits, newHabit]);
+    setHabits((prev) => [...prev, newHabit]);
 
-    setIsLoading(true);
     try {
-      const response = await axios.post("/habits", { name: habit });
-      setHabits((prevHabits) =>
-        prevHabits.map((h) =>
-          h.id === newHabit.id ? { ...newHabit, id: response.data.id } : h
-        )
+      const response = await axios.post("http://127.0.0.1:5000/habits", { name: habit });
+      setHabits((prev) =>
+        prev.map((h) => (h.id === newHabit.id ? { ...newHabit, id: response.data.id } : h))
       );
-      setHabit(""); // Reset input field
-      setErrorMessage(""); // Clear previous error
-      setSuccessMessage("Habit added successfully!");
-      setTimeout(() => setSuccessMessage(""), 3000); // Hide after 3 seconds
-    } catch (error) {
-      setErrorMessage("Failed to add habit.");
-      setHabits((prevHabits) => prevHabits.filter((h) => h.id !== newHabit.id)); // Rollback on error
-    } finally {
-      setIsLoading(false);
+      setHabit("");
+      showMessage("Habit added successfully!");
+    } catch {
+      showMessage("Failed to add habit.");
+      setHabits((prev) => prev.filter((h) => h.id !== newHabit.id)); // Rollback UI
     }
   };
 
   // Handle deleting a habit
   const handleDeleteHabit = async (id) => {
-    const confirmDelete = window.confirm("Are you sure you want to delete this habit?");
-    if (!confirmDelete) return;
+    if (!window.confirm("Are you sure you want to delete this habit?")) return;
 
-    setIsLoading(true);
+    setHabits((prev) => prev.filter((habit) => habit.id !== id));
+
     try {
-      await axios.delete(`/habits/${id}`);
-      setHabits((prevHabits) => prevHabits.filter((habit) => habit.id !== id));
-    } catch (error) {
-      setErrorMessage("Failed to delete habit.");
-    } finally {
-      setIsLoading(false);
+      await axios.delete(`http://127.0.0.1:5000/habits/${id}`);
+      showMessage("Habit deleted.");
+    } catch {
+      showMessage("Failed to delete habit.");
+      fetchHabits(); // Reload if deletion fails
     }
   };
 
   // Handle resetting all habits
   const handleResetHabits = async () => {
-    const confirmReset = window.confirm("Are you sure you want to reset all habits?");
-    if (!confirmReset) return;
+    if (!window.confirm("Are you sure you want to reset all habits?")) return;
 
-    setIsLoading(true);
+    setHabits([]); // Clear UI immediately
     try {
-      await axios.post("/reset_habits");
-      setHabits([]);
-    } catch (error) {
-      setErrorMessage("Failed to reset habits.");
-    } finally {
-      setIsLoading(false);
+      await axios.post("http://127.0.0.1:5000/reset_habits");
+      showMessage("All habits reset.");
+    } catch {
+      showMessage("Failed to reset habits.");
+      fetchHabits();
     }
   };
 
@@ -90,65 +86,46 @@ const HabitTracker = () => {
       <h1>Habit Tracker</h1>
 
       <form onSubmit={handleAddHabit} className="habit-form">
-        <label htmlFor="habitInput" className="sr-only">Habit Name</label>
         <input
-          id="habitInput"
           type="text"
           className="input-box"
           placeholder="Add new habit"
           value={habit}
           onChange={(e) => setHabit(e.target.value)}
-          aria-label="Enter habit name"
         />
-        <button
-          type="submit"
-          className="add-btn"
-          disabled={isLoading}
-          aria-label="Add a new habit"
-        >
+        <button type="submit" className="add-btn" disabled={isLoading}>
           {isLoading ? "Adding..." : "Add Habit"}
         </button>
       </form>
 
-      {errorMessage && <p className="error-message">{errorMessage}</p>}
-      {successMessage && <p className="success-message">{successMessage}</p>}
+      {message && <p className="message">{message}</p>}
 
       <h2>Habit List</h2>
 
       {isLoading ? (
         <div className="spinner">Loading...</div>
       ) : (
-        <div className="habit-list">
+        <ul className="habit-list">
           {habits.length ? (
             habits.map((habit) => (
-              <div key={habit.id} className="habit-item">
-                <span>{habit.name}</span>
-                <button
-                  className="delete-btn"
-                  onClick={() => handleDeleteHabit(habit.id)}
-                  aria-label={`Delete habit ${habit.name}`}
-                >
+              <li key={habit.id} className="habit-item">
+                {habit.name}
+                <button className="delete-btn" onClick={() => handleDeleteHabit(habit.id)}>
                   Delete
                 </button>
-              </div>
+              </li>
             ))
           ) : (
             <p>No habits found.</p>
           )}
-        </div>
+        </ul>
       )}
 
-      <button
-        onClick={handleResetHabits}
-        disabled={isLoading}
-        className="reset-btn"
-        aria-label="Reset all habits"
-      >
+      <button onClick={handleResetHabits} className="reset-btn" disabled={isLoading}>
         {isLoading ? "Resetting..." : "Reset All Habits"}
       </button>
     </div>
   );
 };
-// (Remove this duplicate declaration entirely)
-export default HabitTracker;
 
+export default HabitTracker;

@@ -11,7 +11,7 @@ const Habits = () => {
     const fetchHabits = async () => {
       try {
         setLoading(true);
-        const response = await axios.get("/habits"); // Replace with your API endpoint
+        const response = await axios.get("http://127.0.0.1:5000/habits"); // Ensure correct API URL
         setHabits(response.data); // Assuming the response contains an array of habits
       } catch (error) {
         setError(`Failed to fetch habits. Error: ${error.message}`);
@@ -34,9 +34,9 @@ const Habits = () => {
       )}
 
       <ul>
-        {habits.map((habit) => (
-          <li key={habit.id || habit.name || habit}> {/* Use habit.id or a fallback */}
-            {habit.name || habit} {/* Display habit.name or fallback to habit */}
+        {habits.map((habit, index) => (
+          <li key={habit.id || index}> {/* Use habit.id or fallback */}
+            {habit.name || "Unnamed Habit"}
           </li>
         ))}
       </ul>

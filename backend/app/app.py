@@ -1,5 +1,5 @@
 import os
-from flask import Flask, jsonify, render_template, send_from_directory
+from flask import Flask, jsonify, render_template, send_from_directory, current_app
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
 from flask_cors import CORS
@@ -35,15 +35,13 @@ def create_app(config_class=None):
 
     # Load config based on environment
     env = os.getenv('FLASK_ENV', 'development')
-    app.config.from_object(config[env])
+    app.config.from_object(config.get(env, config['development']))
 
     # Override DB URL from environment if provided
-    app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv(
-        "DATABASE_URL", app.config.get("SQLALCHEMY_DATABASE_URI")
-    )
-
-    # Ensure the DATABASE_URL is set
-    if not app.config['SQLALCHEMY_DATABASE_URI']:
+    db_url = os.getenv("DATABASE_URL")
+    if db_url:
+        app.config['SQLALCHEMY_DATABASE_URI'] = db_url
+    elif not app.config.get("SQLALCHEMY_DATABASE_URI"):
         raise ValueError("DATABASE_URL is not set in the environment variables.")
     
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -87,35 +85,34 @@ def create_app(config_class=None):
     @app.route('/fetch_habits')
     def fetch_habits():
         try:
-            # Fetch habits, checking for deleted_at field
-            habits = Habit.query.filter_by(deleted_at=None).all()  # Query to fetch active habits
-
+            habits = Habit.query.filter_by(deleted_at=None).all()
             if not habits:
                 return jsonify({"message": "No habits found."}), 404
-
-            # Prepare habit data
+            
             habit_data = [{"id": habit.id, "name": habit.name, "completed": habit.completed, "frequency": habit.frequency} for habit in habits]
-
             return jsonify({"habits": habit_data}), 200
 
         except Exception as e:
-            # Print the error to the logs
-            print(f"Error fetching habits: {e}")
-            return jsonify({"message": f"Error fetching habits: {str(e)}"}), 500
+            current_app.logger.error(f"Error fetching habits: {str(e)}")
+            return jsonify({"message": "Error fetching habits."}), 500
 
     # Test MongoDB connection
     @app.route("/test-mongo")
     def test_mongo():
         try:
-            mongo.db.users.find_one()
-            return "MongoDB is connected and the route works!"
+            mongo.db.list_collection_names()  # Check if connection is working
+            return "MongoDB is connected and operational!"
         except Exception as e:
             return f"Error connecting to MongoDB: {str(e)}"
 
     # Flask HTML Test Page
     @app.route('/test', methods=['GET'])
     def test():
-        return jsonify({"message": "Success! Backend is working."})  
+        return jsonify({"message": "Success! Backend is working."})
+
+    app.route('/habits', methods=['GET'])
+    def test():
+        return jsonify({"message": "Success! Backend is working."})    
 
     @app.route('/test-page', methods=['GET'])
     def test_page():
@@ -134,6 +131,9 @@ def create_app(config_class=None):
 
     @app.route('/<path:path>')
     def serve_react_app(path):
+        # Prevent API calls from being hijacked by frontend serving
+        if path.startswith("api/"):
+            return jsonify({"message": "API route not found."}), 404
         return send_from_directory(REACT_BUILD_DIR, 'index.html')
 
     return app
