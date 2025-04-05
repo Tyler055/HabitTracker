@@ -37,7 +37,7 @@ const TaskBar = ({ isDarkMode }) => {
       <nav className={`taskbar ${isVisible ? "show" : ""} ${isDarkMode ? "dark-theme" : ""}`}>
         {/* Taskbar Links */}
         <ul>
-          {["Home", "Habit Tracker", "Progress", "Settings", "Profile", "Login/Sign Up", "Other", "Test", "test-page"].map(
+          {["Home", "Habit Tracker", "Progress", "Settings", "Profile", "Login/Sign Up", "Other", "Test",].map(
             (text, index) => (
               <li key={index}>
                 <Link

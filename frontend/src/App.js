@@ -9,7 +9,6 @@ import HabitTracker from "./components/HabitTracker";
 import Progress from "./pages/Progress";
 import Settings from "./pages/Settings";
 import Profile from "./pages/Profile";
-import TestPage from "./pages/TestPage"; // Import TestPage component
 
 const App = () => {
   const [isTaskbarVisible, setIsTaskbarVisible] = useState(false);
@@ -103,8 +102,6 @@ const App = () => {
           <Route path="/settings" element={<Settings />} />
           <Route path="/profile" element={<Profile />} />
           {/* Route to Display Flask API Data */}
-          <Route path="/test-page" element={<TestPage />} />
-
           <Route
             path="/test"
             element={

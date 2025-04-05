@@ -20,14 +20,14 @@ def create_app():
     load_dotenv()
 
     # Set up configuration
-    env = os.getenv('FLASK_ENV', 'development')
+    env = os.getenv('APP_MODE', 'development')
     if env not in config:
-        raise ValueError(f"Invalid FLASK_ENV: {env}. Must be one of {list(config.keys())}.")
+        raise ValueError(f"Invalid APP_MODE: {env}. Must be one of {list(config.keys())}.")
     
     app = Flask(__name__)
     app.config.from_object(config[env])
 
-    # Set up database URIs
+    # Set up database URIs and other essential config values
     app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URL")
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['MONGO_URI'] = os.getenv("MONGO_DB_URI")
@@ -37,24 +37,16 @@ def create_app():
     migrate.init_app(app, db)
     mongo.init_app(app)
 
-    # Register blueprints
+    # Register blueprints for routing
     app.register_blueprint(auth_bp)
     app.register_blueprint(habit_bp)
     app.register_blueprint(completion_bp)
     app.register_blueprint(reminder_routes)
 
-    # Set FLASK_ENV based on APP_MODE
-    if app.config['APP_MODE'] == 'development':
-        app.config['FLASK_ENV'] = 'development'
-    elif app.config['APP_MODE'] == 'test':
-        app.config['FLASK_ENV'] = 'testing'
-    else:
-        app.config['FLASK_ENV'] = 'production'
-
     # Seed default data (Optional, only in development mode)
     @app.before_request
     def seed_default_data():
-        if app.config['FLASK_ENV'] in ['development', 'testing']:
+        if app.config['APP_MODE'] in ['development', 'testing']:
             try:
                 # Add default users, habits, etc.
                 pass
@@ -69,5 +61,8 @@ def create_app():
     @app.errorhandler(500)
     def internal_error(error):
         return {"message": "Internal server error"}, 500
+
+    # Add any additional setup, such as initializing CORS, logging, etc.
+    # Example: CORS(app)
 
     return app
