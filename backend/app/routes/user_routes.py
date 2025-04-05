@@ -5,7 +5,7 @@ from app.models.models import User
 user_bp = Blueprint('user_bp', __name__)
 
 # Route to register a user
-@user_bp.route('/api/register', methods=['POST'])
+@user_bp.route('/register', methods=['POST'])
 def register_user():
     data = request.get_json()
     username = data.get('username')

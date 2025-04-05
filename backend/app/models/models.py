@@ -19,6 +19,10 @@ class SoftDeleteMixin:
         self.deleted_at = None
         self.is_active = True
 
+    def is_active(self):
+        return self.is_active and self.deleted_at is None
+
+
 # -------------------- User Model --------------------
 class User(db.Model):
     __tablename__ = 'users'
@@ -43,6 +47,9 @@ class User(db.Model):
     def check_password(self, password):
         return check_password_hash(self._password_hash, password)
 
+    def __repr__(self):
+        return f"<User {self.username}>"
+
 # -------------------- Habit Model --------------------
 class Habit(db.Model, SoftDeleteMixin):
     __tablename__ = 'habits'
@@ -65,6 +72,9 @@ class Habit(db.Model, SoftDeleteMixin):
             db.session.add(reminder)
             db.session.commit()
 
+    def __repr__(self):
+        return f"<Habit {self.name}>"
+
 # -------------------- Habit Completion Model --------------------
 class HabitCompletion(db.Model, SoftDeleteMixin):
     __tablename__ = 'habit_completions'
@@ -73,6 +83,9 @@ class HabitCompletion(db.Model, SoftDeleteMixin):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     completed_at = db.Column(db.DateTime, default=db.func.current_timestamp())
 
+    def __repr__(self):
+        return f"<HabitCompletion {self.habit_id} completed by {self.user_id}>"
+
 # -------------------- Habit Reminder Model --------------------
 class HabitReminder(db.Model, SoftDeleteMixin):
     __tablename__ = 'habit_reminders'
@@ -80,6 +93,9 @@ class HabitReminder(db.Model, SoftDeleteMixin):
     habit_id = db.Column(db.Integer, db.ForeignKey('habits.id'), nullable=False)
     reminder_time = db.Column(db.Time, nullable=False)
     reminder_message = db.Column(db.String(255), nullable=False)
+
+    def __repr__(self):
+        return f"<HabitReminder {self.reminder_message} at {self.reminder_time}>"
 
 # -------------------- Habit Analytics Model --------------------
 class HabitAnalytics(db.Model):
@@ -90,3 +106,6 @@ class HabitAnalytics(db.Model):
     current_streak = db.Column(db.Integer, default=0)
     longest_streak = db.Column(db.Integer, default=0)
     last_completed = db.Column(db.DateTime, nullable=True)
+
+    def __repr__(self):
+        return f"<HabitAnalytics {self.habit_id} - Total: {self.total_completions}, Streak: {self.current_streak}>"

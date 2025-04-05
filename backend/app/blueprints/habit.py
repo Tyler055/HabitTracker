@@ -1,20 +1,23 @@
 from flask import Blueprint, request, jsonify
 from app import db
-from models.models import Habit
+from app.models.models import Habit
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
-# Create a Blueprint for habit routes
-habit_bp = Blueprint('habit_bp', __name__)
+# Define the blueprint with a proper prefix ONCE
+habit_bp = Blueprint('habit_bp', __name__, url_prefix="/habits")
 
-# Route to get all habits (API)
-@habit_bp.route('/api/habits', methods=['GET'])
-@jwt_required()  # Protect this route with JWT
+# Route to get all habits (GET /habits)
+@habit_bp.route('/', methods=['GET'])
+@jwt_required()
 def get_habits():
     try:
-        user_id = get_jwt_identity()  # Get current user ID from JWT
-        habits = Habit.query.filter_by(user_id=user_id).all()  # Fetch habits for the current user
+        # Get the user ID from the JWT token
+        user_id = get_jwt_identity()
+        
+        # Fetch all habits for the user
+        habits = Habit.query.filter_by(user_id=user_id).all()
 
-        # Format habits into a JSON response
+        # Prepare the habit data to send as a response
         habits_data = [{"id": habit.id, "name": habit.name} for habit in habits]
 
         return jsonify({
@@ -27,32 +30,29 @@ def get_habits():
             "message": f"Error fetching habits: {str(e)}"
         }), 500
 
-# Route to add a new habit (API)
-@habit_bp.route('/api/habits', methods=['POST'])
-@jwt_required()  # Protect this route with JWT
+
+# Route to add a new habit (POST /habits)
+@habit_bp.route('/', methods=['POST'])
+@jwt_required()
 def add_habit():
     try:
+        # Get data from the request
         data = request.get_json()
         habit_name = data.get('name')
 
-        # Validate input
+        # Validate that the habit name is provided
         if not habit_name:
-            return jsonify({
-                "status": "error",
-                "message": "Habit name is required"
-            }), 400
+            return jsonify({"status": "error", "message": "Habit name is required"}), 400
 
-        user_id = get_jwt_identity()  # Get current user ID from JWT
+        # Get the user ID from the JWT token
+        user_id = get_jwt_identity()
 
         # Check if the habit already exists for the user
         existing_habit = Habit.query.filter_by(name=habit_name, user_id=user_id).first()
         if existing_habit:
-            return jsonify({
-                "status": "error",
-                "message": "Habit already exists"
-            }), 400
+            return jsonify({"status": "error", "message": "Habit already exists"}), 400
 
-        # Create a new habit
+        # Create a new habit and add it to the database
         new_habit = Habit(name=habit_name, user_id=user_id)
         db.session.add(new_habit)
         db.session.commit()
@@ -68,12 +68,16 @@ def add_habit():
             "message": f"Error adding habit: {str(e)}"
         }), 500
 
-# Route to delete a habit by ID (API)
-@habit_bp.route('/api/habits/<int:id>', methods=['DELETE'])
-@jwt_required()  # Protect this route with JWT
+
+# Route to delete a habit (DELETE /habits/<id>)
+@habit_bp.route('/<int:id>', methods=['DELETE'])
+@jwt_required()
 def delete_habit(id):
     try:
-        user_id = get_jwt_identity()  # Get current user ID from JWT
+        # Get the user ID from the JWT token
+        user_id = get_jwt_identity()
+
+        # Fetch the habit by ID and ensure it belongs to the user
         habit = Habit.query.filter_by(id=id, user_id=user_id).first()
 
         if not habit:
@@ -82,7 +86,7 @@ def delete_habit(id):
                 "message": "Habit not found or not owned by user"
             }), 404
 
-        # Delete habit from the database
+        # Delete the habit from the database
         db.session.delete(habit)
         db.session.commit()
 
@@ -96,14 +100,16 @@ def delete_habit(id):
             "message": f"Error deleting habit: {str(e)}"
         }), 500
 
-# Route to reset all habits for the current user (API)
-@habit_bp.route('/api/habits/reset', methods=['POST'])
-@jwt_required()  # Protect this route with JWT
+
+# Route to reset all habits for the user (POST /habits/reset)
+@habit_bp.route('/reset', methods=['POST'])
+@jwt_required()
 def reset_habits():
     try:
-        user_id = get_jwt_identity()  # Get current user ID from JWT
+        # Get the user ID from the JWT token
+        user_id = get_jwt_identity()
 
-        # Delete all habits for the current user
+        # Delete all habits for the user
         Habit.query.filter_by(user_id=user_id).delete()
         db.session.commit()
 

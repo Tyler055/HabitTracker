@@ -1,7 +1,6 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from app.models.models import HabitReminder  # Assuming Reminder is a model in your app
-from app import db
+from app.models.models import HabitReminder  # Assuming HabitReminder is the model in your app
 
 reminder_routes = Blueprint('reminder_routes', __name__)
 
@@ -9,6 +8,9 @@ reminder_routes = Blueprint('reminder_routes', __name__)
 @reminder_routes.route('/reminders', methods=['POST'])
 @jwt_required()  # Protect the route with JWT authentication
 def create_reminder():
+    # Import db locally to avoid circular imports
+    from app import db
+
     data = request.get_json()
     user_id = get_jwt_identity()  # Get the user from the JWT token
     
@@ -32,6 +34,9 @@ def create_reminder():
 @reminder_routes.route('/reminders', methods=['GET'])
 @jwt_required()  # Protect the route with JWT authentication
 def get_reminders():
+    # Import db locally to avoid circular imports
+    from app import db
+
     user_id = get_jwt_identity()
     
     reminders = HabitReminder.query.filter_by(user_id=user_id).all()
@@ -44,6 +49,9 @@ def get_reminders():
 @reminder_routes.route('/reminders/<int:id>', methods=['GET'])
 @jwt_required()  # Protect the route with JWT authentication
 def get_reminder(id):
+    # Import db locally to avoid circular imports
+    from app import db
+
     user_id = get_jwt_identity()
     
     reminder = HabitReminder.query.filter_by(id=id, user_id=user_id).first()
@@ -57,6 +65,9 @@ def get_reminder(id):
 @reminder_routes.route('/reminders/<int:id>', methods=['PUT'])
 @jwt_required()  # Protect the route with JWT authentication
 def update_reminder(id):
+    # Import db locally to avoid circular imports
+    from app import db
+
     user_id = get_jwt_identity()
     
     reminder = HabitReminder.query.filter_by(id=id, user_id=user_id).first()
@@ -77,6 +88,9 @@ def update_reminder(id):
 @reminder_routes.route('/reminders/<int:id>', methods=['DELETE'])
 @jwt_required()  # Protect the route with JWT authentication
 def delete_reminder(id):
+    # Import db locally to avoid circular imports
+    from app import db
+
     user_id = get_jwt_identity()
     
     reminder = HabitReminder.query.filter_by(id=id, user_id=user_id).first()

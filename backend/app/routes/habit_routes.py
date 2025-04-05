@@ -18,13 +18,29 @@ habit_schema = HabitSchema()
 habits_schema = HabitSchema(many=True)
 
 # Get all habits for the current user
-@habit_bp.route('/api/habits', methods=['GET'])
+@habit_bp.route('/habits', methods=['GET'])
 @login_required
 def get_habits():
     try:
         page = request.args.get('page', 1, type=int)
         per_page = request.args.get('per_page', 50, type=int)
-        habits = Habit.query.filter_by(user_id=current_user.id, deleted_at=None).paginate(page=page, per_page=per_page, error_out=False)
+        frequency = request.args.get('frequency', None)
+        completed = request.args.get('completed', None)
+
+        query = Habit.query.filter_by(user_id=current_user.id, deleted_at=None)
+
+        if frequency:
+            query = query.filter(Habit.frequency == frequency)
+        
+        if completed:
+            # Assuming `completed` is a boolean-like flag to check if habits are completed today
+            completed_date = datetime.utcnow().date()
+            if completed.lower() == 'true':
+                query = query.filter(HabitCompletion.completed_at == completed_date)
+            elif completed.lower() == 'false':
+                query = query.filter(HabitCompletion.completed_at != completed_date)
+        
+        habits = query.paginate(page=page, per_page=per_page, error_out=False)
 
         return jsonify({
             "status": "success",
@@ -36,7 +52,7 @@ def get_habits():
         return jsonify({"status": "error", "message": "Server error"}), 500
 
 # Add a new habit
-@habit_bp.route('/api/habits', methods=['POST'])
+@habit_bp.route('/habits', methods=['POST'])
 @login_required
 def add_habit():
     try:
@@ -62,7 +78,7 @@ def add_habit():
         return jsonify({"status": "error", "message": "Server error"}), 500
 
 # Update a habit
-@habit_bp.route('/api/habits/<int:id>', methods=['PUT'])
+@habit_bp.route('/<int:id>', methods=['PUT'])
 @login_required
 def update_habit(id):
     try:
@@ -89,7 +105,7 @@ def update_habit(id):
         return jsonify({"status": "error", "message": "Server error"}), 500
 
 # Soft delete a habit
-@habit_bp.route('/api/habits/<int:id>', methods=['DELETE'])
+@habit_bp.route('/<int:id>', methods=['DELETE'])
 @login_required
 def delete_habit(id):
     try:
@@ -106,7 +122,7 @@ def delete_habit(id):
         return jsonify({"status": "error", "message": "Server error"}), 500
 
 # Restore a habit
-@habit_bp.route('/api/habits/<int:id>/restore', methods=['PUT'])
+@habit_bp.route('/<int:id>/restore', methods=['PUT'])
 @login_required
 def restore_habit(id):
     try:
@@ -123,7 +139,7 @@ def restore_habit(id):
         return jsonify({"status": "error", "message": "Server error"}), 500
 
 # Track habit completion
-@habit_bp.route('/api/habits/<int:id>/complete', methods=['POST'])
+@habit_bp.route('/<int:id>/complete', methods=['POST'])
 @login_required
 def complete_habit(id):
     try:
@@ -152,7 +168,7 @@ def complete_habit(id):
         return jsonify({"status": "error", "message": "Server error"}), 500
 
 # Reset all habits for the current user
-@habit_bp.route('/api/habits/reset', methods=['POST'])
+@habit_bp.route('/reset', methods=['POST'])
 @login_required
 def reset_habits():
     try:

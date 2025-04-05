@@ -13,6 +13,8 @@ from app.models.models import Habit  # Import the Habit model
 # Load environment variables
 load_dotenv()
 
+
+
 # Initialize extensions
 jwt = JWTManager()
 migrate = Migrate()
@@ -59,19 +61,19 @@ def create_app(config_class=None):
     mongo.init_app(app)
 
     # Register blueprints (routes)
-    app.register_blueprint(habit_bp, url_prefix="/api/habits")
-    app.register_blueprint(auth_bp, url_prefix="/api/auth")
+    app.register_blueprint(habit_bp, url_prefix="/habits")
+    app.register_blueprint(auth_bp, url_prefix="/auth")
 
     # Register global error handlers
     register_error_handlers(app)
 
     # API Test Endpoint
-    @app.route('/api/data')
+    @app.route('/data')
     def get_data():
         return jsonify({"message": "Hello from Flask!"})
 
     # Example of returning dynamic HTML content
-    @app.route('/api/get_html')
+    @app.route('/get_html')
     def get_html():
         dynamic_html = """
         <div>
@@ -110,10 +112,6 @@ def create_app(config_class=None):
     def test():
         return jsonify({"message": "Success! Backend is working."})
 
-    app.route('/habits', methods=['GET'])
-    def test():
-        return jsonify({"message": "Success! Backend is working."})    
-
     @app.route('/test-page', methods=['GET'])
     def test_page():
         return render_template('test-page.html')
@@ -129,14 +127,15 @@ def create_app(config_class=None):
     def serve_static(path):
         return send_from_directory(f"{REACT_BUILD_DIR}/static", path)
 
+    # Serve React Frontend for all paths that are not API-related
     @app.route('/<path:path>')
     def serve_react_app(path):
-        # Prevent API calls from being hijacked by frontend serving
+    # Prevent non-API requests from hijacking routes (e.g. '/about', '/contact'
         if path.startswith("api/"):
             return jsonify({"message": "API route not found."}), 404
+    # Serve React frontend for non-API paths
         return send_from_directory(REACT_BUILD_DIR, 'index.html')
 
-    return app
 
 # Create the Flask application instance
 app = create_app()

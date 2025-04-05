@@ -1,6 +1,4 @@
 from flask import Blueprint, request, jsonify
-from app import db
-from app.models.models import User
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 import datetime
 
@@ -13,9 +11,13 @@ def test():
     return jsonify({"status": "success", "message": "Auth route is working!"}), 200
 
 # User Registration
-@auth_bp.route('/api/register', methods=['POST'])
+@auth_bp.route('/register', methods=['POST'])
 def register_user():
     try:
+        # Import db and User model locally
+        from app import db
+        from app.models.models import User
+
         data = request.get_json()
         username = data.get('username')
         email = data.get('email')
@@ -41,9 +43,13 @@ def register_user():
         return jsonify({"status": "error", "message": str(e)}), 500
 
 # User Login
-@auth_bp.route('/api/login', methods=['POST'])
+@auth_bp.route('/login', methods=['POST'])
 def login_user():
     try:
+        # Import db and User model locally
+        from app import db
+        from app.models.models import User
+
         data = request.get_json()
         email = data.get('email')
         password = data.get('password')
@@ -64,10 +70,14 @@ def login_user():
         return jsonify({"status": "error", "message": str(e)}), 500
 
 # Get Current User Info (Protected Route)
-@auth_bp.route('/api/user', methods=['GET'])
+@auth_bp.route('/user', methods=['GET'])
 @jwt_required()
 def get_user():
     try:
+        # Import db and User model locally
+        from app import db
+        from app.models.models import User
+
         user_id = get_jwt_identity()
         user = User.query.get(user_id)
 
@@ -87,7 +97,7 @@ def get_user():
         return jsonify({"status": "error", "message": str(e)}), 500
 
 # Logout Route (Optional - Frontend handles token removal)
-@auth_bp.route('/api/logout', methods=['POST'])
+@auth_bp.route('/logout', methods=['POST'])
 @jwt_required()
 def logout_user():
     return jsonify({"status": "success", "message": "User logged out successfully"}), 200

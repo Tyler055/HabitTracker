@@ -27,7 +27,7 @@ def get_completions():
     completions = HabitCompletion.query.all()
     return {"completions": [c.serialize() for c in completions]}  # Assuming you have a serialize method
 
-@completion_bp.route('/api/habits/<int:habit_id>/complete', methods=['POST'])
+@completion_bp.route('/habits/<int:habit_id>/complete', methods=['POST'])
 def complete_habit(habit_id):
     try:
         # Get request data
@@ -61,7 +61,7 @@ def complete_habit(habit_id):
 
 
 # Get all completions for a user
-@completion_bp.route('/api/users/<int:user_id>/completions', methods=['GET'])
+@completion_bp.route('/users/<int:user_id>/completions', methods=['GET'])
 def get_user_completions(user_id):
     try:
         # Retrieve completions for user
@@ -87,7 +87,7 @@ def get_user_completions(user_id):
 
 
 # Reset (delete) all completions for a user
-@completion_bp.route('/api/users/<int:user_id>/completions/reset', methods=['POST'])
+@completion_bp.route('/users/<int:user_id>/completions/reset', methods=['POST'])
 def reset_user_completions(user_id):
     try:
         # Retrieve completions for user
