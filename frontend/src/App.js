@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react"; 
+import React, { useState, useEffect } from "react";
 import { Routes, Route } from "react-router-dom";
 import logo from "./logo.svg";
 import "./styles/App.css";
@@ -9,6 +9,7 @@ import HabitTracker from "./components/HabitTracker";
 import Progress from "./pages/Progress";
 import Settings from "./pages/Settings";
 import Profile from "./pages/Profile";
+import TestPage from "./pages/TestPage"; // Import TestPage component
 
 const App = () => {
   const [isTaskbarVisible, setIsTaskbarVisible] = useState(false);
@@ -35,9 +36,9 @@ const App = () => {
 
     // Fetch data from Flask API
     fetch("http://127.0.0.1:5000/test")
-      .then(response => response.json())
-      .then(data => setFlaskData(data.message))
-      .catch(error => {
+      .then((response) => response.json())
+      .then((data) => setFlaskData(data.message))
+      .catch((error) => {
         console.error("Error fetching data:", error);
         setFlaskError("Failed to fetch data from Flask.");
       });
@@ -61,14 +62,14 @@ const App = () => {
 
     document.body.classList.toggle("dark-theme", isDark);
     document.body.classList.toggle("light-theme", !isDark);
-    
+
     localStorage.setItem("fontSize", fontSize);
     localStorage.setItem("buttonColor", buttonColor);
   };
 
   // Toggle taskbar visibility
   const toggleTaskbar = () => {
-    setIsTaskbarVisible(prevState => !prevState);
+    setIsTaskbarVisible((prevState) => !prevState);
   };
 
   return (
@@ -101,9 +102,11 @@ const App = () => {
           <Route path="/progress" element={<Progress />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/profile" element={<Profile />} />
-          {/* New Route to Display Flask API Data */}
-          <Route 
-            path="/test" 
+          {/* Route to Display Flask API Data */}
+          <Route path="/test-page" element={<TestPage />} />
+
+          <Route
+            path="/test"
             element={
               <>
                 {flaskError ? (
@@ -111,10 +114,12 @@ const App = () => {
                 ) : flaskData ? (
                   <p>{flaskData}</p>
                 ) : (
-                  <p>Loading data from backend...</p>
+                  <p>
+                    <span className="spinner" /> Loading data from backend...
+                  </p>
                 )}
               </>
-            } 
+            }
           />
           <Route path="*" element={<Home />} /> {/* Fallback route */}
         </Routes>

@@ -12,7 +12,7 @@
 
 /* 🏠 App Header */
 .App-header {
-  background-color: #000000; /* 🌑 Dark background for the header */
+  
   min-height: 100vh; /* 📏 Ensures the header fills the entire viewport */
   display: flex; /* 📐 Flexbox for layout */
   flex-direction: column; /* 🧩 Stacks items vertically */

@@ -7,77 +7,86 @@ const HabitTracker = () => {
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  // Function to fetch habits
+  // Reusable function to fetch habits
   const fetchHabits = useCallback(async () => {
     setIsLoading(true);
     try {
       const response = await axios.get("http://127.0.0.1:5000/habits");
-      setHabits(response.data);
+      setHabits(response.data.habits || []);
     } catch (error) {
       setMessage("Failed to fetch habits.");
+      console.error("Error fetching habits:", error);
     } finally {
       setIsLoading(false);
     }
   }, []);
 
-  // Fetch habits on mount
+  // On mount
   useEffect(() => {
     fetchHabits();
-  }, [fetchHabits]); // ✅ Fixed dependency issue
+  }, [fetchHabits]);
 
-  // Function to show messages
+  // Show temporary message
   const showMessage = (msg) => {
     setMessage(msg);
     setTimeout(() => setMessage(""), 3000);
   };
 
-  // Handle adding a new habit
+  // Add a habit
   const handleAddHabit = async (e) => {
     e.preventDefault();
     if (!habit.trim()) return;
 
-    const newHabit = { id: Date.now(), name: habit };
+    const tempId = Date.now();
+    const newHabit = { id: tempId, name: habit };
+
     setHabits((prev) => [...prev, newHabit]);
 
     try {
       const response = await axios.post("http://127.0.0.1:5000/habits", { name: habit });
       setHabits((prev) =>
-        prev.map((h) => (h.id === newHabit.id ? { ...newHabit, id: response.data.id } : h))
+        prev.map((h) => (h.id === tempId ? { ...newHabit, id: response.data.id } : h))
       );
       setHabit("");
       showMessage("Habit added successfully!");
-    } catch {
+    } catch (error) {
       showMessage("Failed to add habit.");
-      setHabits((prev) => prev.filter((h) => h.id !== newHabit.id)); // Rollback UI
+      setHabits((prev) => prev.filter((h) => h.id !== tempId));
+      console.error("Error adding habit:", error);
     }
   };
 
-  // Handle deleting a habit
+  // Delete a habit
   const handleDeleteHabit = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this habit?")) return;
-
+    if (!window.confirm("Delete this habit?")) return;
+    const originalHabits = [...habits];
     setHabits((prev) => prev.filter((habit) => habit.id !== id));
 
     try {
       await axios.delete(`http://127.0.0.1:5000/habits/${id}`);
       showMessage("Habit deleted.");
-    } catch {
+    } catch (error) {
       showMessage("Failed to delete habit.");
-      fetchHabits(); // Reload if deletion fails
+      setHabits(originalHabits); // rollback
+      console.error("Error deleting habit:", error);
     }
   };
 
-  // Handle resetting all habits
+  // Reset all habits
   const handleResetHabits = async () => {
-    if (!window.confirm("Are you sure you want to reset all habits?")) return;
+    if (!window.confirm("Reset all habits?")) return;
 
-    setHabits([]); // Clear UI immediately
+    setIsLoading(true);
+    setHabits([]);
     try {
       await axios.post("http://127.0.0.1:5000/reset_habits");
       showMessage("All habits reset.");
-    } catch {
+    } catch (error) {
       showMessage("Failed to reset habits.");
-      fetchHabits();
+      fetchHabits(); // reload habits
+      console.error("Error resetting habits:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
