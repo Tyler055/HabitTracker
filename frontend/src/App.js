@@ -33,14 +33,21 @@ const App = () => {
       applyTheme(savedFontSize, savedButtonColor, savedTheme === "dark");
     }, 0);
 
-    // Fetch data from Flask API
-    fetch("http://127.0.0.1:5000/test")
-      .then((response) => response.json())
-      .then((data) => setFlaskData(data.message))
-      .catch((error) => {
+    // Fetch data from Flask API with better error handling
+    const fetchData = async () => {
+      try {
+        const response = await fetch("http://127.0.0.1:5000/test");
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        const data = await response.json();
+        setFlaskData(data.message);
+      } catch (error) {
         console.error("Error fetching data:", error);
-        setFlaskError("Failed to fetch data from Flask.");
-      });
+        setFlaskError("Failed to fetch data from Flask. Please check the backend.");
+      }
+    };
+    fetchData();
   }, []);
 
   // Toggle dark mode

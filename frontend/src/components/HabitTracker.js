@@ -37,28 +37,38 @@ const HabitTracker = () => {
     e.preventDefault();
     if (!habit.trim()) return;
 
-    const tempId = Date.now();
-    const newHabit = { id: tempId, name: habit };
-
-    setHabits((prev) => [...prev, newHabit]);
+    setIsLoading(true);
+    const newHabit = { name: habit };
 
     try {
-      const response = await axios.post("http://127.0.0.1:5000/habits", { name: habit });
+      // Optimistically add habit to the list
+      setHabits((prev) => [
+        ...prev,
+        { id: Date.now(), name: habit },
+      ]);
+      
+      const response = await axios.post("http://127.0.0.1:5000/habits", newHabit);
       setHabits((prev) =>
-        prev.map((h) => (h.id === tempId ? { ...newHabit, id: response.data.id } : h))
+        prev.map((h) =>
+          h.id === Date.now() ? { ...h, id: response.data.id } : h
+        )
       );
       setHabit("");
       showMessage("Habit added successfully!");
     } catch (error) {
-      showMessage("Failed to add habit.");
-      setHabits((prev) => prev.filter((h) => h.id !== tempId));
+      setMessage("Failed to add habit.");
       console.error("Error adding habit:", error);
+      setHabits((prev) => prev.filter((h) => h.name !== habit)); // Revert optimistically added habit
+    } finally {
+      setIsLoading(false);
     }
   };
 
   // Delete a habit
   const handleDeleteHabit = async (id) => {
     if (!window.confirm("Delete this habit?")) return;
+
+    setIsLoading(true);
     const originalHabits = [...habits];
     setHabits((prev) => prev.filter((habit) => habit.id !== id));
 
@@ -69,6 +79,8 @@ const HabitTracker = () => {
       showMessage("Failed to delete habit.");
       setHabits(originalHabits); // rollback
       console.error("Error deleting habit:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -119,7 +131,10 @@ const HabitTracker = () => {
             habits.map((habit) => (
               <li key={habit.id} className="habit-item">
                 {habit.name}
-                <button className="delete-btn" onClick={() => handleDeleteHabit(habit.id)}>
+                <button
+                  className="delete-btn"
+                  onClick={() => handleDeleteHabit(habit.id)}
+                >
                   Delete
                 </button>
               </li>
@@ -130,7 +145,11 @@ const HabitTracker = () => {
         </ul>
       )}
 
-      <button onClick={handleResetHabits} className="reset-btn" disabled={isLoading}>
+      <button
+        onClick={handleResetHabits}
+        className="reset-btn"
+        disabled={isLoading}
+      >
         {isLoading ? "Resetting..." : "Reset All Habits"}
       </button>
     </div>
