@@ -13,8 +13,10 @@ def get_required_env_variable(var_name):
 
 class BaseConfig:
     """Base configuration class for shared settings."""
+    # General Settings
     APP_NAME = os.getenv("APP_NAME", "Habit-Tracker")
     PORT = int(os.getenv("PORT", 5000))
+    APP_MODE = os.getenv("APP_MODE", "development")  # Default APP_MODE
 
     # Security settings
     SECRET_KEY = get_required_env_variable("SECRET_KEY")
@@ -36,45 +38,48 @@ class BaseConfig:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ECHO = os.getenv("SQLALCHEMY_ECHO", "False").lower() == "true"
 
-    # MongoDB settings (used for MongoDB database in app)
+    # Default MongoDB URI (can be overridden in subclasses)
     MONGO_URI = get_required_env_variable("MONGO_DB_URI")
+    SQLALCHEMY_DATABASE_URI = get_required_env_variable("MYSQL_DB_URI")
 
 class TestingConfig(BaseConfig):
     """Testing-specific configuration."""
     APP_MODE = "test"
     DEBUG = True
-    DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///test.db")
     MYSQL_URI = get_required_env_variable("MYSQL_TEST_URI")
-    MONGO_URI = get_required_env_variable("MONGO_TEST_URI")  # Mongo URI for testing environment
+    MONGO_URI = get_required_env_variable("MONGO_TEST_URI")
+
+    # Override Database URI for testing
+    SQLALCHEMY_DATABASE_URI = MYSQL_URI
 
 class DevelopmentConfig(BaseConfig):
     """Development-specific configuration."""
     APP_MODE = "development"
     DEBUG = True
-    DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///dev.db")
-    MYSQL_URI = get_required_env_variable("MYSQL_DB_URI")  # MySQL URI for dev environment
-    MONGO_URI = get_required_env_variable("MONGO_DB_URI")  # Mongo URI for dev environment
+    MYSQL_URI = get_required_env_variable("MYSQL_DB_URI")
+    MONGO_URI = get_required_env_variable("MONGO_DB_URI")
+
+    # Override Database URI for development
+    SQLALCHEMY_DATABASE_URI = MYSQL_URI
 
 class ProductionConfig(BaseConfig):
     """Production-specific configuration."""
     APP_MODE = "production"
     DEBUG = False
-    DATABASE_URL = get_required_env_variable("DATABASE_URL")
-    MYSQL_URI = get_required_env_variable("MYSQL_PROD_URI")  # MySQL URI for production environment
-    MONGO_URI = get_required_env_variable("MONGO_PROD_URI")  # Mongo URI for production environment
-    REDIS_URL = get_required_env_variable("REDIS_URL")  # Redis URI for caching or background tasks
-    SECRET_KEY = get_required_env_variable("SECRET_KEY")
-    FLASK_SECRET_KEY = get_required_env_variable("FLASK_SECRET_KEY")  # Optional for additional secret use
+    MYSQL_URI = get_required_env_variable("MYSQL_PROD_URI")
+    MONGO_URI = get_required_env_variable("MONGO_PROD_URI")
+    REDIS_URL = get_required_env_variable("REDIS_URL")
+    FLASK_SECRET_KEY = get_required_env_variable("FLASK_SECRET_KEY")
 
-# Config Selector: Select the appropriate config based on the APP_MODE
+    # Override Database URI for production
+    SQLALCHEMY_DATABASE_URI = MYSQL_URI
+
+# Config Selector for different environments
 config = {
     "test": TestingConfig,
     "development": DevelopmentConfig,
     "production": ProductionConfig
 }
 
-# Active Config Detection
-APP_MODE = os.getenv("APP_MODE", "development")
-ActiveConfig = config.get(APP_MODE, DevelopmentConfig)
-
-# The ActiveConfig is the one to be used in your app (e.g., `app.config.from_object(ActiveConfig)`)
+# Active Config Detection based on APP_MODE
+ActiveConfig = config.get(os.getenv("APP_MODE", "development"), DevelopmentConfig)

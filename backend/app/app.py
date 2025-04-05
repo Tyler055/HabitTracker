@@ -21,13 +21,23 @@ migrate = Migrate()
 def register_error_handlers(app):
     @app.errorhandler(404)
     def not_found(error):
-        # Return a custom 404 page or JSON response
         return jsonify({"message": "Resource not found"}), 404
 
     @app.errorhandler(500)
     def internal_error(error):
-        # Return a custom 500 page or JSON response
         return jsonify({"message": "Internal server error"}), 500
+
+    @app.errorhandler(400)
+    def bad_request(error):
+        return jsonify({"message": "Bad request"}), 400
+
+    @app.errorhandler(401)
+    def unauthorized(error):
+        return jsonify({"message": "Unauthorized"}), 401
+
+    @app.errorhandler(403)
+    def forbidden(error):
+        return jsonify({"message": "Forbidden"}), 403
 
 def create_app(env_mode='development'):
     app = Flask(__name__)
@@ -39,14 +49,14 @@ def create_app(env_mode='development'):
     # Allow frontend (React) to communicate with backend
     CORS(app, origins=[os.getenv("FRONTEND_URL", "http://localhost:3000")])
 
-    # Override DB URL from environment if provided
+    # Ensure DATABASE_URL is set and assign it to SQLAlchemy URI
     db_url = os.getenv("DATABASE_URL")
-    if db_url:
-        app.config['SQLALCHEMY_DATABASE_URI'] = db_url
-    elif not app.config.get("SQLALCHEMY_DATABASE_URI"):
+    if not db_url:
         raise ValueError("DATABASE_URL is not set in the environment variables.")
-    
+    app.config['SQLALCHEMY_DATABASE_URI'] = db_url
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+    # JWT secret key and other settings
     app.config['JWT_SECRET_KEY'] = os.getenv("JWT_SECRET_KEY", "super-secret-key")
 
     # Initialize extensions
@@ -71,7 +81,7 @@ def create_app(env_mode='development'):
     # Route to fetch all habits
     @app.route('/habits', methods=['GET'])
     def get_habits():
-        habits = Habit.query.all()  # Retrieve all habits from your database
+        habits = Habit.query.all()
         return jsonify({'habits': [habit.to_dict() for habit in habits]})
 
     # Route to fetch a single habit by id
@@ -82,7 +92,7 @@ def create_app(env_mode='development'):
             return jsonify({'message': 'Habit not found'}), 404
         return jsonify(habit.to_dict())
 
-    # Route to fetch habits from database with filtering
+    # Route to fetch habits from the database with filtering
     @app.route('/fetch_habits')
     def fetch_habits():
         try:
@@ -135,10 +145,8 @@ def create_app(env_mode='development'):
     # Serve React Frontend for all paths that are not API-related
     @app.route('/<path:path>')
     def serve_react_app(path):
-        # Prevent non-API requests from hijacking routes (e.g. '/about', '/contact')
         if path.startswith("api/"):
             return jsonify({"message": "API route not found."}), 404
-        # Serve React frontend for non-API paths
         return send_from_directory(REACT_BUILD_DIR, 'index.html')
 
     return app
