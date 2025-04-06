@@ -1,7 +1,8 @@
-from datetime import datetime, time, timedelta
+from datetime import datetime, time
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 
+# Initialize SQLAlchemy
 db = SQLAlchemy()
 
 # -------------------- Soft Delete Mixin --------------------
@@ -19,20 +20,22 @@ class SoftDeleteMixin:
         self.deleted_at = None
         self.is_active = True
 
-    def is_active(self):
+    def is_active_method(self):
+        """Check if the instance is active (not soft-deleted)."""
         return self.is_active and self.deleted_at is None
 
 
 # -------------------- User Model --------------------
 class User(db.Model):
     __tablename__ = 'users'
+    
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(50), unique=True, nullable=False)
     _password_hash = db.Column("password", db.String(255), nullable=False)
-
+    
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
     updated_at = db.Column(db.DateTime, default=db.func.current_timestamp(), onupdate=db.func.current_timestamp())
-
+    
     habits = db.relationship('Habit', backref='user', lazy=True)
     completions = db.relationship('HabitCompletion', backref='user', lazy=True)
 
@@ -49,6 +52,7 @@ class User(db.Model):
 
     def __repr__(self):
         return f"<User {self.username}>"
+
 
 # -------------------- Habit Model --------------------
 class Habit(db.Model, SoftDeleteMixin):
@@ -75,9 +79,11 @@ class Habit(db.Model, SoftDeleteMixin):
     def __repr__(self):
         return f"<Habit {self.name}>"
 
+
 # -------------------- Habit Completion Model --------------------
 class HabitCompletion(db.Model, SoftDeleteMixin):
     __tablename__ = 'habit_completions'
+    
     id = db.Column(db.Integer, primary_key=True)
     habit_id = db.Column(db.Integer, db.ForeignKey('habits.id'), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
@@ -86,20 +92,36 @@ class HabitCompletion(db.Model, SoftDeleteMixin):
     def __repr__(self):
         return f"<HabitCompletion {self.habit_id} completed by {self.user_id}>"
 
+
 # -------------------- Habit Reminder Model --------------------
 class HabitReminder(db.Model, SoftDeleteMixin):
     __tablename__ = 'habit_reminders'
+    
     id = db.Column(db.Integer, primary_key=True)
     habit_id = db.Column(db.Integer, db.ForeignKey('habits.id'), nullable=False)
     reminder_time = db.Column(db.Time, nullable=False)
     reminder_message = db.Column(db.String(255), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+
+    habit = db.relationship('Habit', backref=db.backref('reminders', lazy=True))
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'habit_id': self.habit_id,
+            'reminder_time': self.reminder_time.isoformat(),  # Convert to ISO format
+            'user_id': self.user_id,
+            'reminder_message': self.reminder_message
+        }
 
     def __repr__(self):
         return f"<HabitReminder {self.reminder_message} at {self.reminder_time}>"
 
+
 # -------------------- Habit Analytics Model --------------------
 class HabitAnalytics(db.Model):
     __tablename__ = 'habit_analytics'
+    
     id = db.Column(db.Integer, primary_key=True)
     habit_id = db.Column(db.Integer, db.ForeignKey('habits.id'), nullable=False, unique=True)
     total_completions = db.Column(db.Integer, default=0)

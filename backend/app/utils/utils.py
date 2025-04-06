@@ -1,9 +1,12 @@
+# utils.py
+
 import bcrypt
 from flask_jwt_extended import create_access_token
 from datetime import timedelta
 import os
 from flask_mail import Mail, Message
 from flask import current_app
+from app.models.models import User
 
 # Ensure Flask-Mail is properly initialized in create_app()
 mail = Mail()
@@ -51,8 +54,18 @@ def send_email(to: str, subject: str, body: str):
         if not hasattr(current_app, 'mail'):
             raise RuntimeError("Mail instance not initialized. Make sure mail.init_app(app) is called in create_app().")
 
+        # Create the email message
         msg = Message(subject=subject, recipients=[to], body=body)
         mail.send(msg)  # Sending email through Flask-Mail
         current_app.logger.info(f"✅ Email sent to {to} with subject: {subject}")
     except Exception as e:
         current_app.logger.error(f"⚠️ Error sending email: {e}")
+
+# Function to retrieve a user from the database using the user ID
+def get_user_from_identity(user_id):
+    """
+    Retrieves the user from the database based on the provided user_id.
+    """
+    if not user_id:
+        return None
+    return User.query.filter_by(id=user_id).first()

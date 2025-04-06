@@ -1,32 +1,39 @@
+import os
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
-from flask_pymongo import PyMongo
 from flask_jwt_extended import JWTManager
 from flask_migrate import Migrate
-import os
+from flask_pymongo import PyMongo
+from flask_cors import CORS
 from dotenv import load_dotenv
 import logging
-from app.routes.auth_routes import auth_bp
-from app.routes.habit_routes import habit_bp
-from app.routes.completion_routes import completion_bp
-from app.routes.reminder_routes import reminder_routes
-from config import config
+from sqlalchemy import text
 
-# Initialize extensions
+# Initialize the extensions
 db = SQLAlchemy()
 migrate = Migrate()
 mongo = PyMongo()
 jwt = JWTManager()
 
+# Import routes for modularity
+from app.routes.auth_routes import auth_bp
+from app.routes.habit_routes import habit_bp
+from app.routes.completion_routes import completion_bp
+from app.routes.reminder_routes import reminder_bp
+from config import config
+
 def create_app():
-    # Load environment variables from .env file for configuration
+    """
+    Factory function to create and configure the Flask application instance.
+    """
+    # Load environment variables from the .env file for configuration
     load_dotenv()
 
-    # Retrieve the app mode (development, production, testing) from environment variable
+    # Retrieve the app mode (development, production, testing) from the environment variable
     env = os.getenv('APP_MODE', 'development')  # Default to 'development' if not specified
     if env not in config:
         raise ValueError(f"Invalid APP_MODE: {env}. Must be one of {list(config.keys())}.")
-    
+
     # Initialize the Flask app
     app = Flask(__name__)
 
@@ -39,27 +46,48 @@ def create_app():
     app.config['MONGO_URI'] = os.getenv("MONGO_DB_URI") or config[env].MONGO_URI
     app.config['JWT_SECRET_KEY'] = os.getenv("JWT_SECRET_KEY", "super-secret-key")
 
-    # Initialize the database, migration, MongoDB, and JWT extensions
-    db.init_app(app)  # Ensure this is called after the config is loaded
-    migrate.init_app(app, db)
-    mongo.init_app(app)
-    jwt.init_app(app)
+    # Initialize the extensions with the Flask app instance
+    db.init_app(app)  # Initialize SQLAlchemy with app
+    migrate.init_app(app, db)  # Initialize Flask-Migrate with app
+    mongo.init_app(app)  # Initialize PyMongo with app
+    jwt.init_app(app)  # Initialize JWT with app
 
-    # Register blueprints for routing (API or views)
-    app.register_blueprint(auth_bp)
-    app.register_blueprint(habit_bp)
-    app.register_blueprint(completion_bp)
-    app.register_blueprint(reminder_routes)
+    # Set up CORS to allow cross-origin requests
+    frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
+    CORS(app, origins=[frontend_url])
 
-    # Optional: Seed default data in development or testing modes
+    # Flag to check if initialization logic has run
+    initialized = False
+
     @app.before_request
-    def seed_default_data():
+    def before_request():
+        nonlocal initialized
+        if not initialized:
+            # Run initialization code here
+            print("This runs before the first request!")
+            # Check database connection or setup any necessary resources
+            try:
+                # Explicitly declare the SQL statement as text
+                db.session.execute(text('SELECT 1'))
+                app.logger.info("SQLAlchemy database connection successful")
+            except Exception as e:
+                app.logger.error(f"Database connection failed: {e}")
+                raise Exception("Database connection failed. Please check your configuration.")
+            initialized = True
+
+        # Optional: Seed default data for development/testing modes
         if app.config['APP_MODE'] in ['development', 'testing']:
             try:
                 # Add default users, habits, or other necessary entities for testing/development
                 pass  # Implement your seeding logic here
             except Exception as e:
                 app.logger.error(f"Error during seeding: {e}")
+
+    # Register blueprints for routing (API or views)
+    app.register_blueprint(auth_bp, url_prefix="/auth")
+    app.register_blueprint(habit_bp, url_prefix="/habits")
+    app.register_blueprint(completion_bp, url_prefix="/completion")
+    app.register_blueprint(reminder_bp, url_prefix="/reminder")
 
     # Custom error handlers for common HTTP errors
     @app.errorhandler(404)

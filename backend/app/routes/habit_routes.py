@@ -1,181 +1,137 @@
-from flask import Blueprint, request, jsonify, current_app
-from flask_login import login_required, current_user
-from app.utils.extensions import db
-from app.models.models import Habit, HabitCompletion
-from marshmallow import Schema, fields, ValidationError
-from datetime import datetime
+from flask import Blueprint, request, jsonify
+from flask_login import login_required, current_user as login_user
+from flask_jwt_extended import jwt_required, get_jwt_identity
+from app.models.models import db, Habit, HabitCompletion as Completion
+from datetime import date
+from app.schemes.schema import habit_schema
+from app.utils.utils import get_user_from_identity
 
-habit_bp = Blueprint('habit_bp', __name__)
+habit_bp = Blueprint('habit_bp', __name__, url_prefix="/habits")
 
-# Marshmallow schema
-class HabitSchema(Schema):
-    id = fields.Int(dump_only=True)
-    name = fields.String(required=True)
-    created_at = fields.DateTime(dump_only=True)
-    frequency = fields.String()
+# Utility function to get the current user from either JWT or Flask-Login
+def get_current_user():
+    try:
+        user_id = get_jwt_identity()  # Attempt to get user from JWT
+        return get_user_from_identity(user_id)
+    except Exception:
+        # Fall back to Flask-Login if JWT fails
+        return login_user if login_user.is_authenticated else None
 
-habit_schema = HabitSchema()
-habits_schema = HabitSchema(many=True)
-
-# Get all habits for the current user
-@habit_bp.route('/habits', methods=['GET'])
+# Route to get all habits (GET /habits)
+@habit_bp.route('/', methods=['GET'])
+@jwt_required(optional=True)
 @login_required
 def get_habits():
-    try:
-        page = request.args.get('page', 1, type=int)
-        per_page = request.args.get('per_page', 50, type=int)
-        frequency = request.args.get('frequency', None)
-        completed = request.args.get('completed', None)
+    user = get_current_user()
+    if not user:
+        return jsonify({'error': 'Unauthorized'}), 401
 
-        query = Habit.query.filter_by(user_id=current_user.id, deleted_at=None)
+    frequency = request.args.get('frequency')
+    completed_today = request.args.get('completed_today')
 
-        if frequency:
-            query = query.filter(Habit.frequency == frequency)
+    habits_query = Habit.query.filter_by(user_id=user.id, deleted=False)
+
+    # Filter by frequency if provided and valid
+    if frequency:
+        if frequency not in ['daily', 'weekly', 'monthly']:
+            return jsonify({'error': 'Invalid frequency value. Valid values are "daily", "weekly", "monthly".'}), 400
+        habits_query = habits_query.filter_by(frequency=frequency)
+
+    # Filter by completed_today if provided and valid
+    if completed_today is not None:
+        if completed_today.lower() not in ['true', 'false']:
+            return jsonify({'error': 'Invalid value for completed_today. Expected "true" or "false".'}), 400
         
-        if completed:
-            # Assuming `completed` is a boolean-like flag to check if habits are completed today
-            completed_date = datetime.utcnow().date()
-            if completed.lower() == 'true':
-                query = query.filter(HabitCompletion.completed_at == completed_date)
-            elif completed.lower() == 'false':
-                query = query.filter(HabitCompletion.completed_at != completed_date)
-        
-        habits = query.paginate(page=page, per_page=per_page, error_out=False)
+        today = date.today()
+        if completed_today.lower() == 'true':
+            habits_query = habits_query.filter(Habit.completions.any(Completion.date_completed == today))
+        elif completed_today.lower() == 'false':
+            habits_query = habits_query.filter(~Habit.completions.any(Completion.date_completed == today))
 
-        return jsonify({
-            "status": "success",
-            "data": habits_schema.dump(habits.items),
-            "total": habits.total
-        }), 200
-    except Exception as e:
-        current_app.logger.error(f"Error fetching habits: {str(e)}")
-        return jsonify({"status": "error", "message": "Server error"}), 500
+    habits = habits_query.all()
+    return jsonify([habit.to_dict() for habit in habits])
 
-# Add a new habit
-@habit_bp.route('/habits', methods=['POST'])
+# Route to add a new habit (POST /habits)
+@habit_bp.route('/', methods=['POST'])
+@jwt_required(optional=True)
 @login_required
 def add_habit():
-    try:
-        data = request.get_json()
-        validated = habit_schema.load(data)
+    user = get_current_user()
+    if not user:
+        return jsonify({'error': 'Unauthorized'}), 401
 
-        if Habit.query.filter_by(user_id=current_user.id, name=validated['name'], deleted_at=None).first():
-            return jsonify({"status": "error", "message": "Habit already exists"}), 400
+    data = request.get_json()
+    errors = habit_schema.validate(data)
+    if errors:
+        return jsonify({'errors': errors}), 400
 
-        new_habit = Habit(name=validated['name'], user_id=current_user.id, frequency=validated.get('frequency', 'daily'))
-        db.session.add(new_habit)
-        db.session.commit()
+    habit = Habit(
+        user_id=user.id,
+        name=data['name'],
+        description=data.get('description'),
+        frequency=data.get('frequency', 'daily')  # Default frequency to 'daily' if not provided
+    )
+    db.session.add(habit)
+    db.session.commit()
 
-        return jsonify({
-            "status": "success",
-            "message": "Habit added successfully",
-            "data": habit_schema.dump(new_habit)
-        }), 201
-    except ValidationError as ve:
-        return jsonify({"status": "error", "message": ve.messages}), 400
-    except Exception as e:
-        current_app.logger.error(f"Error adding habit: {str(e)}")
-        return jsonify({"status": "error", "message": "Server error"}), 500
+    return jsonify(habit.to_dict()), 201
 
-# Update a habit
-@habit_bp.route('/<int:id>', methods=['PUT'])
-@login_required
-def update_habit(id):
-    try:
-        habit = Habit.query.filter_by(id=id, user_id=current_user.id, deleted_at=None).first()
-        if not habit:
-            return jsonify({"status": "error", "message": "Habit not found"}), 404
-
-        data = request.get_json()
-        validated = habit_schema.load(data)
-
-        habit.name = validated['name']
-        habit.frequency = validated.get('frequency', habit.frequency)
-        db.session.commit()
-
-        return jsonify({
-            "status": "success",
-            "message": "Habit updated successfully",
-            "data": habit_schema.dump(habit)
-        }), 200
-    except ValidationError as ve:
-        return jsonify({"status": "error", "message": ve.messages}), 400
-    except Exception as e:
-        current_app.logger.error(f"Error updating habit: {str(e)}")
-        return jsonify({"status": "error", "message": "Server error"}), 500
-
-# Soft delete a habit
+# Route to delete a habit (DELETE /habits/<id>)
 @habit_bp.route('/<int:id>', methods=['DELETE'])
+@jwt_required(optional=True)
 @login_required
 def delete_habit(id):
-    try:
-        habit = Habit.query.filter_by(id=id, user_id=current_user.id, deleted_at=None).first()
-        if not habit:
-            return jsonify({"status": "error", "message": "Habit not found"}), 404
+    user = get_current_user()
+    if not user:
+        return jsonify({'error': 'Unauthorized'}), 401
 
-        habit.deleted_at = datetime.utcnow()  # Mark as soft deleted
-        db.session.commit()
+    habit = Habit.query.filter_by(id=id, user_id=user.id, deleted=False).first()
+    if not habit:
+        return jsonify({'error': 'Habit not found'}), 404
 
-        return jsonify({"status": "success", "message": "Habit soft deleted"}), 200
-    except Exception as e:
-        current_app.logger.error(f"Error deleting habit: {str(e)}")
-        return jsonify({"status": "error", "message": "Server error"}), 500
+    habit.soft_delete()  # Call the soft delete method
+    db.session.commit()
+    return jsonify({'message': 'Habit soft-deleted'}), 200
 
-# Restore a habit
-@habit_bp.route('/<int:id>/restore', methods=['PUT'])
+# Route to restore a habit (PATCH /habits/restore/<id>)
+@habit_bp.route('/restore/<int:id>', methods=['PATCH'])
+@jwt_required(optional=True)
 @login_required
 def restore_habit(id):
-    try:
-        habit = Habit.query.filter_by(id=id, user_id=current_user.id).first()
-        if not habit or habit.deleted_at is None:
-            return jsonify({"status": "error", "message": "Habit not found or already active"}), 404
+    user = get_current_user()
+    if not user:
+        return jsonify({'error': 'Unauthorized'}), 401
 
-        habit.deleted_at = None  # Remove soft delete timestamp
-        db.session.commit()
+    habit = Habit.query.filter_by(id=id, user_id=user.id, deleted=True).first()
+    if not habit:
+        return jsonify({'error': 'Habit not found or not deleted'}), 404
 
-        return jsonify({"status": "success", "message": "Habit restored successfully"}), 200
-    except Exception as e:
-        current_app.logger.error(f"Error restoring habit: {str(e)}")
-        return jsonify({"status": "error", "message": "Server error"}), 500
+    habit.restore()  # Call the restore method
+    db.session.commit()
+    return jsonify({'message': 'Habit restored'}), 200
 
-# Track habit completion
-@habit_bp.route('/<int:id>/complete', methods=['POST'])
+# Route to complete or remove completion of a habit (POST /habits/complete/<id>)
+@habit_bp.route('/complete/<int:id>', methods=['POST'])
+@jwt_required(optional=True)
 @login_required
 def complete_habit(id):
-    try:
-        habit = Habit.query.filter_by(id=id, user_id=current_user.id, deleted_at=None).first()
-        if not habit:
-            return jsonify({"status": "error", "message": "Habit not found"}), 404
+    user = get_current_user()
+    if not user:
+        return jsonify({'error': 'Unauthorized'}), 401
 
-        # Check if the habit is already completed today
-        if HabitCompletion.query.filter_by(user_id=current_user.id, habit_id=habit.id, completed_at=datetime.utcnow().date()).first():
-            return jsonify({"status": "error", "message": "Habit already completed today"}), 400
+    habit = Habit.query.filter_by(id=id, user_id=user.id, deleted=False).first()
+    if not habit:
+        return jsonify({'error': 'Habit not found'}), 404
 
-        completion = HabitCompletion(habit_id=habit.id, user_id=current_user.id, completed_at=datetime.utcnow())
-        db.session.add(completion)
+    today = date.today()
+    completion = Completion.query.filter_by(habit_id=habit.id, date_completed=today).first()
+
+    if completion:
+        db.session.delete(completion)
         db.session.commit()
-
-        return jsonify({
-            "status": "success",
-            "message": "Habit marked as completed",
-            "data": {
-                "habit_id": habit.id,
-                "completed_at": completion.completed_at.isoformat()
-            }
-        }), 201
-    except Exception as e:
-        current_app.logger.error(f"Error completing habit: {str(e)}")
-        return jsonify({"status": "error", "message": "Server error"}), 500
-
-# Reset all habits for the current user
-@habit_bp.route('/reset', methods=['POST'])
-@login_required
-def reset_habits():
-    try:
-        Habit.query.filter_by(user_id=current_user.id).delete()
+        return jsonify({'message': 'Completion removed', 'completed': False}), 200
+    else:
+        new_completion = Completion(habit_id=habit.id, date_completed=today)
+        db.session.add(new_completion)
         db.session.commit()
-
-        return jsonify({"status": "success", "message": "All habits reset."}), 200
-    except Exception as e:
-        current_app.logger.error(f"Error resetting habits: {str(e)}")
-        return jsonify({"status": "error", "message": "Server error"}), 500
+        return jsonify({'message': 'Habit marked as completed', 'completed': True}), 200

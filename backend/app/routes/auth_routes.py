@@ -1,9 +1,16 @@
 from flask import Blueprint, request, jsonify
+from app import db
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 import datetime
+from werkzeug.security import generate_password_hash, check_password_hash
+from app.models.models import User  # Import User model here
 
 # Define Blueprint for authentication routes
 auth_bp = Blueprint('auth', __name__)
+
+# Centralized error handler
+def handle_error(message, status_code=400):
+    return jsonify({"status": "error", "message": message}), status_code
 
 # Test route
 @auth_bp.route('/test', methods=['GET'])
@@ -14,25 +21,21 @@ def test():
 @auth_bp.route('/register', methods=['POST'])
 def register_user():
     try:
-        # Import db and User model locally
-        from app import db
-        from app.models.models import User
-
         data = request.get_json()
         username = data.get('username')
         email = data.get('email')
         password = data.get('password')
 
         if not all([username, email, password]):
-            return jsonify({"status": "error", "message": "All fields are required"}), 400
+            return handle_error("All fields are required")
 
         # Check if user already exists
         if User.query.filter((User.username == username) | (User.email == email)).first():
-            return jsonify({"status": "error", "message": "Username or email already exists"}), 400
+            return handle_error("Username or email already exists")
 
         # Create new user
         new_user = User(username=username, email=email)
-        new_user.set_password(password)  # Use the set_password method in the User model
+        new_user.set_password(password)  # Hash the password before saving
         db.session.add(new_user)
         db.session.commit()
 
@@ -40,22 +43,18 @@ def register_user():
 
     except Exception as e:
         db.session.rollback()
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return handle_error(str(e), 500)
 
 # User Login
 @auth_bp.route('/login', methods=['POST'])
 def login_user():
     try:
-        # Import db and User model locally
-        from app import db
-        from app.models.models import User
-
         data = request.get_json()
         email = data.get('email')
         password = data.get('password')
 
         if not all([email, password]):
-            return jsonify({"status": "error", "message": "Email and password are required"}), 400
+            return handle_error("Email and password are required")
 
         user = User.query.filter_by(email=email).first()
 
@@ -63,26 +62,22 @@ def login_user():
             access_token = create_access_token(identity=user.id, expires_delta=datetime.timedelta(days=1))
             return jsonify({"status": "success", "message": "Login successful", "token": access_token}), 200
         else:
-            return jsonify({"status": "error", "message": "Invalid credentials"}), 401
+            return handle_error("Invalid credentials", 401)
 
     except Exception as e:
         db.session.rollback()
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return handle_error(str(e), 500)
 
 # Get Current User Info (Protected Route)
 @auth_bp.route('/user', methods=['GET'])
 @jwt_required()
 def get_user():
     try:
-        # Import db and User model locally
-        from app import db
-        from app.models.models import User
-
         user_id = get_jwt_identity()
         user = User.query.get(user_id)
 
         if not user:
-            return jsonify({"status": "error", "message": "User not found"}), 404
+            return handle_error("User not found", 404)
 
         return jsonify({
             "status": "success",
@@ -94,10 +89,11 @@ def get_user():
         }), 200
 
     except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return handle_error(str(e), 500)
 
 # Logout Route (Optional - Frontend handles token removal)
 @auth_bp.route('/logout', methods=['POST'])
 @jwt_required()
 def logout_user():
     return jsonify({"status": "success", "message": "User logged out successfully"}), 200
+

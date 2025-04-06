@@ -1,16 +1,15 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from app.models.models import HabitReminder  # Assuming HabitReminder is the model in your app
+from app import db
+from app.models.models import HabitReminder, Habit  # Assuming Habit is the model for habits
+from datetime import datetime
 
-reminder_routes = Blueprint('reminder_routes', __name__)
+reminder_bp = Blueprint('reminder_bp', __name__)
 
 # POST /reminders - Create a new reminder
-@reminder_routes.route('/reminders', methods=['POST'])
+@reminder_bp.route('/reminders', methods=['POST'])
 @jwt_required()  # Protect the route with JWT authentication
 def create_reminder():
-    # Import db locally to avoid circular imports
-    from app import db
-
     data = request.get_json()
     user_id = get_jwt_identity()  # Get the user from the JWT token
     
@@ -18,25 +17,36 @@ def create_reminder():
     if 'habit_id' not in data or 'reminder_time' not in data:
         return jsonify({'msg': 'Habit ID and reminder time are required'}), 400
     
+    # Validate reminder_time format (assuming it's in ISO format)
+    try:
+        reminder_time = datetime.fromisoformat(data['reminder_time'])
+    except ValueError:
+        return jsonify({'msg': 'Invalid reminder time format. Please use ISO format.'}), 400
+
+    # Check if the habit exists
+    habit = Habit.query.filter_by(id=data['habit_id'], user_id=user_id).first()
+    if habit is None:
+        return jsonify({'msg': 'Habit not found'}), 404
+    
     new_reminder = HabitReminder(
         habit_id=data['habit_id'],
-        reminder_time=data['reminder_time'],
+        reminder_time=reminder_time,
         user_id=user_id  # Link reminder to authenticated user
     )
     
-    db.session.add(new_reminder)
-    db.session.commit()
-    
-    return jsonify({'msg': 'Reminder created successfully', 'reminder': new_reminder.to_dict()}), 201
+    try:
+        db.session.add(new_reminder)
+        db.session.commit()
+        return jsonify({'msg': 'Reminder created successfully', 'reminder': new_reminder.to_dict()}), 201
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'msg': 'Error creating reminder', 'error': str(e)}), 500
 
 
 # GET /reminders - Get all reminders for the authenticated user
-@reminder_routes.route('/reminders', methods=['GET'])
+@reminder_bp.route('/reminders', methods=['GET'])
 @jwt_required()  # Protect the route with JWT authentication
 def get_reminders():
-    # Import db locally to avoid circular imports
-    from app import db
-
     user_id = get_jwt_identity()
     
     reminders = HabitReminder.query.filter_by(user_id=user_id).all()
@@ -46,12 +56,9 @@ def get_reminders():
 
 
 # GET /reminders/<id> - Get a specific reminder by ID
-@reminder_routes.route('/reminders/<int:id>', methods=['GET'])
+@reminder_bp.route('/reminders/<int:id>', methods=['GET'])
 @jwt_required()  # Protect the route with JWT authentication
 def get_reminder(id):
-    # Import db locally to avoid circular imports
-    from app import db
-
     user_id = get_jwt_identity()
     
     reminder = HabitReminder.query.filter_by(id=id, user_id=user_id).first()
@@ -62,12 +69,9 @@ def get_reminder(id):
 
 
 # PUT /reminders/<id> - Update an existing reminder
-@reminder_routes.route('/reminders/<int:id>', methods=['PUT'])
+@reminder_bp.route('/reminders/<int:id>', methods=['PUT'])
 @jwt_required()  # Protect the route with JWT authentication
 def update_reminder(id):
-    # Import db locally to avoid circular imports
-    from app import db
-
     user_id = get_jwt_identity()
     
     reminder = HabitReminder.query.filter_by(id=id, user_id=user_id).first()
@@ -77,27 +81,34 @@ def update_reminder(id):
     data = request.get_json()
     
     if 'reminder_time' in data:
-        reminder.reminder_time = data['reminder_time']
+        # Validate reminder_time format
+        try:
+            reminder.reminder_time = datetime.fromisoformat(data['reminder_time'])
+        except ValueError:
+            return jsonify({'msg': 'Invalid reminder time format. Please use ISO format.'}), 400
     
-    db.session.commit()
-    
-    return jsonify({'msg': 'Reminder updated successfully', 'reminder': reminder.to_dict()}), 200
+    try:
+        db.session.commit()
+        return jsonify({'msg': 'Reminder updated successfully', 'reminder': reminder.to_dict()}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'msg': 'Error updating reminder', 'error': str(e)}), 500
 
 
 # DELETE /reminders/<id> - Delete a reminder by ID
-@reminder_routes.route('/reminders/<int:id>', methods=['DELETE'])
+@reminder_bp.route('/reminders/<int:id>', methods=['DELETE'])
 @jwt_required()  # Protect the route with JWT authentication
 def delete_reminder(id):
-    # Import db locally to avoid circular imports
-    from app import db
-
     user_id = get_jwt_identity()
     
     reminder = HabitReminder.query.filter_by(id=id, user_id=user_id).first()
     if reminder is None:
         return jsonify({'msg': 'Reminder not found'}), 404
     
-    db.session.delete(reminder)
-    db.session.commit()
-    
-    return jsonify({'msg': 'Reminder deleted successfully'}), 200
+    try:
+        db.session.delete(reminder)
+        db.session.commit()
+        return jsonify({'msg': 'Reminder deleted successfully'}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'msg': 'Error deleting reminder', 'error': str(e)}), 500
