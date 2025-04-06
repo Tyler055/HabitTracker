@@ -1,5 +1,4 @@
-from flask import Blueprint, request, jsonify
-from flask_login import login_required, current_user as login_user
+from flask import Blueprint, request, jsonify, current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from app.models.models import Habit, HabitCompletion
 from app.__init__ import db
@@ -15,13 +14,11 @@ def get_current_user():
         user_id = get_jwt_identity()  # Attempt to get user from JWT
         return get_user_from_identity(user_id)
     except Exception:
-        # Fall back to Flask-Login if JWT fails
-        return login_user if login_user.is_authenticated else None
+        return None  # Return None if the user can't be found by JWT
 
 # Route to get all habits (GET /habits)
 @habit_bp.route('/', methods=['GET'])
-@jwt_required(optional=True)
-@login_required
+@jwt_required(optional=True)  # This ensures the route is protected by JWT
 def get_habits():
     user = get_current_user()
     if not user:
@@ -54,8 +51,7 @@ def get_habits():
 
 # Route to add a new habit (POST /habits)
 @habit_bp.route('/', methods=['POST'])
-@jwt_required(optional=True)
-@login_required
+@jwt_required()  # Require JWT authentication
 def add_habit():
     user = get_current_user()
     if not user:
@@ -75,12 +71,11 @@ def add_habit():
     db.session.add(habit)
     db.session.commit()
 
-    return jsonify(habit.to_dict()), 201
+    return jsonify(habit.to_dict()), 201  # Return the habit and HTTP 201
 
 # Route to delete a habit (DELETE /habits/<id>)
 @habit_bp.route('/<int:id>', methods=['DELETE'])
-@jwt_required(optional=True)
-@login_required
+@jwt_required()  # Require JWT authentication
 def delete_habit(id):
     user = get_current_user()
     if not user:
@@ -96,8 +91,7 @@ def delete_habit(id):
 
 # Route to restore a habit (PATCH /habits/restore/<id>)
 @habit_bp.route('/restore/<int:id>', methods=['PATCH'])
-@jwt_required(optional=True)
-@login_required
+@jwt_required()  # Require JWT authentication
 def restore_habit(id):
     user = get_current_user()
     if not user:
@@ -113,8 +107,7 @@ def restore_habit(id):
 
 # Route to complete or remove completion of a habit (POST /habits/complete/<id>)
 @habit_bp.route('/complete/<int:id>', methods=['POST'])
-@jwt_required(optional=True)
-@login_required
+@jwt_required()  # Require JWT authentication
 def complete_habit(id):
     user = get_current_user()
     if not user:

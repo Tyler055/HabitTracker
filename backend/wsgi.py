@@ -4,7 +4,4 @@ from app import create_app
 app = create_app()
 
 if __name__ == "__main__":
-    # This is for development, if you run this file directly (e.g., using python wsgi.py).
     app.run(debug=True)
-
-

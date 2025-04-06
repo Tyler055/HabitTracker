@@ -11,7 +11,11 @@ const HabitTracker = () => {
   const fetchHabits = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await axios.get("http://127.0.0.1:5000/habits");
+      const response = await axios.get("http://127.0.0.1:5000/habits", {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`, // Include the token in the headers
+        },
+      });
       setHabits(response.data.habits || []);
     } catch (error) {
       setMessage("Failed to fetch habits.");
@@ -47,7 +51,17 @@ const HabitTracker = () => {
         { id: Date.now(), name: habit },
       ]);
       
-      const response = await axios.post("http://127.0.0.1:5000/habits", newHabit);
+      const response = await axios.post(
+        "http://127.0.0.1:5000/habits",
+        newHabit,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      // After successfully adding the habit, update the list with the response ID
       setHabits((prev) =>
         prev.map((h) =>
           h.id === Date.now() ? { ...h, id: response.data.id } : h
@@ -73,7 +87,11 @@ const HabitTracker = () => {
     setHabits((prev) => prev.filter((habit) => habit.id !== id));
 
     try {
-      await axios.delete(`http://127.0.0.1:5000/habits/${id}`);
+      await axios.delete(`http://127.0.0.1:5000/habits/${id}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`, // Include the token in the headers
+        },
+      });
       showMessage("Habit deleted.");
     } catch (error) {
       showMessage("Failed to delete habit.");
@@ -91,7 +109,11 @@ const HabitTracker = () => {
     setIsLoading(true);
     setHabits([]);
     try {
-      await axios.post("http://127.0.0.1:5000/reset_habits");
+      await axios.post("http://127.0.0.1:5000/reset_habits", {}, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`, // Include the token in the headers
+        },
+      });
       showMessage("All habits reset.");
     } catch (error) {
       showMessage("Failed to reset habits.");
@@ -140,7 +162,7 @@ const HabitTracker = () => {
               </li>
             ))
           ) : (
-            <li>No habits found.</li>  
+            <li>No habits found.</li>
           )}
         </ul>
       )}

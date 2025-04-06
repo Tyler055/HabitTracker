@@ -1,7 +1,9 @@
 from datetime import datetime, time, timezone
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
-from app.__init__ import db
+from enum import Enum
+
+db = SQLAlchemy()
 
 # -------------------- Soft Delete Mixin --------------------
 class SoftDeleteMixin:
@@ -31,8 +33,8 @@ class User(db.Model):
     username = db.Column(db.String(50), unique=True, nullable=False)
     _password_hash = db.Column("password", db.String(255), nullable=False)
     
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=datetime.now(timezone.utc))
+    updated_at = db.Column(db.DateTime, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))
     
     habits = db.relationship('Habit', backref='user', lazy=True)
     completions = db.relationship('HabitCompletion', backref='user', lazy=True)
@@ -53,17 +55,24 @@ class User(db.Model):
         return f"<User {self.username}>"
 
 
+# -------------------- Habit Frequency Enum --------------------
+class FrequencyEnum(Enum):
+    DAILY = "daily"
+    WEEKLY = "weekly"
+    MONTHLY = "monthly"
+
+
 # -------------------- Habit Model --------------------
 class Habit(db.Model, SoftDeleteMixin):
     __tablename__ = 'habits'
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False, index=True)
-    frequency = db.Column(db.String(20), default='daily')
+    frequency = db.Column(db.Enum(FrequencyEnum), default=FrequencyEnum.DAILY)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=datetime.now(timezone.utc))
+    updated_at = db.Column(db.DateTime, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))
 
     completions = db.relationship('HabitCompletion', backref='habit', lazy=True, cascade="all, delete-orphan")
     reminders = db.relationship('HabitReminder', backref='habit', lazy=True, cascade="all, delete-orphan")
@@ -84,14 +93,14 @@ class Habit(db.Model, SoftDeleteMixin):
         return f"<Habit {self.name}>"
 
 
-# -------------------- Habit Completion Model --------------------
+# -------------------- Habit Completion Model--------------------
 class HabitCompletion(db.Model, SoftDeleteMixin):
     __tablename__ = 'habit_completions'
     
     id = db.Column(db.Integer, primary_key=True)
     habit_id = db.Column(db.Integer, db.ForeignKey('habits.id'), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    completed_at = db.Column(db.DateTime, default=datetime.utcnow)
+    completed_at = db.Column(db.DateTime, default=datetime.now(timezone.utc))
 
     def __repr__(self):
         return f"<HabitCompletion habit={self.habit_id} user={self.user_id}>"
@@ -133,4 +142,3 @@ class HabitAnalytics(db.Model):
 
     def __repr__(self):
         return f"<HabitAnalytics habit={self.habit_id} total={self.total_completions} streak={self.current_streak}>"
-
