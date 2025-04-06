@@ -1,4 +1,5 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, render_template, redirect, url_for, flash
+from flask_login import login_required, logout_user
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
@@ -6,9 +7,9 @@ import datetime
 import re
 import logging
 from werkzeug.security import generate_password_hash, check_password_hash
-
-# Import the User model here to avoid circular imports
+from app import db
 from app.models.models import User
+from app.forms import SignupForm, LoginForm
 
 # Define Blueprint for authentication routes
 auth_bp = Blueprint('auth', __name__)
@@ -18,10 +19,8 @@ def handle_error(message, status_code=400):
     logging.error(message)  # Log the error message
     return jsonify({"status": "error", "message": message}), status_code
 
-# Test route
-@auth_bp.route('/test', methods=['GET'])
-def test():
-    return jsonify({"status": "success", "message": "Auth route is working!"}), 200
+# Rate Limiter setup
+limiter = Limiter(app=None, key_func=get_remote_address)
 
 # Email validation function
 def validate_email(email):
@@ -42,12 +41,9 @@ def validate_password_strength(password):
         return False
     return True
 
-# Rate Limiter setup
-limiter = Limiter(app=None, key_func=get_remote_address)
-
-# User Registration
-@auth_bp.route('/register', methods=['POST'])
-def register_user():
+# User Registration (API Route)
+@auth_bp.route('/signup', methods=['POST'])
+def api_signup():
     try:
         data = request.get_json()
         username = data.get('username')
@@ -72,18 +68,16 @@ def register_user():
         # Create new user
         new_user = User(username=username, email=email)
         new_user.set_password(password)  # Hash the password before saving
-        from app import db  # Import db here inside the function to avoid circular imports
         db.session.add(new_user)
         db.session.commit()
 
         return jsonify({"status": "success", "message": "User registered successfully"}), 201
 
     except Exception as e:
-        from app import db  # Import db here inside the function to avoid circular imports
         db.session.rollback()
         return handle_error(str(e), 500)
 
-# User Login with Rate Limiting
+# User Login with Rate Limiting (API Route)
 @auth_bp.route('/login', methods=['POST'])
 @limiter.limit("5 per minute")  # Limit to 5 login attempts per minute
 def login_user():
@@ -104,7 +98,6 @@ def login_user():
             return handle_error("Invalid credentials", 401)
 
     except Exception as e:
-        from app.__init__ import db  # Import db here inside the function to avoid circular imports
         db.session.rollback()
         return handle_error(str(e), 500)
 
@@ -131,21 +124,56 @@ def get_user():
     except Exception as e:
         return handle_error(str(e), 500)
 
-# Logout Route (Optional - Frontend handles token removal)
-@auth_bp.route('/logout', methods=['POST'])
-@jwt_required()
-def logout_user():
-    return jsonify({"status": "success", "message": "User logged out successfully"}), 200
+# User Registration (Form Route)
+@auth_bp.route('/signup-form', methods=['GET', 'POST'])
+def signup_form():
+    form = SignupForm()
+    if form.validate_on_submit():
+        # Your signup logic (e.g., create user, hash password, save to db)
+        username = form.username.data
+        email = form.email.data
+        password = form.password.data
+        new_user = User(username=username, email=email)
+        new_user.set_password(password)  # Hash the password before saving
+        db.session.add(new_user)
+        db.session.commit()
 
-# Logging Configuration (app/__init__.py)
-import logging
+        flash('Signup successful!', 'success')
+        return redirect(url_for('auth.login'))
+    return render_template('signup_form.html', form=form)
 
-# Setup basic logging
-logging.basicConfig(
-    level=logging.DEBUG,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.StreamHandler(),
-        logging.FileHandler('app.log')
-    ]
-)
+# Login Route (Form Route)
+@auth_bp.route('/login', methods=['GET', 'POST'])
+def login():
+    form = LoginForm()
+    if form.validate_on_submit():
+        user = User.query.filter_by(email=form.email.data).first()
+        if user and user.check_password(form.password.data):
+            login_user(user, remember=form.remember.data)
+            flash('Login successful!', 'success')
+            return redirect(url_for('dashboard'))  # Redirect to dashboard or desired page
+        else:
+            flash('Invalid email or password.', 'danger')
+    return render_template('auth/login_signup.html', form=form, title="Login", form_action='login')
+
+# Signup Route (Form Route)
+@auth_bp.route('/signup', methods=['GET', 'POST'])
+def signup():
+    form = SignupForm()
+    if form.validate_on_submit():
+        user = User(username=form.username.data, email=form.email.data)
+        user.set_password(form.password.data)  # Hash the password
+        db.session.add(user)
+        db.session.commit()
+        flash('Account created successfully!', 'success')
+        login_user(user)  # Automatically log the user in after signup
+        return redirect(url_for('dashboard'))  # Redirect to dashboard or desired page
+    return render_template('auth/login_signup.html', form=form, title="Signup", form_action='signup')
+
+# Logout route
+@auth_bp.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    flash('You have been logged out.', 'info')
+    return redirect(url_for('auth.login'))

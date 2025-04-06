@@ -18,37 +18,65 @@
         {% endif %}
     {% endwith %}
 
-    <form method="POST" action="{{ url_for('auth.' + form_action) }}">
-        {{ form.hidden_tag() }}
+    <!-- Login Form -->
+    {% if form_action == 'login' %}
+        <form method="POST" action="{{ url_for('auth.' + form_action) }}">
+            {{ form.hidden_tag() }}
 
-        <!-- Email Field -->
-        <div class="form-group">
-            <label for="email">Email</label>
-            {{ form.email(class="input", id="email", placeholder="Enter your email") }}
-        </div>
+            <!-- Email Field -->
+            <div class="form-group">
+                <label for="email">Email</label>
+                {{ form.email(class="input", id="email", placeholder="Enter your email") }}
+            </div>
 
-        <!-- Password Field -->
-        <div class="form-group">
-            <label for="password">Password</label>
-            {{ form.password(class="input", id="password", placeholder="Enter your password") }}
-        </div>
+            <!-- Password Field -->
+            <div class="form-group">
+                <label for="password">Password</label>
+                {{ form.password(class="input", id="password", placeholder="Enter your password") }}
+            </div>
 
-        <!-- Remember Me Checkbox (For Login only) -->
-        {% if form_action == 'login' %}
+            <!-- Remember Me Checkbox -->
             <div class="form-check">
                 {{ form.remember(class="input-check", id="remember") }}
                 <label for="remember">Remember me</label>
             </div>
-        {% endif %}
 
-        <!-- Submit Button -->
-        <button type="submit" class="btn">{{ title }}</button>
+            <!-- Submit Button -->
+            <button type="submit" class="btn">{{ title }}</button>
 
-        <!-- Conditional Links -->
-        {% if form_action == 'login' %}
+            <!-- Forgot Password Link -->
             <p><a href="{{ url_for('auth.reset_password') }}">Forgot your password?</a></p>
-        {% else %}
-            <p>Already have an account? <a href="{{ url_for('auth.login') }}">Login here</a></p>
-        {% endif %}
-    </form>
+        </form>
+
+    <!-- Signup Form -->
+    {% elif form_action == 'signup' %}
+        <h1>Signup Form</h1>
+        <form method="POST" action="{{ url_for('auth.' + form_action) }}">
+            {{ form.hidden_tag() }}
+
+            <div class="form-group">
+                <label for="username">Username</label>
+                {{ form.username(class="input", id="username", placeholder="Enter your username") }}
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email</label>
+                {{ form.email(class="input", id="email", placeholder="Enter your email") }}
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                {{ form.password(class="input", id="password", placeholder="Enter your password") }}
+            </div>
+
+            <div class="form-group">
+                <label for="confirm_password">Confirm Password</label>
+                {{ form.confirm_password(class="input", id="confirm_password", placeholder="Confirm your password") }}
+            </div>
+
+            <button type="submit" class="btn">Sign Up</button>
+        </form>
+        <p>Already have an account? <a href="{{ url_for('auth.login') }}">Login here</a></p>
+    {% endif %}
+
 {% endblock %}

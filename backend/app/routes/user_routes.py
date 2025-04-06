@@ -31,8 +31,9 @@ def register_user():
         hashed_password = generate_password_hash(password, method='sha256')
 
         # Create the new user
-        new_user = User(username=username, email=email, password=hashed_password)
-        
+        new_user = User(username=username, email=email)
+        new_user.password = hashed_password  # Set the password using the setter
+
         # Add to database and commit
         db.session.add(new_user)
         db.session.commit()
@@ -45,5 +46,5 @@ def register_user():
         }), 201
 
     except Exception as e:
-        # Return an error if something goes wrong
-        return jsonify({"error": str(e)}), 500
+        # Return a generic error message without exposing exception details
+        return jsonify({"error": "Internal server error. Please try again later."}), 500

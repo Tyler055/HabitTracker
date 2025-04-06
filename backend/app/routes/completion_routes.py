@@ -10,6 +10,17 @@ completion_bp = Blueprint('completion_bp', __name__)
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
+# Utility function for consistent error responses
+def handle_error(message, status_code, error=None):
+    response = {
+        "status": "error",
+        "message": message
+    }
+    if error:
+        response["error"] = str(error)
+    return jsonify(response), status_code
+
+
 # Get all completions
 @completion_bp.route('/completions', methods=['GET'])
 def get_completions():
@@ -34,7 +45,7 @@ def get_completions():
 
     except Exception as e:
         logger.error(f"Error retrieving completions: {str(e)}")
-        return jsonify({"status": "error", "message": "Internal Server Error"}), 500
+        return handle_error("Internal Server Error", 500, e)
 
 
 # Mark a habit as completed
@@ -47,7 +58,7 @@ def complete_habit(habit_id):
 
         # Validate input
         if not user_id:
-            return jsonify({"status": "error", "message": "User ID is required"}), 400
+            return handle_error("User ID is required", 400)
 
         # Retrieve habit and user from DB
         habit = Habit.query.get(habit_id)
@@ -55,10 +66,14 @@ def complete_habit(habit_id):
 
         # Check if habit and user exist
         if not habit or not user:
-            return jsonify({"status": "error", "message": "Invalid habit or user ID"}), 404
+            return handle_error("Invalid habit or user ID", 404)
 
         # Create and add completion record
-        completion = HabitCompletion(habit_id=habit.id, user_id=user.id, completed_at=datetime.utcnow())
+        completion = HabitCompletion(
+            habit_id=habit.id,
+            user_id=user.id,
+            completed_at=datetime.utcnow()
+        )
         db.session.add(completion)
         db.session.commit()
 
@@ -68,7 +83,7 @@ def complete_habit(habit_id):
     except Exception as e:
         db.session.rollback()
         logger.error(f"Error completing habit {habit_id} for user {user_id}: {str(e)}")
-        return jsonify({"status": "error", "message": "Internal Server Error"}), 500
+        return handle_error("Internal Server Error", 500, e)
 
 
 # Get all completions for a specific user
@@ -94,7 +109,7 @@ def get_user_completions(user_id):
 
     except Exception as e:
         logger.error(f"Error retrieving completions for user {user_id}: {str(e)}")
-        return jsonify({"status": "error", "message": "Internal Server Error"}), 500
+        return handle_error("Internal Server Error", 500, e)
 
 
 # Reset (delete) all completions for a user
@@ -106,7 +121,7 @@ def reset_user_completions(user_id):
 
         # If no completions, return a message
         if not completions:
-            return jsonify({"status": "error", "message": "No completions found for this user"}), 404
+            return handle_error("No completions found for this user", 404)
 
         # Delete all completions
         for completion in completions:
@@ -119,4 +134,4 @@ def reset_user_completions(user_id):
     except Exception as e:
         db.session.rollback()
         logger.error(f"Error resetting completions for user {user_id}: {str(e)}")
-        return jsonify({"status": "error", "message": "Internal Server Error"}), 500
+        return handle_error("Internal Server Error", 500, e)

@@ -1,5 +1,3 @@
-# schema.py
-
 from flask import current_app
 from flask_mail import Message
 from app.utils.extensions import mail
@@ -33,7 +31,6 @@ def send_email(to: str, subject: str, body: str):
     except Exception as e:
         # Log any errors if they occur
         current_app.logger.error(f"⚠️ Error sending email to {to} with subject {subject}: {e}")
-
 
 # Schema to validate habit data using Marshmallow
 class HabitSchema(Schema):

@@ -1,59 +1,29 @@
 import os
 import logging
-from flask import Flask, current_app, render_template, jsonify, send_from_directory, request
+from flask import Flask, current_app, render_template, jsonify, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import JWTManager
 from flask_mail import Mail
 from flask_pymongo import PyMongo
 from flask_migrate import Migrate
 from flask_cors import CORS
-from flask_login import LoginManager, UserMixin, login_required, current_user
+from flask_login import LoginManager
 from dotenv import load_dotenv
 from sqlalchemy import text
 from config import config
+from app.utils.extensions import db, limiter, mongo, mail, jwt, login_manager
 
-# Initialize extensions
-db = SQLAlchemy()
-migrate = Migrate()
-mongo = PyMongo()
-jwt = JWTManager()
-mail = Mail()
-login_manager = LoginManager()
-
-# Initialize Flask-Login
-login_manager.login_view = 'auth_bp.login'  # Adjust the login endpoint
-
-# Load environment variables from .env file for configuration
-load_dotenv()
-
-# Define Habit model
-class Habit(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
-    completed = db.Column(db.Boolean, default=False)
-    frequency = db.Column(db.String(20), default='daily')
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    user = db.relationship('User', backref=db.backref('habits', lazy=True))
-
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'name': self.name,
-            'completed': self.completed,
-            'frequency': self.frequency,
-            'user_id': self.user_id
-        }
-
-# Initialize the Flask app
+# Initialize Flask app and extensions
 def create_app():
     app = Flask(__name__)
 
-    # Retrieve the app mode (development, production, testing) from the environment variable
+    # Load environment variables and app mode
+    load_dotenv()
     env = os.getenv('APP_MODE', 'development')
     if env not in config:
         raise ValueError(f"Invalid APP_MODE: {env}. Must be one of {list(config.keys())}.")
     
-    # Load configuration from the appropriate environment settings
+    # Load configuration from environment
     app.config.from_object(config[env])
 
     # Set up app configurations
@@ -62,15 +32,24 @@ def create_app():
     app.config['MONGO_URI'] = os.getenv("MONGO_DB_URI") or config[env].MONGO_URI
     app.config['JWT_SECRET_KEY'] = os.getenv("JWT_SECRET_KEY", "super-secret-key")
 
-    # Initialize the extensions with the Flask app instance
+    # Initialize extensions
     db.init_app(app)
-    migrate.init_app(app, db)
+    migrate = Migrate(app, db)  # Initialize Migrate with db and app
     mongo.init_app(app)
     jwt.init_app(app)
     mail.init_app(app)
     login_manager.init_app(app)
 
-    # Set up CORS
+    # Set up Flask-Login
+    login_manager.login_view = 'auth_bp.login'  # Adjust the login endpoint
+
+    # Set up the user loader
+    @login_manager.user_loader
+    def load_user(user_id):
+        from app.models import User
+        return User.query.get(int(user_id))
+
+    # Enable CORS
     frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
     allowed_origins = frontend_url.split(",")
     CORS(app, origins=allowed_origins, methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"])
@@ -108,37 +87,6 @@ def create_app():
     def test():
         return jsonify({"message": "Success! Backend is working."})
 
-    # Route to fetch all habits
-    @app.route('/habits', methods=['GET'])
-    def get_habits():
-        habits = Habit.query.all()
-        return jsonify({'habits': [habit.to_dict() for habit in habits]})
-
-    # Route to add a new habit
-    @app.route('/habits', methods=['POST'])
-    @login_required  # Ensure user is logged in before they can add a habit
-    def add_habit():
-        data = request.get_json()
-
-        # Validation checks (e.g., name, frequency)
-        if not data.get('name'):
-            return jsonify({"message": "Habit name is required!"}), 400
-        
-        new_habit = Habit(
-            name=data['name'],
-            completed=False,  # Default to False for a new habit
-            frequency=data.get('frequency', 'daily'),  # Set frequency or default to 'daily'
-            user_id=current_user.id  # Assuming a User model is linked to the Habit model
-        )
-
-        try:
-            db.session.add(new_habit)
-            db.session.commit()
-            return jsonify({"message": "Habit added successfully!", "habit": new_habit.to_dict()}), 201
-        except Exception as e:
-            current_app.logger.error(f"Error adding habit: {str(e)}")
-            return jsonify({"message": "Error adding habit."}), 500
-
     # Global error handlers for common HTTP errors
     @app.errorhandler(404)
     def not_found(error):
@@ -173,10 +121,12 @@ def create_app():
     # JWT error handling
     @jwt.expired_token_loader
     def expired_token_callback():
+        app.logger.warning("Token has expired")
         return jsonify({"message": "Token has expired"}), 401
 
     @jwt.invalid_token_loader
     def invalid_token_callback(error):
+        app.logger.warning(f"Invalid token: {error}")
         return jsonify({"message": "Invalid token"}), 401
 
     # Enable logging for better error tracking
