@@ -140,7 +140,7 @@ const HabitTracker = () => {
               </li>
             ))
           ) : (
-            <p>No habits found.</p>
+            <li>No habits found.</li>  
           )}
         </ul>
       )}

@@ -1,8 +1,9 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from app import db
+from app.__init__ import db
 from app.models.models import HabitReminder, Habit  # Assuming Habit is the model for habits
 from datetime import datetime
+from dateutil.parser import parse  # To parse ISO 8601 datetime strings
 
 reminder_bp = Blueprint('reminder_bp', __name__)
 
@@ -17,11 +18,11 @@ def create_reminder():
     if 'habit_id' not in data or 'reminder_time' not in data:
         return jsonify({'msg': 'Habit ID and reminder time are required'}), 400
     
-    # Validate reminder_time format (assuming it's in ISO format)
+    # Validate reminder_time format (assuming it's in ISO 8601 format)
     try:
-        reminder_time = datetime.fromisoformat(data['reminder_time'])
+        reminder_time = parse(data['reminder_time'])  # Parse the ISO 8601 string into datetime object
     except ValueError:
-        return jsonify({'msg': 'Invalid reminder time format. Please use ISO format.'}), 400
+        return jsonify({'msg': 'Invalid reminder time format. Please use ISO 8601 format.'}), 400
 
     # Check if the habit exists
     habit = Habit.query.filter_by(id=data['habit_id'], user_id=user_id).first()
@@ -83,9 +84,9 @@ def update_reminder(id):
     if 'reminder_time' in data:
         # Validate reminder_time format
         try:
-            reminder.reminder_time = datetime.fromisoformat(data['reminder_time'])
+            reminder.reminder_time = parse(data['reminder_time'])  # Parse new reminder time
         except ValueError:
-            return jsonify({'msg': 'Invalid reminder time format. Please use ISO format.'}), 400
+            return jsonify({'msg': 'Invalid reminder time format. Please use ISO 8601 format.'}), 400
     
     try:
         db.session.commit()

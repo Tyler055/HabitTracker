@@ -20,7 +20,7 @@ class BaseConfig:
 
     # Security settings
     SECRET_KEY = get_required_env_variable("SECRET_KEY")
-    JWT_SECRET = get_required_env_variable("JWT_SECRET")
+    JWT_SECRET_KEY = get_required_env_variable("JWT_SECRET_KEY")
     JWT_REFRESH_SECRET = get_required_env_variable("JWT_REFRESH_SECRET")
 
     # Mail configuration

@@ -1,9 +1,7 @@
-from datetime import datetime, time
+from datetime import datetime, time, timezone
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
-
-# Initialize SQLAlchemy
-db = SQLAlchemy()
+from app.__init__ import db
 
 # -------------------- Soft Delete Mixin --------------------
 class SoftDeleteMixin:
@@ -12,7 +10,7 @@ class SoftDeleteMixin:
 
     def soft_delete(self):
         """Mark an instance as deleted without removing it from the DB."""
-        self.deleted_at = datetime.utcnow()
+        self.deleted_at = datetime.now(timezone.utc)
         self.is_active = False
 
     def restore(self):
@@ -33,11 +31,12 @@ class User(db.Model):
     username = db.Column(db.String(50), unique=True, nullable=False)
     _password_hash = db.Column("password", db.String(255), nullable=False)
     
-    created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
-    updated_at = db.Column(db.DateTime, default=db.func.current_timestamp(), onupdate=db.func.current_timestamp())
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     habits = db.relationship('Habit', backref='user', lazy=True)
     completions = db.relationship('HabitCompletion', backref='user', lazy=True)
+    reminders = db.relationship('HabitReminder', backref='user', lazy=True)
 
     @property
     def password(self):
@@ -63,8 +62,8 @@ class Habit(db.Model, SoftDeleteMixin):
     frequency = db.Column(db.String(20), default='daily')
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     
-    created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
-    updated_at = db.Column(db.DateTime, default=db.func.current_timestamp(), onupdate=db.func.current_timestamp())
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     completions = db.relationship('HabitCompletion', backref='habit', lazy=True, cascade="all, delete-orphan")
     reminders = db.relationship('HabitReminder', backref='habit', lazy=True, cascade="all, delete-orphan")
@@ -72,7 +71,12 @@ class Habit(db.Model, SoftDeleteMixin):
 
     def set_default_reminder(self):
         if not HabitReminder.query.filter_by(habit_id=self.id).first():
-            reminder = HabitReminder(habit_id=self.id, reminder_time=time(9, 0), reminder_message=f"Reminder for {self.name}")
+            reminder = HabitReminder(
+                habit_id=self.id,
+                user_id=self.user_id,
+                reminder_time=time(9, 0),
+                reminder_message=f"Reminder for {self.name}"
+            )
             db.session.add(reminder)
             db.session.commit()
 
@@ -87,10 +91,10 @@ class HabitCompletion(db.Model, SoftDeleteMixin):
     id = db.Column(db.Integer, primary_key=True)
     habit_id = db.Column(db.Integer, db.ForeignKey('habits.id'), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    completed_at = db.Column(db.DateTime, default=db.func.current_timestamp())
+    completed_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     def __repr__(self):
-        return f"<HabitCompletion {self.habit_id} completed by {self.user_id}>"
+        return f"<HabitCompletion habit={self.habit_id} user={self.user_id}>"
 
 
 # -------------------- Habit Reminder Model --------------------
@@ -99,23 +103,21 @@ class HabitReminder(db.Model, SoftDeleteMixin):
     
     id = db.Column(db.Integer, primary_key=True)
     habit_id = db.Column(db.Integer, db.ForeignKey('habits.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     reminder_time = db.Column(db.Time, nullable=False)
     reminder_message = db.Column(db.String(255), nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-
-    habit = db.relationship('Habit', backref=db.backref('reminders', lazy=True))
 
     def to_dict(self):
         return {
             'id': self.id,
             'habit_id': self.habit_id,
-            'reminder_time': self.reminder_time.isoformat(),  # Convert to ISO format
             'user_id': self.user_id,
+            'reminder_time': self.reminder_time.isoformat(),
             'reminder_message': self.reminder_message
         }
 
     def __repr__(self):
-        return f"<HabitReminder {self.reminder_message} at {self.reminder_time}>"
+        return f"<HabitReminder '{self.reminder_message}' at {self.reminder_time}>"
 
 
 # -------------------- Habit Analytics Model --------------------
@@ -130,4 +132,5 @@ class HabitAnalytics(db.Model):
     last_completed = db.Column(db.DateTime, nullable=True)
 
     def __repr__(self):
-        return f"<HabitAnalytics {self.habit_id} - Total: {self.total_completions}, Streak: {self.current_streak}>"
+        return f"<HabitAnalytics habit={self.habit_id} total={self.total_completions} streak={self.current_streak}>"
+

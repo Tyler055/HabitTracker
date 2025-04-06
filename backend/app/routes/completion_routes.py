@@ -1,7 +1,6 @@
 from flask import Blueprint, request, jsonify
 from app.utils.extensions import db
 from app.models.models import HabitCompletion, Habit, User
-
 from datetime import datetime
 import logging
 
@@ -11,22 +10,34 @@ completion_bp = Blueprint('completion_bp', __name__)
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
-# Mark a habit as completed
-from flask import Blueprint, request
-from app.utils.extensions import db
-
-completion_bp = Blueprint('completion', __name__)
-
-# Define your routes here
+# Get all completions
 @completion_bp.route('/completions', methods=['GET'])
 def get_completions():
-    # Use local imports inside the function to avoid circular imports
-    from app.models import HabitCompletion, Habit, User
-    
-    # Your logic for handling completions here
-    completions = HabitCompletion.query.all()
-    return {"completions": [c.serialize() for c in completions]}  # Assuming you have a serialize method
+    try:
+        # Retrieve all completions from the database
+        completions = HabitCompletion.query.all()
 
+        # Return an empty list if no completions exist
+        if not completions:
+            return jsonify({"status": "success", "data": []}), 200
+
+        # Format the result into a list of dictionaries
+        result = [
+            {
+                "habit_id": completion.habit_id,
+                "user_id": completion.user_id,
+                "completed_at": completion.completed_at.strftime('%Y-%m-%d %H:%M:%S')  # Assuming 'completed_at' is a datetime column
+            } for completion in completions
+        ]
+
+        return jsonify({"status": "success", "data": result}), 200
+
+    except Exception as e:
+        logger.error(f"Error retrieving completions: {str(e)}")
+        return jsonify({"status": "error", "message": "Internal Server Error"}), 500
+
+
+# Mark a habit as completed
 @completion_bp.route('/habits/<int:habit_id>/complete', methods=['POST'])
 def complete_habit(habit_id):
     try:
@@ -47,7 +58,7 @@ def complete_habit(habit_id):
             return jsonify({"status": "error", "message": "Invalid habit or user ID"}), 404
 
         # Create and add completion record
-        completion = HabitCompletion(habit_id=habit.id, user_id=user.id)
+        completion = HabitCompletion(habit_id=habit.id, user_id=user.id, completed_at=datetime.utcnow())
         db.session.add(completion)
         db.session.commit()
 
@@ -60,7 +71,7 @@ def complete_habit(habit_id):
         return jsonify({"status": "error", "message": "Internal Server Error"}), 500
 
 
-# Get all completions for a user
+# Get all completions for a specific user
 @completion_bp.route('/users/<int:user_id>/completions', methods=['GET'])
 def get_user_completions(user_id):
     try:
@@ -71,7 +82,7 @@ def get_user_completions(user_id):
         if not completions:
             return jsonify({"status": "success", "data": []}), 200
 
-        # Format the result
+        # Format the result into a list of dictionaries
         result = [
             {
                 "habit_id": completion.habit_id,

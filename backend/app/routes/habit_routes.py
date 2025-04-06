@@ -1,7 +1,8 @@
 from flask import Blueprint, request, jsonify
 from flask_login import login_required, current_user as login_user
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from app.models.models import db, Habit, HabitCompletion as Completion
+from app.models.models import Habit, HabitCompletion
+from app.__init__ import db
 from datetime import date
 from app.schemes.schema import habit_schema
 from app.utils.utils import get_user_from_identity
@@ -29,7 +30,7 @@ def get_habits():
     frequency = request.args.get('frequency')
     completed_today = request.args.get('completed_today')
 
-    habits_query = Habit.query.filter_by(user_id=user.id, deleted=False)
+    habits_query = Habit.query.filter_by(user_id=user.id, is_active=True)  # Use `is_active` instead of `deleted`
 
     # Filter by frequency if provided and valid
     if frequency:
@@ -44,9 +45,9 @@ def get_habits():
         
         today = date.today()
         if completed_today.lower() == 'true':
-            habits_query = habits_query.filter(Habit.completions.any(Completion.date_completed == today))
+            habits_query = habits_query.filter(Habit.completions.any(HabitCompletion.date_completed == today))
         elif completed_today.lower() == 'false':
-            habits_query = habits_query.filter(~Habit.completions.any(Completion.date_completed == today))
+            habits_query = habits_query.filter(~Habit.completions.any(HabitCompletion.date_completed == today))
 
     habits = habits_query.all()
     return jsonify([habit.to_dict() for habit in habits])
@@ -85,7 +86,7 @@ def delete_habit(id):
     if not user:
         return jsonify({'error': 'Unauthorized'}), 401
 
-    habit = Habit.query.filter_by(id=id, user_id=user.id, deleted=False).first()
+    habit = Habit.query.filter_by(id=id, user_id=user.id, is_active=True).first()  # Use `is_active`
     if not habit:
         return jsonify({'error': 'Habit not found'}), 404
 
@@ -102,7 +103,7 @@ def restore_habit(id):
     if not user:
         return jsonify({'error': 'Unauthorized'}), 401
 
-    habit = Habit.query.filter_by(id=id, user_id=user.id, deleted=True).first()
+    habit = Habit.query.filter_by(id=id, user_id=user.id, is_active=False).first()  # Use `is_active=False` for soft-deleted habits
     if not habit:
         return jsonify({'error': 'Habit not found or not deleted'}), 404
 
@@ -119,19 +120,19 @@ def complete_habit(id):
     if not user:
         return jsonify({'error': 'Unauthorized'}), 401
 
-    habit = Habit.query.filter_by(id=id, user_id=user.id, deleted=False).first()
+    habit = Habit.query.filter_by(id=id, user_id=user.id, is_active=True).first()  # Use `is_active`
     if not habit:
         return jsonify({'error': 'Habit not found'}), 404
 
     today = date.today()
-    completion = Completion.query.filter_by(habit_id=habit.id, date_completed=today).first()
+    completion = HabitCompletion.query.filter_by(habit_id=habit.id, date_completed=today).first()
 
     if completion:
         db.session.delete(completion)
         db.session.commit()
         return jsonify({'message': 'Completion removed', 'completed': False}), 200
     else:
-        new_completion = Completion(habit_id=habit.id, date_completed=today)
+        new_completion = HabitCompletion(habit_id=habit.id, date_completed=today)
         db.session.add(new_completion)
         db.session.commit()
         return jsonify({'message': 'Habit marked as completed', 'completed': True}), 200

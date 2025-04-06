@@ -18,11 +18,17 @@ app = Flask(__name__)
 app.config.from_object(ActiveConfig)
 
 # Test if environment variables are loaded correctly
-#print("MONGO_TEST_URI:", os.getenv("MONGO_TEST_URI"))
-#print("MYSQL_TEST_URI:", os.getenv("MYSQL_TEST_URI"))
-#print("MYSQL_DB_URI:", os.getenv("MYSQL_DB_URI"))
-#print("MONGO_DB_URI:", os.getenv("MONGO_DB_URI"))
-#print("SECRET_KEY:", os.getenv("SECRET_KEY"))
+print("MONGO_TEST_URI:", os.getenv("MONGO_TEST_URI"))
+print("MYSQL_TEST_URI:", os.getenv("MYSQL_TEST_URI"))
+print("MYSQL_DB_URI:", os.getenv("MYSQL_DB_URI"))
+print("MONGO_DB_URI:", os.getenv("MONGO_DB_URI"))
+print("SECRET_KEY:", os.getenv("SECRET_KEY"))
+# Print the configuration settings instead of setting them
+print('SQLALCHEMY_DATABASE_URI:', os.getenv("DATABASE_DB_URL") or ActiveConfig.SQLALCHEMY_DATABASE_URI)
+print('SQLALCHEMY_TRACK_MODIFICATIONS:', False)  # Printing the setting, not assigning
+print('MONGO_URI:', os.getenv("MONGO_DB_URI") or ActiveConfig.MONGO_URI)
+print('JWT_SECRET_KEY:', os.getenv("JWT_SECRET_KEY", "super-secret-key"))
+print('FRONTEND_URL:', os.getenv("FRONTEND_URL", "http://localhost:3000"))
 
 # SQLAlchemy init
 db = SQLAlchemy(app)
