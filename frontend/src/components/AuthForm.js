@@ -1,41 +1,44 @@
 import React, { useState } from "react";
 import axios from "axios";
 
-export default function AuthForm({ setUser }) {
-  const [isLogin, setIsLogin] = useState(true);
-  const [email, setEmail] = useState(""); // Email input field
-  const [username, setUsername] = useState(""); // Username input field (for signup)
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState("");
+export default function AuthForm({ setUser, isLoginModeProp }) {
+  const [identifier, setIdentifier] = useState(""); // Email or Username
+  const [password, setPassword] = useState(""); // Password
+  const [username, setUsername] = useState(""); // Username (only for sign-up)
+  const [confirmPassword, setConfirmPassword] = useState(""); // Confirm password (only for sign-up)
+  const [loading, setLoading] = useState(false); // Loading state
+  const [errorMsg, setErrorMsg] = useState(""); // Error message
+  const [isLoginMode, setIsLoginMode] = useState(isLoginModeProp); // Determine login or sign-up mode
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setErrorMsg("");
 
-    const endpoint = isLogin
-      ? "http://127.0.0.1:5000/auth/login"
-      : "http://127.0.0.1:5000/auth/signup";
+    const endpoint = `${process.env.REACT_APP_API_URL}/api/${isLoginMode ? "login" : "signup"}`;
+
+    // Prepare request data
+    const requestData = {
+      email: identifier, // Always use email or username
+      username: !isLoginMode ? username : undefined, // Only include username for sign-up
+      password,
+      confirmPassword: !isLoginMode ? confirmPassword : undefined, // Only include confirmPassword for sign-up
+    };
 
     try {
-      const response = await axios.post(endpoint, {
-        email, // use email for both login and signup
-        username: isLogin ? undefined : username, // Include username only during signup
-        password,
-      });
+      const response = await axios.post(endpoint, requestData);
 
       if (response.data.access_token) {
         localStorage.setItem("token", response.data.access_token);
-        setUser(response.data.username || email); // fallback to entered email if no username
+        setUser(response.data.username || identifier); // Store user info
+        if (isLoginMode) {
+          window.location.href = "/habit-tracker"; // Redirect to habit tracker after login
+        }
       } else {
         setErrorMsg("Unexpected response. Please try again.");
       }
     } catch (err) {
-      const message =
-        err.response?.data?.message ||
-        "An error occurred. Please try again.";
-      setErrorMsg(message);
+      setErrorMsg(err.response?.data?.message || "An error occurred. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -44,15 +47,15 @@ export default function AuthForm({ setUser }) {
   return (
     <div className="auth-form w-full max-w-sm mx-auto p-6 border rounded-lg shadow-lg bg-white">
       <h2 className="text-2xl font-semibold text-center mb-4">
-        {isLogin ? "Log In" : "Sign Up"}
+        {isLoginMode ? "Log In" : "Sign Up"}
       </h2>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Email Field */}
         <input
           type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          value={identifier}
+          onChange={(e) => setIdentifier(e.target.value)}
           placeholder="Email"
           required
           disabled={loading}
@@ -61,7 +64,7 @@ export default function AuthForm({ setUser }) {
         />
 
         {/* Username Field (only for sign-up) */}
-        {!isLogin && (
+        {!isLoginMode && (
           <input
             type="text"
             value={username}
@@ -85,6 +88,20 @@ export default function AuthForm({ setUser }) {
           autoComplete="current-password"
           className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
+
+        {/* Confirm Password Field (only for sign-up) */}
+        {!isLoginMode && (
+          <input
+            type="password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            placeholder="Confirm Password"
+            required
+            disabled={loading}
+            autoComplete="new-password"
+            className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        )}
 
         <button
           type="submit"
@@ -115,7 +132,7 @@ export default function AuthForm({ setUser }) {
               </svg>
               Please wait...
             </span>
-          ) : isLogin ? "Log In" : "Sign Up"}
+          ) : isLoginMode ? "Log In" : "Sign Up"}
         </button>
       </form>
 
@@ -126,10 +143,12 @@ export default function AuthForm({ setUser }) {
       )}
 
       <p
-        onClick={() => setIsLogin(!isLogin)}
+        onClick={() => setIsLoginMode((prev) => !prev)}
         className="text-center text-blue-500 cursor-pointer mt-4"
       >
-        {isLogin ? "Don't have an account?" : "Already have an account?"} Click here
+        {isLoginMode
+          ? "Don't have an account? Sign up here."
+          : "Already have an account? Log in."}
       </p>
     </div>
   );

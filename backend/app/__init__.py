@@ -11,22 +11,17 @@ from flask_login import LoginManager
 from dotenv import load_dotenv
 from sqlalchemy import text
 from config import config
-from app.utils.extensions import db, limiter, mongo, mail, jwt, login_manager
+from app.utils.extensions import db, mongo, mail, jwt, login_manager
 
-# Initialize Flask app and extensions
 def create_app():
     app = Flask(__name__)
-
-    # Load environment variables and app mode
     load_dotenv()
+
+    # Environment & Config
     env = os.getenv('APP_MODE', 'development')
     if env not in config:
         raise ValueError(f"Invalid APP_MODE: {env}. Must be one of {list(config.keys())}.")
-    
-    # Load configuration from environment
     app.config.from_object(config[env])
-
-    # Set up app configurations
     app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_DB_URL") or config[env].SQLALCHEMY_DATABASE_URI
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['MONGO_URI'] = os.getenv("MONGO_DB_URI") or config[env].MONGO_URI
@@ -34,19 +29,17 @@ def create_app():
 
     # Initialize extensions
     db.init_app(app)
-    migrate = Migrate(app, db)  # Initialize Migrate with db and app
+    Migrate(app, db)
     mongo.init_app(app)
     jwt.init_app(app)
     mail.init_app(app)
     login_manager.init_app(app)
 
-    # Set up Flask-Login
-    login_manager.login_view = 'auth_bp.login'  # Adjust the login endpoint
-
-    # Set up the user loader
+    # Flask-Login config
+    login_manager.login_view = 'auth_bp.login'
     @login_manager.user_loader
     def load_user(user_id):
-        from app.models import User
+        from app.models.models import User
         return User.query.get(int(user_id))
 
     # Enable CORS
@@ -54,7 +47,7 @@ def create_app():
     allowed_origins = frontend_url.split(",")
     CORS(app, origins=allowed_origins, methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"])
 
-    # Database connection check before the first request
+    # Database check (only in dev)
     @app.before_request
     def check_database_connection():
         if app.config['APP_MODE'] == 'development':
@@ -65,7 +58,7 @@ def create_app():
                 app.logger.error(f"Database connection failed: {e}")
                 raise Exception("Database connection failed.")
 
-    # Register blueprints
+    # Register Blueprints
     from app.routes.auth_routes import auth_bp
     from app.routes.habit_routes import habit_bp
     from app.routes.completion_routes import completion_bp
@@ -76,60 +69,40 @@ def create_app():
     app.register_blueprint(completion_bp, url_prefix="/completion")
     app.register_blueprint(reminder_bp, url_prefix="/reminder")
 
-    # Test page route
+    # Test routes
     @app.route('/test-page', methods=['GET'])
     def test_page():
         current_app.logger.info("Rendering test-page.html")
         return render_template('test-page.html')
 
-    # New test route to check backend working
     @app.route('/test', methods=['GET'])
     def test():
         return jsonify({"message": "Success! Backend is working."})
 
-    # Global error handlers for common HTTP errors
-    @app.errorhandler(404)
-    def not_found(error):
-        app.logger.warning(f"404 Error: {error}")
-        return {"message": "Resource not found"}, 404
-
-    @app.errorhandler(500)
-    def internal_error(error):
-        app.logger.error(f"500 Error: {error}")
-        return {"message": "Internal server error"}, 500
-
+    # Error handlers
     @app.errorhandler(400)
-    def bad_request(error):
-        app.logger.warning(f"400 Error: {error}")
-        return {"message": "Bad request"}, 400
-
-    @app.errorhandler(405)
-    def method_not_allowed(error):
-        app.logger.warning(f"405 Error: {error}")
-        return {"message": "Method Not Allowed"}, 405
-
+    def bad_request(error): return {"message": "Bad request"}, 400
     @app.errorhandler(401)
-    def unauthorized(error):
-        app.logger.warning(f"401 Error: {error}")
-        return {"message": "Unauthorized"}, 401
-
+    def unauthorized(error): return {"message": "Unauthorized"}, 401
     @app.errorhandler(403)
-    def forbidden(error):
-        app.logger.warning(f"403 Error: {error}")
-        return {"message": "Forbidden"}, 403
+    def forbidden(error): return {"message": "Forbidden"}, 403
+    @app.errorhandler(404)
+    def not_found(error): return {"message": "Resource not found"}, 404
+    @app.errorhandler(405)
+    def method_not_allowed(error): return {"message": "Method Not Allowed"}, 405
+    @app.errorhandler(500)
+    def internal_error(error): return {"message": "Internal server error"}, 500
 
-    # JWT error handling
+    # JWT error handlers
     @jwt.expired_token_loader
-    def expired_token_callback():
-        app.logger.warning("Token has expired")
+    def expired_token_callback(jwt_header, jwt_payload):
         return jsonify({"message": "Token has expired"}), 401
 
     @jwt.invalid_token_loader
     def invalid_token_callback(error):
-        app.logger.warning(f"Invalid token: {error}")
         return jsonify({"message": "Invalid token"}), 401
 
-    # Enable logging for better error tracking
+    # Logging config
     log_level = logging.INFO if app.config['APP_MODE'] != 'production' else logging.ERROR
     logging.basicConfig(
         format='%(asctime)s - %(levelname)s - %(message)s',
@@ -137,26 +110,22 @@ def create_app():
         handlers=[logging.StreamHandler()]
     )
 
-    # Serve React Frontend (Production-ready serving of the app)
+    # Serve React frontend
     REACT_BUILD_DIR = os.getenv("REACT_BUILD_DIR", "frontend/build")
 
     @app.route('/', methods=['GET'])
     def index():
-        """ Serve React frontend's index.html page """
+        """Serve frontend index.html (in dev mode only)"""
         if app.config.get('APP_MODE') == 'development':
             return send_from_directory(REACT_BUILD_DIR, 'index.html')
         return jsonify({"message": "Welcome to the Habit Tracker!"})
 
-    # Route to serve static assets for React frontend
     @app.route('/static/<path:path>', methods=['GET'])
     def serve_static(path):
-        """ Serve React static files """
-        return send_from_directory(f"{REACT_BUILD_DIR}/static", path)
+        return send_from_directory(os.path.join(REACT_BUILD_DIR, "static"), path)
 
-    # Catch-all route to serve the React app for any non-API route
     @app.route('/<path:path>', methods=['GET'])
     def serve_react_app(path):
-        """ Catch-all route to serve the React app for any non-API route """
         if path.startswith("api/"):
             return jsonify({"message": "API route not found."}), 404
         return send_from_directory(REACT_BUILD_DIR, 'index.html')

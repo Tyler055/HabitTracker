@@ -7,7 +7,7 @@ import Progress from "./pages/Progress";
 import Settings from "./pages/Settings";
 import Profile from "./pages/Profile";
 import AuthForm from "./components/AuthForm";
-import PrivateRoute from "./components/PrivateRoute";
+import PrivateRoute from './components/PrivateRoute';
 import logo from "./logo.svg";
 import './styles/App.css';
 import './styles/styles.css';
@@ -18,7 +18,7 @@ const App = () => {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [fontSize, setFontSize] = useState('16px');
   const [buttonColor, setButtonColor] = useState('#007bff');
-  const [user, setUser] = useState(localStorage.getItem('token') ? 'user' : null);
+  const [user, setUser] = useState(localStorage.getItem('token') ? JSON.parse(localStorage.getItem('user')) : null);
   const [flaskData, setFlaskData] = useState(null);
   const [flaskError, setFlaskError] = useState(null);
 
@@ -76,6 +76,7 @@ const App = () => {
 
   const handleLogout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('user');  // Clear user data on logout
     setUser(null);
     navigate("/login");  // Redirect to login page after logout
   };
@@ -99,7 +100,7 @@ const App = () => {
         {user ? (
           <div>
             <button onClick={handleLogout}>Logout</button>
-            <h1>Welcome, {user}</h1>
+            <h1>Welcome, {user.username}</h1>
           </div>
         ) : (
           <h1>Please log in</h1>

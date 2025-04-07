@@ -1,55 +1,83 @@
-from flask import Blueprint, request, jsonify, redirect, url_for, flash
+from flask import Blueprint, request, jsonify
 from flask_login import login_required, current_user
-from werkzeug.security import generate_password_hash
-from app.__init__ import db
-from models.models import User
+from app.utils.extensions import db  # Assuming this is how db is imported elsewhere
+from app.models.models import User
+import re
+import logging
 
-# Blueprint for user registration
+# Blueprints
 user_bp_register = Blueprint('user_bp_register', __name__)
+user_bp_theme = Blueprint('user_bp_theme', __name__)
 
-# Route to register a user
+# ------------------------
+# Utility Validators
+# ------------------------
+
+def validate_email(email):
+    return re.match(r'^[\w\.-]+@[\w\.-]+\.\w+$', email)
+
+def validate_password_strength(password):
+    return (len(password) >= 8 and
+            re.search(r"[A-Z]", password) and
+            re.search(r"[a-z]", password) and
+            re.search(r"[0-9]", password) and
+            re.search(r"[!@#$%^&*(),.?\":{}|<>]", password))
+
+# ------------------------
+# Register User Route
+# ------------------------
+
 @user_bp_register.route('/register', methods=['POST'])
 def register_user():
-    data = request.get_json()
-    username = data.get('username')
-    email = data.get('email')
-    password = data.get('password')
-
-    # Validate input fields
-    if not username or not email or not password:
-        return jsonify({"error": "Missing fields"}), 400
-
-    if User.query.filter_by(username=username).first():
-        return jsonify({"error": "Username already exists"}), 400
-
-    if User.query.filter_by(email=email).first():
-        return jsonify({"error": "Email already registered"}), 400
-
     try:
-        # Hash the password before saving it
-        hashed_password = generate_password_hash(password, method='sha256')
+        data = request.get_json()
+        username = data.get('username')
+        email = data.get('email')
+        password = data.get('password')
 
-        # Create and save the user
+        # Basic validation
+        if not all([username, email, password]):
+            return jsonify({"status": "error", "message": "Missing fields"}), 400
+
+        if not validate_email(email):
+            return jsonify({"status": "error", "message": "Invalid email format"}), 400
+
+        if not validate_password_strength(password):
+            return jsonify({
+                "status": "error",
+                "message": "Password must be at least 8 characters long, include uppercase, lowercase, number, and special character."
+            }), 400
+
+        if User.query.filter_by(username=username).first():
+            return jsonify({"status": "error", "message": "Username already exists"}), 400
+
+        if User.query.filter_by(email=email).first():
+            return jsonify({"status": "error", "message": "Email already registered"}), 400
+
+        # Create and commit new user
         new_user = User(username=username, email=email)
-        new_user.set_password(hashed_password)  # Set the password using a setter method
-
+        new_user.set_password(password)
         db.session.add(new_user)
         db.session.commit()
 
-        # Return successful response with user data (excluding password)
         return jsonify({
-            "id": new_user.id,
-            "username": new_user.username,
-            "email": new_user.email
+            "status": "success",
+            "message": "User registered successfully",
+            "user": {
+                "id": new_user.id,
+                "username": new_user.username,
+                "email": new_user.email
+            }
         }), 201
 
     except Exception as e:
-        return jsonify({"error": "Internal server error. Please try again later."}), 500
+        logging.exception("Error registering user")
+        return jsonify({"status": "error", "message": "Internal server error. Please try again later."}), 500
 
-# Blueprint for theme change
-user_bp_theme = Blueprint('user_bp_theme', __name__)
+# ----------------------
+# User Theme Toggle Route
+# ----------------------
 
-# Route to update theme (Light/Dark)
 @user_bp_theme.route('/change-theme', methods=['POST'])
 @login_required
 def change_theme():
@@ -57,8 +85,11 @@ def change_theme():
         new_theme = 'dark' if current_user.theme == 'light' else 'light'
         current_user.theme = new_theme
         db.session.commit()
-        flash(f'Theme changed to {new_theme}!', 'success')
-        return redirect(url_for('home'))  # Redirect to home page or wherever you want
+        return jsonify({
+            "status": "success",
+            "message": f"Theme changed to {new_theme}",
+            "theme": new_theme
+        }), 200
     except Exception as e:
-        flash('Failed to change theme. Please try again.', 'danger')
-        return redirect(url_for('home'))
+        logging.exception("Error changing theme")
+        return jsonify({"status": "error", "message": "Failed to change theme. Please try again."}), 500

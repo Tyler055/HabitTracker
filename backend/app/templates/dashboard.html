@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <header>
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+                <li><a href="{{ url_for('logout') }}">Logout</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <div class="container">
+            <h1>Welcome to Your Dashboard, {{ current_user.username }}!</h1>
+
+            <section>
+                <h2>Your Profile</h2>
+                <p>Email: {{ current_user.email }}</p>
+                <p>Username: {{ current_user.username }}</p>
+            </section>
+
+            <section>
+                <h2>Your Habits</h2>
+                <ul>
+                    <!-- Example static list of habits. You can replace this with dynamic data -->
+                    <li>Exercise</li>
+                    <li>Read a book</li>
+                    <li>Drink water</li>
+                </ul>
+                <a href="{{ url_for('habits.create') }}" class="btn">Create New Habit</a>
+            </section>
+
+            <section>
+                <h2>Recent Activity</h2>
+                <p>No recent activities yet. Stay active and track your progress!</p>
+            </section>
+
+            <section>
+                <h2>Account Settings</h2>
+                <a href="{{ url_for('settings') }}" class="btn">Update Profile</a>
+            </section>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Habit Tracker</p>
+    </footer>
+</body>
+</html>

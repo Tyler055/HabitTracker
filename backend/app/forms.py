@@ -13,13 +13,14 @@ def password_strength(form, field):
         raise ValidationError('Password must contain at least one digit.')
     if not re.search(r"[!@#$%^&*(),.?\":{}|<>]", password):
         raise ValidationError('Password must contain at least one special character.')
+    if len(password) < 8:
+        raise ValidationError('Password must be at least 8 characters long.')
 
 # Signup form with custom password validation
 class SignupForm(FlaskForm):
     username = StringField('Username', validators=[
         InputRequired(message="Username is required"), 
         Length(min=4, max=25, message="Username must be between 4 and 25 characters"),
-        # Optional: Add a custom validator to allow/disallow special characters
     ])
     email = StringField('Email', validators=[
         DataRequired(message="Email is required"), 
