@@ -4,9 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.ext.hybrid import hybrid_property
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
-
-# Initialize SQLAlchemy
-db = SQLAlchemy()
+from app.utils.extensions import db
 
 # -------------------- Soft Delete Mixin --------------------
 class SoftDeleteMixin(db.Model):
@@ -50,6 +48,9 @@ class User(db.Model, UserMixin):
     @password.setter
     def password(self, password):
         self._password_hash = generate_password_hash(password)
+
+    def set_password(self, password):
+        self.password = password
 
     def check_password(self, password):
         return check_password_hash(self._password_hash, password)

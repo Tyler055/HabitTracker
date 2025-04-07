@@ -72,20 +72,20 @@ def api_signup():
         return handle_error(str(e), 500)
 
 # ---------------------
-# API Login Route
+# API Login Route (Updated)
 # ---------------------
 
 @auth_bp.route('/login', methods=['POST'])
 def login_user_api():
     try:
         data = request.get_json()
-        email = data.get('email')
+        identifier = data.get('identifier')  # Can be email OR username
         password = data.get('password')
 
-        if not all([email, password]):
-            return handle_error("Email and password are required")
+        if not all([identifier, password]):
+            return handle_error("Email or username and password are required")
 
-        user = User.query.filter_by(email=email).first()
+        user = User.query.filter((User.email == identifier) | (User.username == identifier)).first()
 
         if user and user.check_password(password):
             access_token = create_access_token(identity=user.id, expires_delta=datetime.timedelta(days=1))

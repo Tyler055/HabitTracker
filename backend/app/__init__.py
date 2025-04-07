@@ -11,7 +11,7 @@ from flask_login import LoginManager
 from dotenv import load_dotenv
 from sqlalchemy import text
 from config import config
-from app.utils.extensions import db, mongo, mail, jwt, login_manager
+from app.utils.extensions import db, mongo, mail, jwt, login_manager  
 
 def create_app():
     app = Flask(__name__)
@@ -28,12 +28,12 @@ def create_app():
     app.config['JWT_SECRET_KEY'] = os.getenv("JWT_SECRET_KEY", "super-secret-key")
 
     # Initialize extensions
-    db.init_app(app)
-    Migrate(app, db)
-    mongo.init_app(app)
-    jwt.init_app(app)
-    mail.init_app(app)
-    login_manager.init_app(app)
+    db.init_app(app)  # Initialize SQLAlchemy
+    Migrate(app, db)  # Initialize Flask-Migrate
+    mongo.init_app(app)  # Initialize MongoDB
+    jwt.init_app(app)  # Initialize JWT
+    mail.init_app(app)  # Initialize Flask-Mail
+    login_manager.init_app(app)  # Initialize Flask-Login
 
     # Flask-Login config
     login_manager.login_view = 'auth_bp.login'
