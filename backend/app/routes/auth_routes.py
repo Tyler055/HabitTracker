@@ -33,7 +33,7 @@ def handle_error(message, status_code=400):
 # API Signup Route
 # ---------------------
 
-@auth_bp.route('/api/signup', methods=['POST'])
+@auth_bp.route('/signup', methods=['POST'])
 def api_signup():
     try:
         data = request.get_json()
@@ -75,7 +75,7 @@ def api_signup():
 # API Login Route
 # ---------------------
 
-@auth_bp.route('/api/login', methods=['POST'])
+@auth_bp.route('/login', methods=['POST'])
 def login_user_api():
     try:
         data = request.get_json()
