@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
+import { jwtDecode } from "jwt-decode";
+
 
 const HabitTracker = () => {
   const [habit, setHabit] = useState("");
@@ -82,8 +84,11 @@ const HabitTracker = () => {
 
     setIsLoading(true);
     try {
+      const decoded = jwtDecode(token);
+      const userId = decoded.sub || decoded.user_id || decoded.id;
+
       await axios.post(
-        "http://127.0.0.1:5000/reset_habits",
+        `http://127.0.0.1:5000/completion/users/${userId}/completions/reset`,
         {},
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -92,7 +97,7 @@ const HabitTracker = () => {
       showMessage("All habits reset.");
       setHabits([]);
     } catch (err) {
-      console.error(err);
+      console.error("Reset error:", err);
       showMessage("Failed to reset habits.");
       fetchHabits();
     } finally {
@@ -140,7 +145,11 @@ const HabitTracker = () => {
         <p>No habits found.</p>
       )}
 
-      <button onClick={handleResetHabits} disabled={isLoading} className="reset-btn">
+      <button
+        onClick={handleResetHabits}
+        disabled={isLoading}
+        className="reset-btn"
+      >
         {isLoading ? "Resetting..." : "Reset All"}
       </button>
     </div>

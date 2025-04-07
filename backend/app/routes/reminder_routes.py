@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from app.__init__ import db
+from app.utils.extensions import db
 from app.models.models import HabitReminder, Habit  # Assuming Habit is the model for habits
 from datetime import datetime
 from dateutil.parser import parse  # To parse ISO 8601 datetime strings

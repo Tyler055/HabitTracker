@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from app.models.models import Habit, HabitCompletion
-from app.__init__ import db
+from app.utils.extensions import db
 from datetime import date
 from app.schemes.schema import habit_schema
 from app.utils.utils import get_user_from_identity
