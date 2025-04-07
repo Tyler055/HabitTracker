@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, BooleanField
-from wtforms.validators import InputRequired, Email, Length, EqualTo, ValidationError, DataRequired
+from wtforms.validators import InputRequired, Email, Length, EqualTo, DataRequired, ValidationError
 import re
 from app.models.models import User  # Import User model to query the database
 
@@ -18,19 +18,20 @@ def password_strength(form, field):
 class SignupForm(FlaskForm):
     username = StringField('Username', validators=[
         InputRequired(message="Username is required"), 
-        Length(min=4, max=25, message="Username must be between 4 and 25 characters")
+        Length(min=4, max=25, message="Username must be between 4 and 25 characters"),
+        # Optional: Add a custom validator to allow/disallow special characters
     ])
     email = StringField('Email', validators=[
-        InputRequired(message="Email is required"), 
+        DataRequired(message="Email is required"), 
         Email(message="Please enter a valid email address")
     ])
     password = PasswordField('Password', validators=[
-        InputRequired(message="Password is required"), 
+        DataRequired(message="Password is required"), 
         Length(min=8, message="Password must be at least 8 characters long"), 
         password_strength
     ])
     confirm_password = PasswordField('Confirm Password', validators=[
-        InputRequired(message="Please confirm your password"), 
+        DataRequired(message="Please confirm your password"), 
         EqualTo('password', message="Passwords must match")
     ])
 
@@ -44,7 +45,7 @@ class SignupForm(FlaskForm):
             self.username.errors.append('Username already exists.')
             return False
         
-        if User.query.filter_by(email=self.email.data).first():
+        if User.query.filter_by(email=self.email.data.lower()).first():  # Email comparison is case-insensitive
             self.email.errors.append('Email already exists.')
             return False
         
@@ -60,4 +61,3 @@ class LoginForm(FlaskForm):
         DataRequired(message="Password is required")
     ])
     remember = BooleanField('Remember Me')
-

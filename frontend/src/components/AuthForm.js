@@ -3,7 +3,8 @@ import axios from "axios";
 
 export default function AuthForm({ setUser }) {
   const [isLogin, setIsLogin] = useState(true);
-  const [identifier, setIdentifier] = useState(""); // Can be username or email
+  const [email, setEmail] = useState(""); // Email input field
+  const [username, setUsername] = useState(""); // Username input field (for signup)
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -19,13 +20,14 @@ export default function AuthForm({ setUser }) {
 
     try {
       const response = await axios.post(endpoint, {
-        email: identifier, // assuming your Flask backend uses `email`
+        email, // use email for both login and signup
+        username: isLogin ? undefined : username, // Include username only during signup
         password,
       });
 
       if (response.data.access_token) {
         localStorage.setItem("token", response.data.access_token);
-        setUser(response.data.username || identifier); // fallback to entered identifier
+        setUser(response.data.username || email); // fallback to entered email if no username
       } else {
         setErrorMsg("Unexpected response. Please try again.");
       }
@@ -46,17 +48,33 @@ export default function AuthForm({ setUser }) {
       </h2>
 
       <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Email Field */}
         <input
-          type="text"
-          value={identifier}
-          onChange={(e) => setIdentifier(e.target.value)}
-          placeholder="Email or Username"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="Email"
           required
           disabled={loading}
-          autoComplete="username"
+          autoComplete="email"
           className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
 
+        {/* Username Field (only for sign-up) */}
+        {!isLogin && (
+          <input
+            type="text"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            placeholder="Username"
+            required
+            disabled={loading}
+            autoComplete="username"
+            className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        )}
+
+        {/* Password Field */}
         <input
           type="password"
           value={password}

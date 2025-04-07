@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useNavigate } from "react-router-dom";
 import TaskBar from "./TaskBar";
 import Home from "./pages/Home";
 import HabitTracker from "./components/HabitTracker";
@@ -13,6 +13,7 @@ import './styles/App.css';
 import './styles/styles.css';
 
 const App = () => {
+  const navigate = useNavigate();
   const [isTaskbarVisible, setIsTaskbarVisible] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [fontSize, setFontSize] = useState('16px');
@@ -76,6 +77,7 @@ const App = () => {
   const handleLogout = () => {
     localStorage.removeItem('token');
     setUser(null);
+    navigate("/login");  // Redirect to login page after logout
   };
 
   return (
