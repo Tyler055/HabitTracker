@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom"; // Use React Router's navigation
 
 export default function AuthForm({ setUser, isLoginModeProp }) {
   const [identifier, setIdentifier] = useState(""); // Email or Username
@@ -11,6 +12,7 @@ export default function AuthForm({ setUser, isLoginModeProp }) {
   const [errorMsg, setErrorMsg] = useState(""); // Error message
   const [showErrorModal, setShowErrorModal] = useState(false); // Error modal visibility
   const [isLoginMode, setIsLoginMode] = useState(isLoginModeProp); // Login or signup mode
+  const navigate = useNavigate(); // For redirection
 
   // Validate password length and confirmation
   const validateForm = () => {
@@ -41,8 +43,8 @@ export default function AuthForm({ setUser, isLoginModeProp }) {
     }
 
     const endpoint = isLoginMode
-      ? "http://127.0.0.1:5000/auth/login"
-      : "http://127.0.0.1:5000/auth/signup";
+      ? `http://127.0.0.1:5000/auth/login`
+      : `http://127.0.0.1:5000/auth/signup`;
 
     // Prepare request data
     const requestData = {
@@ -51,9 +53,6 @@ export default function AuthForm({ setUser, isLoginModeProp }) {
       password,
       confirmPassword: !isLoginMode ? confirmPassword : undefined,
     };
-
-    // Log the request data
-    console.log("Sending request data:", requestData);
 
     try {
       const response = await axios.post(endpoint, requestData, {
@@ -66,7 +65,7 @@ export default function AuthForm({ setUser, isLoginModeProp }) {
         localStorage.setItem("token", response.data.access_token);
         setUser(response.data.username || identifier);
         if (isLoginMode) {
-          window.location.href = "/habit-tracker"; // Redirect to habit tracker after login
+          navigate("/habit-tracker"); // Redirect to habit tracker after login
         }
       } else {
         setErrorMsg("Unexpected response. Please try again.");
