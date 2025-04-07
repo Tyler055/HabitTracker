@@ -1,13 +1,13 @@
 from flask import Blueprint, request, jsonify, render_template, redirect, url_for, flash
-from flask_login import login_required, logout_user
+import logging
+from flask_login import login_user, logout_user, login_required
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 import datetime
 import re
-import logging
-from werkzeug.security import generate_password_hash, check_password_hash
-from app import db
+from werkzeug.security import generate_password_hash
+from app.__init__ import db
 from app.models.models import User
 from app.forms import SignupForm, LoginForm
 
@@ -80,7 +80,7 @@ def api_signup():
 # User Login with Rate Limiting (API Route)
 @auth_bp.route('/login', methods=['POST'])
 @limiter.limit("5 per minute")  # Limit to 5 login attempts per minute
-def login_user():
+def login_user_api():
     try:
         data = request.get_json()
         email = data.get('email')
@@ -101,60 +101,19 @@ def login_user():
         db.session.rollback()
         return handle_error(str(e), 500)
 
-# Get Current User Info (Protected Route)
-@auth_bp.route('/user', methods=['GET'])
-@jwt_required()
-def get_user():
-    try:
-        user_id = get_jwt_identity()
-        user = User.query.get(user_id)
-
-        if not user:
-            return handle_error("User not found", 404)
-
-        return jsonify({
-            "status": "success",
-            "user": {
-                "id": user.id,
-                "username": user.username,
-                "email": user.email
-            }
-        }), 200
-
-    except Exception as e:
-        return handle_error(str(e), 500)
-
-# User Registration (Form Route)
-@auth_bp.route('/signup-form', methods=['GET', 'POST'])
-def signup_form():
-    form = SignupForm()
-    if form.validate_on_submit():
-        # Your signup logic (e.g., create user, hash password, save to db)
-        username = form.username.data
-        email = form.email.data
-        password = form.password.data
-        new_user = User(username=username, email=email)
-        new_user.set_password(password)  # Hash the password before saving
-        db.session.add(new_user)
-        db.session.commit()
-
-        flash('Signup successful!', 'success')
-        return redirect(url_for('auth.login'))
-    return render_template('signup_form.html', form=form)
-
-# Login Route (Form Route)
+# User Login (Form Route)
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
     form = LoginForm()
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()
-        if user and user.check_password(form.password.data):
-            login_user(user, remember=form.remember.data)
+        if user and user.check_password(form.password.data):  # Using check_password from the model
+            login_user(user)
             flash('Login successful!', 'success')
-            return redirect(url_for('dashboard'))  # Redirect to dashboard or desired page
+            return redirect(url_for('home'))  # Redirect to home or dashboard
         else:
-            flash('Invalid email or password.', 'danger')
-    return render_template('auth/login_signup.html', form=form, title="Login", form_action='login')
+            flash('Invalid credentials', 'danger')
+    return render_template('auth/login_signup.html', form=form)
 
 # Signup Route (Form Route)
 @auth_bp.route('/signup', methods=['GET', 'POST'])
@@ -167,8 +126,8 @@ def signup():
         db.session.commit()
         flash('Account created successfully!', 'success')
         login_user(user)  # Automatically log the user in after signup
-        return redirect(url_for('dashboard'))  # Redirect to dashboard or desired page
-    return render_template('auth/login_signup.html', form=form, title="Signup", form_action='signup')
+        return redirect(url_for('home'))  # Redirect to home or dashboard
+    return render_template('auth/login_signup.html', form=form)
 
 # Logout route
 @auth_bp.route('/logout')

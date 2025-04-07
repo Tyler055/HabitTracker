@@ -1,8 +1,6 @@
-# app/routes/analytics.py
-
 from flask import Blueprint, jsonify, session
 from pymongo import MongoClient
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from collections import defaultdict
 
 mongo_bp = Blueprint('mongo', __name__, url_prefix='/mongo')
@@ -12,9 +10,9 @@ client = MongoClient("mongodb://localhost:27017/")
 mongo_db = client["habitdb"]
 completions_collection = mongo_db["completions"]  # assumed collection for habit completions
 
-# Utility to get today's date string
+# Utility to get today's date string (timezone-aware)
 def today_str():
-    return datetime.utcnow().date().isoformat()
+    return datetime.now(timezone.utc).date().isoformat()
 
 # Route: Get total completions for current user
 @mongo_bp.route('/total_completions', methods=['GET'])
@@ -65,7 +63,7 @@ def habit_streaks():
     streaks = {}
     for habit, dates in habit_dates.items():
         current_streak = 0
-        today = datetime.utcnow().date()
+        today = datetime.now(timezone.utc).date()  # Use timezone-aware datetime
         while today in dates:
             current_streak += 1
             today -= timedelta(days=1)

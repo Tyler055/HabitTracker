@@ -60,3 +60,4 @@ class LoginForm(FlaskForm):
         DataRequired(message="Password is required")
     ])
     remember = BooleanField('Remember Me')
+

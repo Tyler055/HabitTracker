@@ -1,96 +1,99 @@
-import React, { useEffect, useState } from "react";
-import { Route, Routes, Link, useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
-// Home Component (Login/Sign Up)
-const HomePage = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+const Home = () => {
   const navigate = useNavigate();
+  const [isLoginMode, setIsLoginMode] = useState(true);
+  const [identifier, setIdentifier] = useState(""); // email or username
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    // Check if the user is already logged in
-    const userLoggedIn = localStorage.getItem("isLoggedIn") === "true";
-    setIsLoggedIn(userLoggedIn);
-
-    // If logged in, redirect to Habit Tracker
-    if (userLoggedIn) {
-      navigate("/home");  // Redirect to home page if logged in
+    const token = localStorage.getItem("token");
+    if (token) {
+      navigate("/habit-tracker");
     }
   }, [navigate]);
 
-  const handleLogin = () => {
-    // Simulate the login process (replace with real API call for production)
-    localStorage.setItem("isLoggedIn", "true");
-    setIsLoggedIn(true);
-    navigate("/home");  // Redirect to home after login
+  const toggleMode = () => {
+    setIsLoginMode((prev) => !prev);
+    setError("");
   };
 
-  const handleLogout = () => {
-    // Handle the logout process
-    localStorage.removeItem("isLoggedIn");
-    setIsLoggedIn(false);
-    navigate("/");  // Redirect to the home page after logout
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+
+    const endpoint = isLoginMode
+      ? "http://127.0.0.1:5000/auth/login"
+      : "http://127.0.0.1:5000/auth/signup";
+
+    try {
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: identifier, password }), // same key used for email/username
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Something went wrong");
+      }
+
+      if (data.token) {
+        localStorage.setItem("token", data.token);
+        navigate("/habit-tracker");
+      } else {
+        throw new Error("Token not received");
+      }
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div>
-      <h1>Welcome to Your Habit Tracker</h1>
-      <p>This is where you can track your habits and progress over time.</p>
-      <p>To get started, please log in or create an account.</p>
+    <div className="auth-container">
+      <h1>{isLoginMode ? "Log In" : "Sign Up"}</h1>
+      <p>Welcome to your Habit Tracker!</p>
 
-      {!isLoggedIn ? (
-        <div>
-          <button onClick={handleLogin}>Log In / Sign Up</button>
-        </div>
-      ) : (
-        <div>
-          <button onClick={handleLogout}>Log Out</button>
-        </div>
-      )}
+      <form onSubmit={handleSubmit} className="auth-form">
+        <input
+          type="text"
+          placeholder="Email or Username"
+          autoComplete="username"
+          value={identifier}
+          onChange={(e) => setIdentifier(e.target.value)}
+          required
+        />
 
-      <p>If you're already a user, logging in will take you straight to your Habit Tracker.</p>
+        <input
+          type="password"
+          placeholder="Password"
+          autoComplete="current-password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
+
+        <button type="submit" className="primary-btn" disabled={loading}>
+          {loading ? "Please wait..." : isLoginMode ? "Log In" : "Sign Up"}
+        </button>
+      </form>
+
+      <button onClick={toggleMode} className="link-btn">
+        {isLoginMode
+          ? "Don't have an account? Sign up here."
+          : "Already have an account? Log in."}
+      </button>
+
+      {error && <p className="error-message">{error}</p>}
     </div>
   );
 };
 
-// Component to display data from Flask API
-const HomeDataPage = () => {
-  const [data, setData] = useState(null);
-
-  useEffect(() => {
-    fetch('/api/get_html')  // Flask API endpoint
-      .then(response => response.json())
-      .then(data => setData(data))
-      .catch(error => console.error('Error fetching HTML:', error));
-  }, []);
-
-  return (
-    <div>
-      <h1>Home Page</h1>
-      {data ? <div dangerouslySetInnerHTML={{ __html: data.html }} /> : <p>Loading...</p>}
-      <nav>
-        <Link to="/other">Go to Another Page</Link>
-      </nav>
-    </div>
-  );
-};
-
-// Example of another page component
-const OtherPage = () => (
-  <div>
-    <h1>Other Page</h1>
-    <nav>
-      <Link to="/">Go back to Home Page</Link>
-    </nav>
-  </div>
-);
-
-// Main App Component (Handles Routes)
-const App = () => (
-  <Routes>
-    <Route path="/" element={<HomePage />} />  {/* Login / Sign Up page */}
-    <Route path="/home" element={<HomeDataPage />} />  {/* Main page after login */}
-    <Route path="/other" element={<OtherPage />} />  {/* Other page */}
-  </Routes>
-);
-
-export default App;
+export default Home;
