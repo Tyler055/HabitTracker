@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify, render_template, redirect, url_for, flash
 from flask_login import login_user, logout_user, login_required
-from flask_jwt_extended import create_access_token
+from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 import logging
 import datetime
 import re
@@ -55,7 +55,7 @@ def api_signup():
             return handle_error("Username or email already exists")
 
         new_user = User(username=username, email=email)
-        new_user.set_password(password)
+        new_user.set_password(password)  # Assume this hashes the password
         db.session.add(new_user)
         db.session.commit()
 

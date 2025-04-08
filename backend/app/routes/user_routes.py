@@ -82,6 +82,7 @@ def register_user():
 @login_required
 def change_theme():
     try:
+        # Toggle between light and dark theme
         new_theme = 'dark' if current_user.theme == 'light' else 'light'
         current_user.theme = new_theme
         db.session.commit()
