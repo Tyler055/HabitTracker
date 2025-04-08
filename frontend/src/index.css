@@ -1,0 +1,7 @@
+/* public/css/index.css */
+body {
+  font-family: Arial, sans-serif; /* Sets a clean, readable font */
+  background-color: #f0f0f0; /* Light gray background */
+  margin: 0; /* Removes default margin */
+  padding: 0; /* Removes default padding */
+}
