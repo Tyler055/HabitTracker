@@ -11,9 +11,9 @@
     <h3>Your Habit List</h3>
 
     {% if habits %}
-        <ul>
+        
             {% for habit in habits %}
-                <li>
+                
                     <span>{{ habit.name }}</span>
                     <!-- Form to delete a habit -->
                     <form action="{{ url_for('delete_habit', habit_id=habit.id) }}" method="POST" class="inline-form">
