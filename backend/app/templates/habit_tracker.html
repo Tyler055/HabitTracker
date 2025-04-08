@@ -14,9 +14,9 @@
         <ul>
             {% for habit in habits %}
                 <li>
-                    {{ habit.name }}
+                    <span>{{ habit.name }}</span>
                     <!-- Form to delete a habit -->
-                    <form action="{{ url_for('delete_habit', habit_id=habit.id) }}" method="POST" style="display:inline;">
+                    <form action="{{ url_for('delete_habit', habit_id=habit.id) }}" method="POST" class="inline-form">
                         <button type="submit" class="delete-btn">Delete</button>
                     </form>
                 </li>
