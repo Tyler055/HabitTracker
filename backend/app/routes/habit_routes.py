@@ -7,7 +7,6 @@ from app.schemes.schema import habit_schema, habits_schema
 from app.utils.utils import get_user_from_identity
 from sqlalchemy import Enum, func
 from flask_cors import cross_origin
-from collections import defaultdict
 
 habit_bp = Blueprint('habit_bp', __name__, url_prefix="/habits")
 
