@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Habit Tracker</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Fixed background -->
+  <div class="background"></div>
+  
+  <!-- Navbar with logo as a list item -->
+  <ul id="navbar">
+    <li id="logo-item">
+      <img src="img/logo.jpg" class="logo" alt="Logo">
+    </li>
+    <li><a class="active" href="#">Home</a></li>
+    <li><a href="#" id="load-goals">All Goals</a></li>
+    <li><a href="#">Daily</a></li>
+    <li><a href="#">Monthly</a></li>
+    <li><a href="#">Yearly</a></li>
+  </ul>
+  
+  <!-- Container for dynamically loaded content -->
+  <div id="goals-container"></div>
+  
+  <script src="script.js"></script>
+</body>
+</html>
