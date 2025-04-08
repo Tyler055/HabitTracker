@@ -1,9 +1,9 @@
 from datetime import datetime, time, timezone
 from enum import Enum
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.ext.hybrid import hybrid_property
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
+from sqlalchemy.ext.hybrid import hybrid_property
 from app.utils.extensions import db
 
 # -------------------- Soft Delete Mixin --------------------
@@ -15,14 +15,22 @@ class SoftDeleteMixin(db.Model):
     def soft_delete(self):
         self.deleted_at = datetime.now(timezone.utc)
         self._is_active = False
+        db.session.commit()
 
     def restore(self):
         self.deleted_at = None
         self._is_active = True
+        db.session.commit()
 
     @hybrid_property
     def is_active(self):
         return self._is_active and self.deleted_at is None
+
+    @classmethod
+    def get_active(cls):
+        """Retrieve only active records."""
+        return cls.query.filter(cls.deleted_at == None, cls._is_active == True)
+
 
 # -------------------- User Model --------------------
 class User(db.Model, UserMixin):
@@ -58,11 +66,13 @@ class User(db.Model, UserMixin):
     def __repr__(self):
         return f"<User {self.username}>"
 
+
 # -------------------- Habit Frequency Enum --------------------
 class FrequencyEnum(Enum):
     DAILY = "daily"
     WEEKLY = "weekly"
     MONTHLY = "monthly"
+
 
 # -------------------- Habit Model --------------------
 class Habit(SoftDeleteMixin):
@@ -78,15 +88,19 @@ class Habit(SoftDeleteMixin):
 
     completions = db.relationship('HabitCompletion', backref='habit', lazy=True, cascade="all, delete-orphan")
     reminders = db.relationship('HabitReminder', backref='habit', lazy=True, cascade="all, delete-orphan")
-    analytics = db.relationship('HabitAnalytics', backref='habit', uselist=False, cascade="all, delete-orphan")
+    analytics = db.relationship('HabitAnalytics', backref='habit_analytics', uselist=False, cascade="all, delete-orphan")
 
-    def set_default_reminder(self):
+    def set_default_reminder(self, reminder_time=time(9, 0), reminder_message=None):
+        """Set default reminder if it doesn't exist."""
         if not HabitReminder.query.filter_by(habit_id=self.id).first():
+            if reminder_message is None:
+                reminder_message = f"Reminder for {self.name}"
+
             reminder = HabitReminder(
                 habit_id=self.id,
                 user_id=self.user_id,
-                reminder_time=time(9, 0),
-                reminder_message=f"Reminder for {self.name}"
+                reminder_time=reminder_time,
+                reminder_message=reminder_message
             )
             db.session.add(reminder)
             db.session.commit()
@@ -99,11 +113,13 @@ class Habit(SoftDeleteMixin):
             'user_id': self.user_id,
             'created_at': self.created_at.isoformat(),
             'updated_at': self.updated_at.isoformat(),
-            'is_active': self.is_active
+            'is_active': self.is_active,
+            'deleted_at': self.deleted_at.isoformat() if self.deleted_at else None
         }
 
     def __repr__(self):
         return f"<Habit {self.name}>"
+
 
 # -------------------- Habit Completion Model --------------------
 class HabitCompletion(SoftDeleteMixin):
@@ -112,18 +128,20 @@ class HabitCompletion(SoftDeleteMixin):
     id = db.Column(db.Integer, primary_key=True)
     habit_id = db.Column(db.Integer, db.ForeignKey('habits.id'), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
-    completed_at = db.Column(db.DateTime, default=datetime.now(timezone.utc))
+    date_completed = db.Column(db.DateTime, default=datetime.now(timezone.utc))
 
     def to_dict(self):
         return {
             'id': self.id,
             'habit_id': self.habit_id,
             'user_id': self.user_id,
-            'completed_at': self.completed_at.isoformat()
+            'date_completed': self.date_completed.isoformat(),
+            'deleted_at': self.deleted_at.isoformat() if self.deleted_at else None
         }
 
     def __repr__(self):
         return f"<HabitCompletion habit={self.habit_id} user={self.user_id}>"
+
 
 # -------------------- Habit Reminder Model --------------------
 class HabitReminder(SoftDeleteMixin):
@@ -146,49 +164,29 @@ class HabitReminder(SoftDeleteMixin):
             'habit_id': self.habit_id,
             'user_id': self.user_id,
             'reminder_time': self.reminder_time.isoformat(),
-            'reminder_message': self.reminder_message
+            'reminder_message': self.reminder_message,
+            'deleted_at': self.deleted_at.isoformat() if self.deleted_at else None
         }
 
     def __repr__(self):
         return f"<HabitReminder '{self.reminder_message}' at {self.reminder_time}>"
 
+
 # -------------------- Habit Analytics Model --------------------
-class HabitAnalytics(db.Model):
+class HabitAnalytics(SoftDeleteMixin):
     __tablename__ = 'habit_analytics'
 
     id = db.Column(db.Integer, primary_key=True)
-    habit_id = db.Column(db.Integer, db.ForeignKey('habits.id'), nullable=False, unique=True)
-    total_completions = db.Column(db.Integer, default=0)
-    current_streak = db.Column(db.Integer, default=0)
-    longest_streak = db.Column(db.Integer, default=0)
-    last_completed = db.Column(db.DateTime, nullable=True)
-
-    def update_on_completion(self, completed_at):
-        if self.last_completed and completed_at < self.last_completed:
-            return
-
-        self.total_completions += 1
-        if self.last_completed:
-            delta = (completed_at.date() - self.last_completed.date()).days
-            if delta == 1:
-                self.current_streak += 1
-            elif delta > 1:
-                self.current_streak = 1
-        else:
-            self.current_streak = 1
-
-        self.longest_streak = max(self.longest_streak, self.current_streak)
-        self.last_completed = completed_at
+    habit_id = db.Column(db.Integer, db.ForeignKey('habits.id'), nullable=False)
+    streak = db.Column(db.Integer, default=0)
 
     def to_dict(self):
         return {
             'id': self.id,
             'habit_id': self.habit_id,
-            'total_completions': self.total_completions,
-            'current_streak': self.current_streak,
-            'longest_streak': self.longest_streak,
-            'last_completed': self.last_completed.isoformat() if self.last_completed else None
+            'streak': self.streak,
+            'deleted_at': self.deleted_at.isoformat() if self.deleted_at else None
         }
 
     def __repr__(self):
-        return f"<HabitAnalytics habit={self.habit_id} total={self.total_completions} streak={self.current_streak}>"
+        return f"<HabitAnalytics habit={self.habit_id} streak={self.streak}>"

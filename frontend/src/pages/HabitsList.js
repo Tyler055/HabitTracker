@@ -1,4 +1,3 @@
-// HabitList.jsx
 import React from "react";
 
 const HabitList = ({
@@ -11,9 +10,17 @@ const HabitList = ({
   handleDeleteHabit,
   handleCompleteHabit,
 }) => {
+  const defaultHabits = [
+    { id: 1, name: "Drink 8 glasses of water", completed_today: false },
+    { id: 2, name: "Exercise for 30 minutes", completed_today: false },
+    { id: 3, name: "Read 20 pages of a book", completed_today: false },
+  ];
+
+  const habitsToDisplay = habits.length > 0 ? habits : defaultHabits;
+
   return (
     <ul className="space-y-2">
-      {habits.map((habit) => (
+      {habitsToDisplay.map((habit) => (
         <li
           key={habit.id}
           className="flex items-center justify-between bg-white p-3 rounded shadow"
@@ -47,12 +54,14 @@ const HabitList = ({
                 Completed Today
               </span>
             )}
-            <button
-              onClick={() => handleCompleteHabit(habit.id)}
-              className="bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded text-sm"
-            >
-              Complete
-            </button>
+
+            <input
+              type="checkbox"
+              checked={habit.completed_today}
+              onChange={() => handleCompleteHabit(habit.id)}
+              className="form-checkbox h-4 w-4 text-green-500"
+            />
+
             <button
               onClick={() => handleDeleteHabit(habit.id)}
               className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-sm"

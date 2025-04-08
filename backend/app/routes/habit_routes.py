@@ -1,11 +1,11 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from app.models.models import Habit, HabitCompletion
+from app.models.models import Habit, HabitCompletion, HabitReminder, FrequencyEnum
 from app.utils.extensions import db
 from datetime import date, timedelta
 from app.schemes.schema import habit_schema, habits_schema
 from app.utils.utils import get_user_from_identity
-from sqlalchemy import Enum, func
+from sqlalchemy import func
 from flask_cors import cross_origin
 
 habit_bp = Blueprint('habit_bp', __name__, url_prefix="/habits")
@@ -20,13 +20,7 @@ def get_current_user():
 
 # Pagination utility
 def paginate(query, page, per_page):
-    return query.paginate(page, per_page, False)
-
-# Frequency enum
-class FrequencyEnum(str, Enum):
-    DAILY = "daily"
-    WEEKLY = "weekly"
-    MONTHLY = "monthly"
+    return query.paginate(page=page, per_page=per_page, error_out=False)
 
 # ---------------- GET Habits ----------------
 @habit_bp.route('/', methods=['GET'])
@@ -66,128 +60,9 @@ def get_habits():
         'pages': habits.pages,
         'current_page': habits.page,
         'per_page': habits.per_page
-    }), 200
+    })
 
-# ---------------- POST Habit ----------------
-@habit_bp.route('/', methods=['POST'])
-@jwt_required()
-@cross_origin(origins=["http://localhost:3000"], supports_credentials=True)
-def add_habit():
-    user = get_current_user()
-    if not user:
-        return jsonify({'error': 'Unauthorized'}), 401
-
-    data = request.get_json()
-    errors = habit_schema.validate(data)
-    if errors:
-        return jsonify({'errors': errors}), 400
-
-    frequency = data.get('frequency', FrequencyEnum.DAILY.value)
-    if frequency not in [e.value for e in FrequencyEnum]:
-        return jsonify({'error': 'Invalid frequency'}), 400
-
-    habit = Habit(
-        user_id=user.id,
-        name=data['name'],
-        description=data.get('description'),
-        frequency=frequency
-    )
-    db.session.add(habit)
-    db.session.commit()
-    return jsonify(habit_schema.dump(habit)), 201
-
-# ---------------- PATCH Habit ----------------
-@habit_bp.route('/<int:id>', methods=['PATCH'])
-@jwt_required()
-@cross_origin(origins=["http://localhost:3000"], supports_credentials=True)
-def update_habit(id):
-    user = get_current_user()
-    if not user:
-        return jsonify({'error': 'Unauthorized'}), 401
-
-    habit = Habit.query.filter_by(id=id, user_id=user.id, is_active=True).first()
-    if not habit:
-        return jsonify({'error': 'Habit not found'}), 404
-
-    data = request.get_json()
-    name = data.get('name')
-    description = data.get('description')
-    frequency = data.get('frequency')
-
-    if frequency and frequency not in [e.value for e in FrequencyEnum]:
-        return jsonify({'error': 'Invalid frequency'}), 400
-
-    if name:
-        habit.name = name
-    if description:
-        habit.description = description
-    if frequency:
-        habit.frequency = frequency
-
-    db.session.commit()
-    return jsonify(habit_schema.dump(habit)), 200
-
-# ---------------- DELETE Habit ----------------
-@habit_bp.route('/<int:id>', methods=['DELETE'])
-@jwt_required()
-@cross_origin(origins=["http://localhost:3000"], supports_credentials=True)
-def delete_habit(id):
-    user = get_current_user()
-    if not user:
-        return jsonify({'error': 'Unauthorized'}), 401
-
-    habit = Habit.query.filter_by(id=id, user_id=user.id, is_active=True).first()
-    if not habit:
-        return jsonify({'error': 'Habit not found'}), 404
-
-    habit.soft_delete()
-    db.session.commit()
-    return jsonify({'message': 'Habit soft-deleted'}), 200
-
-# ---------------- Restore Habit ----------------
-@habit_bp.route('/restore/<int:id>', methods=['PATCH'])
-@jwt_required()
-@cross_origin(origins=["http://localhost:3000"], supports_credentials=True)
-def restore_habit(id):
-    user = get_current_user()
-    if not user:
-        return jsonify({'error': 'Unauthorized'}), 401
-
-    habit = Habit.query.filter_by(id=id, user_id=user.id, is_active=False).first()
-    if not habit:
-        return jsonify({'error': 'Habit not found or not deleted'}), 404
-
-    habit.restore()
-    db.session.commit()
-    return jsonify({'message': 'Habit restored'}), 200
-
-# ---------------- Complete Habit (Toggle) ----------------
-@habit_bp.route('/complete/<int:id>', methods=['POST'])
-@jwt_required()
-@cross_origin(origins=["http://localhost:3000"], supports_credentials=True)
-def complete_habit(id):
-    user = get_current_user()
-    if not user:
-        return jsonify({'error': 'Unauthorized'}), 401
-
-    habit = Habit.query.filter_by(id=id, user_id=user.id, is_active=True).first()
-    if not habit:
-        return jsonify({'error': 'Habit not found'}), 404
-
-    today = date.today()
-    completion = HabitCompletion.query.filter_by(habit_id=habit.id, date_completed=today).first()
-
-    if completion:
-        db.session.delete(completion)
-        db.session.commit()
-        return jsonify({'message': 'Completion removed', 'completed': False}), 200
-    else:
-        new_completion = HabitCompletion(habit_id=habit.id, date_completed=today)
-        db.session.add(new_completion)
-        db.session.commit()
-        return jsonify({'message': 'Habit marked as completed', 'completed': True}), 200
-
-# ---------------- Bulk Complete ----------------
+# ---------------- Bulk Complete Habits ----------------
 @habit_bp.route('/complete_bulk', methods=['POST'])
 @jwt_required()
 @cross_origin(origins=["http://localhost:3000"], supports_credentials=True)
@@ -202,6 +77,8 @@ def bulk_complete_habits():
 
     today = date.today()
     completed = []
+    failed = []
+
     for habit_id in habit_ids:
         habit = Habit.query.filter_by(id=habit_id, user_id=user.id, is_active=True).first()
         if habit:
@@ -209,11 +86,18 @@ def bulk_complete_habits():
             if not exists:
                 db.session.add(HabitCompletion(habit_id=habit.id, date_completed=today))
                 completed.append(habit.id)
-
+            else:
+                failed.append(habit.id)
+    
     db.session.commit()
-    return jsonify({'message': f'Completed {len(completed)} habits', 'completed_ids': completed}), 200
 
-# ---------------- Stats Endpoint ----------------
+    return jsonify({
+        'message': f'Completed {len(completed)} habits',
+        'completed_ids': completed,
+        'failed_ids': failed
+    }), 200
+
+# ---------------- Habit Stats ----------------
 @habit_bp.route('/stats', methods=['GET'])
 @jwt_required()
 @cross_origin(origins=["http://localhost:3000"], supports_credentials=True)

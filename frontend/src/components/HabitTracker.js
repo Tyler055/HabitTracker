@@ -1,25 +1,25 @@
 import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
-import HabitList from "../pages/HabitsList";
+import HabitList from "../pages/HabitsList"; // Assuming this is your component for listing habits
 
 const HabitTracker = () => {
-  const [habitInput, setHabitInput] = useState("");
-  const [habits, setHabits] = useState([]);
-  const [selectedHabits, setSelectedHabits] = useState([]);
-  const [message, setMessage] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [stats, setStats] = useState([]);
-  const [statsPeriod, setStatsPeriod] = useState("7d");
-  const [filter, setFilter] = useState("all");
-  const [editingHabitId, setEditingHabitId] = useState(null);
-  const [editedHabitName, setEditedHabitName] = useState("");
+  const [habitInput, setHabitInput] = useState(""); // Input for new habit
+  const [description, setDescription] = useState(""); // Habit description
+  const [reminderFrequency, setReminderFrequency] = useState(""); // Frequency for reminders
+  const [habits, setHabits] = useState([]); // List of all habits
+  const [message, setMessage] = useState(""); // For success/error messages
+  const [isLoading, setIsLoading] = useState(false); // Loading state
+  const [filter, setFilter] = useState("all"); // Filter for habits (e.g., daily, weekly)
+  const [selectedHabits, setSelectedHabits] = useState([]); // For bulk actions
+  const [editingHabitId, setEditingHabitId] = useState(null); // Track habit being edited
+  const [editedHabitName, setEditedHabitName] = useState(""); // Name of the habit being edited
 
-  const token = localStorage.getItem("token") || "";
+  const token = localStorage.getItem("token") || ""; // Authentication token
 
   // Display messages
   const showMessage = useCallback((msg) => {
     setMessage(msg);
-    setTimeout(() => setMessage(""), 3000);
+    setTimeout(() => setMessage(""), 3000); // Clear message after 3 seconds
   }, []);
 
   // Fetch habits from the API
@@ -28,9 +28,9 @@ const HabitTracker = () => {
     try {
       const res = await axios.get("http://127.0.0.1:5000/habits", {
         headers: { Authorization: `Bearer ${token}` },
-        params: filter === "all" ? {} : { frequency: filter },
+        params: filter === "all" ? {} : { frequency: filter }, // Apply filter when fetching habits
       });
-      setHabits(res.data.habits || []);
+      setHabits(res.data || []);
     } catch (err) {
       console.error(err);
       showMessage("Failed to fetch habits.");
@@ -39,40 +39,34 @@ const HabitTracker = () => {
     }
   }, [token, filter, showMessage]);
 
-  // Fetch stats based on the selected period
-  const fetchStats = useCallback(async (period) => {
-    try {
-      const res = await axios.get("http://127.0.0.1:5000/habits/stats", {
-        headers: { Authorization: `Bearer ${token}` },
-        params: { period },
-      });
-      setStats(res.data.stats);
-    } catch (err) {
-      console.error(err);
-      showMessage("Failed to fetch stats.");
-    }
-  }, [token, showMessage]);
-
-  // Fetch habits and stats on mount
+  // Fetch habits on mount or when filter changes
   useEffect(() => {
     fetchHabits();
-    fetchStats(statsPeriod);
-  }, [fetchHabits, fetchStats, statsPeriod]);
+  }, [fetchHabits]);
 
   // Add a new habit
   const handleAddHabit = async (e) => {
     e.preventDefault();
-    if (!habitInput.trim()) return;
+    if (!habitInput.trim()) return; // Prevent adding empty habit
 
     setIsLoading(true);
     try {
       const res = await axios.post(
         "http://127.0.0.1:5000/habits",
-        { name: habitInput },
-        { headers: { Authorization: `Bearer ${token}` } }
+        {
+          name: habitInput,
+          description: description,
+          frequency: "daily", // Default to daily frequency
+          reminder_frequency: reminderFrequency,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
       );
-      setHabits((prev) => [...prev, res.data]);
-      setHabitInput("");
+      setHabits((prev) => [...prev, res.data.habit]);
+      setHabitInput(""); // Reset input
+      setDescription(""); // Reset description
+      setReminderFrequency(""); // Reset reminder frequency
       showMessage("Habit added successfully!");
     } catch (err) {
       console.error(err);
@@ -84,7 +78,7 @@ const HabitTracker = () => {
 
   // Edit a habit's name
   const handleEditHabit = async (id) => {
-    if (!editedHabitName.trim()) return;
+    if (!editedHabitName.trim()) return; // Prevent empty edits
 
     try {
       await axios.put(
@@ -97,8 +91,8 @@ const HabitTracker = () => {
           habit.id === id ? { ...habit, name: editedHabitName } : habit
         )
       );
-      setEditingHabitId(null);
-      setEditedHabitName("");
+      setEditingHabitId(null); // Clear editing state
+      setEditedHabitName(""); // Clear edited name
       showMessage("Habit updated successfully!");
     } catch (err) {
       console.error(err);
@@ -110,8 +104,8 @@ const HabitTracker = () => {
   const handleDeleteHabit = async (id) => {
     if (!window.confirm("Are you sure you want to delete this habit?")) return;
 
-    const original = [...habits];
-    setHabits((prev) => prev.filter((h) => h.id !== id));
+    const original = [...habits]; // Backup the original habits list
+    setHabits((prev) => prev.filter((h) => h.id !== id)); // Remove from UI optimistically
     setIsLoading(true);
     try {
       await axios.delete(`http://127.0.0.1:5000/habits/${id}`, {
@@ -120,7 +114,7 @@ const HabitTracker = () => {
       showMessage("Habit deleted.");
     } catch (err) {
       console.error(err);
-      setHabits(original);
+      setHabits(original); // Restore original list if deletion fails
       showMessage("Failed to delete habit.");
     } finally {
       setIsLoading(false);
@@ -139,12 +133,12 @@ const HabitTracker = () => {
     setIsLoading(true);
     try {
       await axios.post(
-        `http://127.0.0.1:5000/habits/${id}/complete`,
+        `http://127.0.0.1:5000/habits/complete/${id}`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
       showMessage("Habit completed successfully!");
-      fetchHabits();
+      fetchHabits(); // Refresh the habit list
     } catch (err) {
       console.error(err);
       showMessage("Failed to complete habit.");
@@ -168,8 +162,8 @@ const HabitTracker = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       showMessage(`Completed ${res.data.completed_ids.length} habits.`);
-      setSelectedHabits([]);
-      fetchHabits();
+      setSelectedHabits([]); // Clear selection
+      fetchHabits(); // Refresh the habit list
     } catch (err) {
       console.error(err);
       showMessage("Failed to complete selected habits.");
@@ -189,12 +183,12 @@ const HabitTracker = () => {
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setHabits([]);
+      setHabits([]); // Clear all habits from UI
       showMessage("All habits reset.");
     } catch (err) {
       console.error(err);
       showMessage("Failed to reset habits.");
-      fetchHabits();
+      fetchHabits(); // Refresh habit list if reset fails
     } finally {
       setIsLoading(false);
     }
@@ -204,30 +198,36 @@ const HabitTracker = () => {
     <div className="habit-container">
       <h1>Habit Tracker</h1>
 
-      {/* Add Habit Form */}
-      <form onSubmit={handleAddHabit} className="habit-form">
+      {/* Habit Form */}
+      <form onSubmit={handleAddHabit}>
         <input
           type="text"
-          placeholder="Add a new habit"
+          placeholder="habit name"
           value={habitInput}
           onChange={(e) => setHabitInput(e.target.value)}
-          className="input-box"
         />
-        <button type="submit" disabled={isLoading} className="add-btn">
-          {isLoading ? "Adding..." : "Add"}
+        <textarea
+          placeholder="Optional description"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+        />
+        <select
+          value={reminderFrequency}
+          onChange={(e) => setReminderFrequency(e.target.value)}
+        >
+          <option value="">Reminder Frequency</option>
+          <option value="daily">Daily</option>
+          <option value="weekly">Weekly</option>
+          <option value="monthly">Monthly</option>
+        </select>
+        <button type="submit" disabled={isLoading}>
+          {isLoading ? "Adding..." : "Add Habit"}
         </button>
       </form>
 
-      {/* Message Display */}
-      {message && <p className="message">{message}</p>}
-
-      {/* Habit Filter */}
-      <div className="flex space-x-2 mb-4">
-        <select
-          value={filter}
-          onChange={(e) => setFilter(e.target.value)}
-          className="border px-2 py-1 rounded"
-        >
+      {/* Filter by Frequency */}
+      <div>
+        <select onChange={(e) => setFilter(e.target.value)} value={filter}>
           <option value="all">All</option>
           <option value="daily">Daily</option>
           <option value="weekly">Weekly</option>
@@ -235,72 +235,54 @@ const HabitTracker = () => {
         </select>
       </div>
 
-      {/* Loading State or Habits List */}
+      {/* Habit List Title */}
+      <h2>Habit List</h2>
+
+      {/* Habit List */}
       {isLoading ? (
         <div className="spinner">Loading...</div>
-      ) : habits.length ? (
+      ) : (
         <HabitList
           habits={habits}
-          editingHabitId={editingHabitId}
-          editedHabitName={editedHabitName}
+          onEditHabit={handleEditHabit}
+          onDeleteHabit={handleDeleteHabit}
+          onCompleteHabit={handleCompleteHabit}
+          onToggleSelection={toggleSelection}
           setEditingHabitId={setEditingHabitId}
+          editingHabitId={editingHabitId}
           setEditedHabitName={setEditedHabitName}
-          handleEditHabit={handleEditHabit}
-          handleDeleteHabit={handleDeleteHabit}
-          handleCompleteHabit={(id) => handleCompleteHabit(id)}
-          toggleSelection={toggleSelection}
-          selectedHabits={selectedHabits}
+          editedHabitName={editedHabitName}
         />
-      ) : (
-        <p>No habits found.</p>
       )}
 
-      {/* Bulk Complete & Reset Buttons */}
-      <button
-        onClick={handleBulkComplete}
-        disabled={isLoading || selectedHabits.length === 0}
-        className="bulk-complete-btn"
-      >
-        {isLoading ? "Processing..." : "Bulk Complete Selected"}
-      </button>
-
-      <button
-        onClick={handleResetHabits}
-        disabled={isLoading}
-        className="reset-btn"
-      >
-        {isLoading ? "Resetting..." : "Reset All"}
-      </button>
-
-      {/* Stats Section */}
-      <div className="stats-container">
-        <h2>Habit Stats</h2>
-        <div className="stats-controls">
-          <button
-            onClick={() => setStatsPeriod("7d")}
-            disabled={statsPeriod === "7d"}
-          >
-            Last 7 days
-          </button>
-          <button
-            onClick={() => setStatsPeriod("30d")}
-            disabled={statsPeriod === "30d"}
-          >
-            Last 30 days
-          </button>
-        </div>
-        {stats.length ? (
-          <ul className="stats-list">
-            {stats.map((stat) => (
-              <li key={stat.date}>
-                {stat.date}: {stat.count} completions
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p>No stats available.</p>
-        )}
+      {/* Complete Checkboxes */}
+      <div>
+        {habits.map((habit) => (
+          <div key={habit.id}>
+            <input
+              type="checkbox"
+              checked={selectedHabits.includes(habit.id)}
+              onChange={() => toggleSelection(habit.id)}
+            />
+            {habit.name}
+          </div>
+        ))}
       </div>
+
+      {/* Bulk Complete */}
+      {selectedHabits.length > 0 && (
+        <button onClick={handleBulkComplete} disabled={isLoading}>
+          Complete Selected Habits
+        </button>
+      )}
+
+      {/* Reset All */}
+      <button onClick={handleResetHabits} disabled={isLoading}>
+        Reset All Habits
+      </button>
+
+      {/* Message */}
+      {message && <div>{message}</div>}
     </div>
   );
 };
