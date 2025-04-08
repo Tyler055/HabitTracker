@@ -14,7 +14,7 @@ const HabitTracker = () => {
   const [editingHabitId, setEditingHabitId] = useState(null); // Track habit being edited
   const [editedHabitName, setEditedHabitName] = useState(""); // Name of the habit being edited
 
-  const token = localStorage.getItem("token") || ""; // Authentication token
+  const token = localStorage.getItem("token"); // Authentication token
 
   // Display messages
   const showMessage = useCallback((msg) => {
@@ -24,6 +24,11 @@ const HabitTracker = () => {
 
   // Fetch habits from the API
   const fetchHabits = useCallback(async () => {
+    if (!token) {
+      showMessage("You must be logged in.");
+      return;
+    }
+
     setIsLoading(true);
     try {
       const res = await axios.get("http://127.0.0.1:5000/habits", {
@@ -39,7 +44,6 @@ const HabitTracker = () => {
     }
   }, [token, filter, showMessage]);
 
-  // Fetch habits on mount or when filter changes
   useEffect(() => {
     fetchHabits();
   }, [fetchHabits]);
@@ -48,6 +52,11 @@ const HabitTracker = () => {
   const handleAddHabit = async (e) => {
     e.preventDefault();
     if (!habitInput.trim()) return; // Prevent adding empty habit
+
+    if (!token) {
+      showMessage("You must be logged in.");
+      return;
+    }
 
     setIsLoading(true);
     try {
@@ -80,6 +89,12 @@ const HabitTracker = () => {
   const handleEditHabit = async (id) => {
     if (!editedHabitName.trim()) return; // Prevent empty edits
 
+    if (!token) {
+      showMessage("You must be logged in.");
+      return;
+    }
+
+    setIsLoading(true);
     try {
       await axios.put(
         `http://127.0.0.1:5000/habits/${id}`,
@@ -97,12 +112,19 @@ const HabitTracker = () => {
     } catch (err) {
       console.error(err);
       showMessage("Failed to edit habit.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   // Delete a habit
   const handleDeleteHabit = async (id) => {
     if (!window.confirm("Are you sure you want to delete this habit?")) return;
+
+    if (!token) {
+      showMessage("You must be logged in.");
+      return;
+    }
 
     const original = [...habits]; // Backup the original habits list
     setHabits((prev) => prev.filter((h) => h.id !== id)); // Remove from UI optimistically
@@ -121,15 +143,13 @@ const HabitTracker = () => {
     }
   };
 
-  // Toggle habit selection for bulk actions
-  const toggleSelection = (id) => {
-    setSelectedHabits((prev) =>
-      prev.includes(id) ? prev.filter((sid) => sid !== id) : [...prev, id]
-    );
-  };
-
   // Complete a single habit
   const handleCompleteHabit = async (id) => {
+    if (!token) {
+      showMessage("You must be logged in.");
+      return;
+    }
+
     setIsLoading(true);
     try {
       await axios.post(
@@ -147,6 +167,13 @@ const HabitTracker = () => {
     }
   };
 
+  // Toggle habit selection for bulk actions
+  const toggleSelection = (id) => {
+    setSelectedHabits((prev) =>
+      prev.includes(id) ? prev.filter((sid) => sid !== id) : [...prev, id]
+    );
+  };
+
   // Complete selected habits in bulk
   const handleBulkComplete = async () => {
     if (selectedHabits.length === 0) {
@@ -154,10 +181,15 @@ const HabitTracker = () => {
       return;
     }
 
+    if (!token) {
+      showMessage("You must be logged in.");
+      return;
+    }
+
     setIsLoading(true);
     try {
       const res = await axios.post(
-        "http://127.0.0.1:5000/habits/complete_bulk",
+        "http://127.0.0.1:5000/completion/habits/complete_bulk",
         { habit_ids: selectedHabits },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -175,6 +207,11 @@ const HabitTracker = () => {
   // Reset all habits
   const handleResetHabits = async () => {
     if (!window.confirm("Reset all habits?")) return;
+
+    if (!token) {
+      showMessage("You must be logged in.");
+      return;
+    }
 
     setIsLoading(true);
     try {
