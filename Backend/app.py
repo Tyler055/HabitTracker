@@ -13,8 +13,8 @@ def get_db_connection():
     conn = mysql.connector.connect(
         host='localhost',                
         user='for_flask',                
-        password='25FlaskOnly25@',       
-        database='habit_tracker'         
+        password='25FlaskOnly25@',      
+        database='habit_tracker'       
     )
     return conn
 
@@ -34,20 +34,26 @@ def signup():
         hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
 
         # Connect to the database
+        print("Working??")
         conn = get_db_connection()
+        print("hmmm??")
         cursor = conn.cursor()
+        print("Maybe??")
         # Check if user already exists
         cursor.execute('SELECT * FROM users WHERE username = %s', (username,))
         user = cursor.fetchone()
+        print(user)
         if user:
-            flash('Username already exists!', 'danger')
+            flash('Username already exists!', 'Failed')
             conn.close()
-            return redirect(url_for('signup'))
+            return redirect(url_for('login'))
         
         # Insert the new user into the database
         cursor.execute('INSERT INTO users (username, password) VALUES (%s, %s)', (username, hashed_password))
         conn.commit()
         conn.close()
+
+        print("Hopefully??")
 
         flash('User created successfully!', 'success')
         return redirect(url_for('login'))
@@ -59,12 +65,15 @@ def login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
+        print("WRKs??")
 
         conn = get_db_connection()
+        
         cursor = conn.cursor()
         cursor.execute('SELECT * FROM users WHERE username = %s', (username,))
         user = cursor.fetchone()
         conn.close()
+        print("Works??")
 
         
         if user and check_password_hash(user[2], password):
@@ -72,15 +81,16 @@ def login():
             session['user_id'] = user[0]
             return redirect(url_for('home'))
         else:
-            flash('Invalid username or password!', 'danger')
-            return redirect(url_for('login'))
+            flash('Invalid username or password!', 'Failed')
+            return redirect(url_for('signup'))
+        print("WRKs??")
 
     return render_template('login.html')
 
 @app.route('/logout')
 def logout():
     session.pop('user_id', None)
-    flash('You have been logged out.', 'info')
+    flash('You have been logged out.', 'message')
     return redirect(url_for('login'))
 
 if __name__ == '__main__':
