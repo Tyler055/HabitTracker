@@ -105,10 +105,28 @@ document.addEventListener("DOMContentLoaded", function () {
         const category = getCurrentCategory();
         const savedGoals = JSON.parse(localStorage.getItem(category) || '[]');
         
+        // Convert existing goals to array and mark them as default
+        const defaultGoals = Array.from(goalList.children).map(li => ({
+            text: li.textContent,
+            completed: false,
+            isDefault: true
+        }));
+
+        // Clear the list
         goalList.innerHTML = '';
-        savedGoals.forEach(goal => {
-            const li = createGoalElement(goal.text, goal.completed);
+
+        // Add default goals first
+        defaultGoals.forEach(goal => {
+            const li = createGoalElement(goal.text, goal.completed, true);
             goalList.appendChild(li);
+        });
+
+        // Add saved goals that are not defaults
+        savedGoals.forEach(goal => {
+            if (!defaultGoals.some(defaultGoal => defaultGoal.text === goal.text)) {
+                const li = createGoalElement(goal.text, goal.completed, false);
+                goalList.appendChild(li);
+            }
         });
     }
 
@@ -125,34 +143,38 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // Function to create a goal element
-    function createGoalElement(text, completed = false) {
+    function createGoalElement(text, completed = false, isDefault = false) {
         const li = document.createElement("li");
         
-        const checkbox = document.createElement("input");
-        checkbox.type = "checkbox";
-        checkbox.checked = completed;
-        checkbox.addEventListener("change", function() {
-            li.classList.toggle("completed");
-            saveGoals();
-        });
+        if (!isDefault) {
+            const checkbox = document.createElement("input");
+            checkbox.type = "checkbox";
+            checkbox.checked = completed;
+            checkbox.addEventListener("change", function() {
+                li.classList.toggle("completed");
+                saveGoals();
+            });
+            li.appendChild(checkbox);
+        }
 
         const span = document.createElement("span");
         span.textContent = text;
         if (completed) {
             li.classList.add("completed");
         }
-
-        const deleteBtn = document.createElement("button");
-        deleteBtn.textContent = "×";
-        deleteBtn.className = "delete-btn";
-        deleteBtn.addEventListener("click", function() {
-            li.remove();
-            saveGoals();
-        });
-
-        li.appendChild(checkbox);
         li.appendChild(span);
-        li.appendChild(deleteBtn);
+
+        if (!isDefault) {
+            const deleteBtn = document.createElement("button");
+            deleteBtn.textContent = "×";
+            deleteBtn.className = "delete-btn";
+            deleteBtn.addEventListener("click", function() {
+                li.remove();
+                saveGoals();
+            });
+            li.appendChild(deleteBtn);
+        }
+
         return li;
     }
 
@@ -162,10 +184,12 @@ document.addEventListener("DOMContentLoaded", function () {
         if (!goalList) return;
 
         const category = getCurrentCategory();
-        const goals = Array.from(goalList.children).map(li => ({
-            text: li.querySelector("span").textContent,
-            completed: li.querySelector("input").checked
-        }));
+        const goals = Array.from(goalList.children)
+            .filter(li => !li.classList.contains('default-goal'))
+            .map(li => ({
+                text: li.querySelector("span").textContent,
+                completed: li.querySelector("input")?.checked || false
+            }));
 
         localStorage.setItem(category, JSON.stringify(goals));
     }

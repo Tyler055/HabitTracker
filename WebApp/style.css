@@ -44,7 +44,7 @@ body {
   box-sizing: border-box;
   transition: width 0.3s ease;
   z-index: 2;
-  list-style: none; /* Remove default list styling */
+  list-style: none;
 }
 
 /* Navbar expands on hover */
@@ -57,10 +57,10 @@ body {
   width: 100%;
   padding: 5px;
   box-sizing: border-box;
-  text-align: center; /* Center logo inside the container */
+  text-align: center;
 }
 
-/* Logo - fill the full width of its container */
+/* Logo - fills the full width of its container */
 .logo {
   width: 100%;
   height: auto;
@@ -74,8 +74,8 @@ body {
   transition: opacity 0.3s ease;
   width: 100%;
   display: flex;
-  justify-content: center; /* Center the text horizontally */
-  align-items: center; /* Center the text vertically */
+  justify-content: center;
+  align-items: center;
 }
 
 /* Show links when navbar is hovered */
@@ -91,11 +91,10 @@ body {
   font-weight: bold;
   display: block;
   padding: 10px 15px;
-  text-align: center; /* Center the text in the link */
+  text-align: center;
   width: 100%;
 }
 
-/* Active link color */
 #navbar a.active {
   color: #FFD700;
 }
@@ -106,13 +105,67 @@ body {
   padding: 20px;
   background-color: rgba(255, 255, 255, 0.9);
   overflow-y: auto;
-  display: none;   /* Initially hidden */
+  display: none;  /* Initially hidden */
   z-index: 1;
-  margin-left: 60px;  /* Make room for collapsed navbar */
+  margin-left: 60px;  /* Room for collapsed navbar */
   transition: margin-left 0.3s ease;
 }
 
-/* When the navbar is expanded, the body gets a class to shift the content */
+/* When the navbar is expanded, shift content */
 body.nav-expanded #goals-container {
   margin-left: 150px;
+}
+
+/* Additional styling for goal categories */
+.goal-category {
+  margin-bottom: 30px;
+}
+
+.goal-category h2 {
+  font-size: 24px;
+  margin-bottom: 10px;
+  color: #333;
+}
+
+.goal-category ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.goal-category li {
+  font-size: 18px;
+  padding: 5px 0;
+  border-bottom: 1px solid #ddd;
+}
+
+/* Input Section (Add Goal Form) */
+#input {
+  margin-top: 30px;
+}
+
+#goal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 400px;
+}
+
+#goal-input {
+  padding: 10px;
+  font-size: 16px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}
+
+button {
+  padding: 10px;
+  font-size: 16px;
+  background-color: #FFD700;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #FFC107;
 }
