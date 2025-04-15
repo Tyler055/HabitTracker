@@ -19,7 +19,7 @@ document.addEventListener("DOMContentLoaded", function () {
         e.preventDefault();
 
         if (goalsContainer.innerHTML === "") {
-            fetch('../Locations/allgoals.html') // Adjust path as needed
+            fetch('/Locations/allgoals.html')
                 .then(response => {
                     if (!response.ok) {
                         throw new Error("Network response was not ok");
@@ -79,3 +79,9 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 });
+
+// Function to load goals
+function loadGoals() {
+    const goalsContainer = document.getElementById('goals-container');
+    goalsContainer.innerHTML = '<h2>Your Goals</h2><p>Goals will be loaded here.</p>';
+}

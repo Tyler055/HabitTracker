@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Slide Auth</title>
+    <title>Habit Tracker - Authentication</title>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Jost:wght@500&display=swap" rel="stylesheet">
 </head>
@@ -9,11 +9,23 @@
     <div class="main">
         <input type="checkbox" id="chk" aria-hidden="true" {{ 'checked' if request.path.endswith('/signup') else '' }}>
 
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
         <div class="signup">
-            <form method="POST" action="{{ url_for('auth', mode='signup') }}">
+            <form method="POST" action="{{ url_for('auth', mode='signup') }}" class="form-validate">
                 <label for="chk" aria-hidden="true">Sign up</label>
-                <input type="text" name="username" placeholder="User name" required="">
-                <input type="password" name="password" placeholder="Password" required="">
+                <input type="text" name="username" placeholder="Username" required autocomplete="username">
+                <input type="password" name="password" placeholder="Password" required autocomplete="new-password">
+                <div class="password-strength" id="password-strength"></div>
                 <button type="submit">Sign up</button>
             </form>
         </div>
@@ -21,11 +33,36 @@
         <div class="login">
             <form method="POST" action="{{ url_for('auth', mode='login') }}">
                 <label for="chk" aria-hidden="true">Login</label>
-                <input type="text" name="username" placeholder="User name" required="">
-                <input type="password" name="password" placeholder="Password" required="">
+                <input type="text" name="username" placeholder="Username" required autocomplete="username">
+                <input type="password" name="password" placeholder="Password" required autocomplete="current-password">
                 <button type="submit">Login</button>
             </form>
         </div>
     </div>
+
+    <script>
+        // 비밀번호 강도 검사
+        document.querySelector('input[name="password"]').addEventListener('input', function(e) {
+            const password = e.target.value;
+            const strengthDiv = document.getElementById('password-strength');
+            let strength = 0;
+            
+            if (password.length >= 8) strength++;
+            if (password.match(/[a-z]+/)) strength++;
+            if (password.match(/[A-Z]+/)) strength++;
+            if (password.match(/[0-9]+/)) strength++;
+            if (password.match(/[!@#$%^&*]+/)) strength++;
+            
+            const strengthText = ['Weak', 'Fair', 'Good', 'Strong', 'Very Strong'];
+            const strengthColor = ['#ff4d4d', '#ffa64d', '#ffff4d', '#4dff4d', '#4d4dff'];
+            
+            if (password.length > 0) {
+                strengthDiv.textContent = `Password Strength: ${strengthText[strength-1]}`;
+                strengthDiv.style.color = strengthColor[strength-1];
+            } else {
+                strengthDiv.textContent = '';
+            }
+        });
+    </script>
 </body>
 </html>

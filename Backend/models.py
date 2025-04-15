@@ -1,8 +1,11 @@
-
-
 from flask_sqlalchemy import SQLAlchemy
+import os
 
 db = SQLAlchemy()
+
+# Check database file path
+db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'habit_tracker.db')
+print(f"Database file path: {db_path}")
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
