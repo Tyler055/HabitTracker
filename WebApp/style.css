@@ -142,7 +142,7 @@ body.nav-expanded #goals-container {
   margin-left: 150px;
 }
 
-/* 목표 섹션 스타일 */
+/* Goal section styles */
 .goal-category {
   background: white;
   border-radius: 12px;
@@ -178,17 +178,28 @@ body.nav-expanded #goals-container {
   margin-bottom: 10px;
   background: #f8f9fa;
   border-radius: 8px;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
   border-left: 4px solid transparent;
   position: relative;
+  cursor: grab;
+  user-select: none;
 }
 
-.goal-category li:hover {
-  background: #e9ecef;
-  transform: translateX(5px);
+.goal-category li:active {
+  cursor: grabbing;
 }
 
-/* 체크박스 스타일 */
+.goal-category li.dragging {
+  opacity: 0.5;
+  background-color: #e9ecef;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.goal-category li.drag-over {
+  transform: translateY(5px);
+}
+
+/* Checkbox styles */
 input[type="checkbox"] {
   appearance: none;
   -webkit-appearance: none;
@@ -203,7 +214,7 @@ input[type="checkbox"] {
   background-color: white;
 }
 
-/* 카테고리별 체크박스 색상 */
+/* Category-specific checkbox colors */
 .daily-goals input[type="checkbox"]:checked {
   background-color: #28a745;
   border-color: #28a745;
@@ -234,7 +245,7 @@ input[type="checkbox"]:checked::after {
   transform: translate(-50%, -50%);
 }
 
-/* 카테고리별 hover 색상 */
+/* Category-specific hover colors */
 .daily-goals input[type="checkbox"]:hover {
   border-color: #28a745;
 }
@@ -251,7 +262,7 @@ input[type="checkbox"]:checked::after {
   border-color: #dc3545;
 }
 
-/* 삭제 버튼 스타일 */
+/* Delete button styles */
 .delete-btn {
   background: none;
   border: none;
@@ -278,13 +289,13 @@ input[type="checkbox"]:checked::after {
   transform: translateY(-50%) scale(0.8);
 }
 
-/* 카테고리별 색상 구분 */
+/* Category-specific colors */
 .daily-goals li { border-left-color: #28a745; }
 .weekly-goals li { border-left-color: #17a2b8; }
 .monthly-goals li { border-left-color: #ffc107; }
 .yearly-goals li { border-left-color: #dc3545; }
 
-/* 입력 폼 스타일 */
+/* Input form styles */
 #input {
   background: white;
   border-radius: 12px;
@@ -300,7 +311,7 @@ input[type="checkbox"]:checked::after {
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
 }
 
-/* 반응형 디자인 */
+/* Responsive design */
 @media (max-width: 768px) {
   #goals-container {
     grid-template-columns: 1fr;
@@ -417,7 +428,7 @@ button:active {
     grid-column: 1 / -1;
 }
 
-/* 반응형 디자인 */
+/* Responsive design */
 @media (max-width: 768px) {
     #content {
         grid-template-columns: 1fr;
