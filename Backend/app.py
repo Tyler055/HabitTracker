@@ -1,22 +1,15 @@
 import os
 import secrets
-from flask import (
-    Flask, render_template, request, redirect,
-    url_for, flash, session
-)
-from dataservice import user_exists, create_user, validate_user
+from flask import Flask, render_template, request, redirect, url_for, flash, session
+from werkzeug.security import generate_password_hash, check_password_hash
+from dataservice import get_db_connection, init_db
 
-# One level up from Backend
+# Project setup
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 TEMPLATE_DIR = os.path.join(PROJECT_ROOT, 'WebApp', 'templates')
 STATIC_DIR   = os.path.join(PROJECT_ROOT, 'WebApp', 'static')
 
-app = Flask(
-    __name__,
-    template_folder=TEMPLATE_DIR,
-    static_folder=STATIC_DIR
-)
-
+app = Flask(__name__, template_folder=TEMPLATE_DIR, static_folder=STATIC_DIR)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY') or secrets.token_hex(16)
 
 @app.route('/')
@@ -28,12 +21,20 @@ def signup():
     if request.method == 'POST':
         u = request.form['username']
         p = request.form['password']
+        hashed = generate_password_hash(p)
 
-        if user_exists(u):
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute('SELECT 1 FROM users WHERE username = ?', (u,))
+        if cur.fetchone():
             flash('Username already exists!', 'error')
+            conn.close()
             return redirect(url_for('signup'))
 
-        create_user(u, p)
+        cur.execute('INSERT INTO users (username, password) VALUES (?, ?)', (u, hashed))
+        conn.commit()
+        conn.close()
+
         flash('Signup successful—please log in.', 'success')
         return redirect(url_for('login'))
 
@@ -45,9 +46,14 @@ def login():
         u = request.form['username']
         p = request.form['password']
 
-        user_id = validate_user(u, p)
-        if user_id:
-            session['user_id'] = user_id
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute('SELECT id, password FROM users WHERE username = ?', (u,))
+        row = cur.fetchone()
+        conn.close()
+
+        if row and check_password_hash(row['password'], p):
+            session['user_id'] = row['id']
             return redirect(url_for('habit_tracker'))
 
         flash('Invalid username or password', 'error')
@@ -68,4 +74,5 @@ def logout():
     return redirect(url_for('login'))
 
 if __name__ == '__main__':
+    init_db()  # Ensures the DB is created
     app.run(debug=True)
