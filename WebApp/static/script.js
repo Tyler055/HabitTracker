@@ -16,7 +16,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     goalsLink.addEventListener("click", e => {
         e.preventDefault();
-        toggleContent('/static/Locations/allgoals.html');
+        toggleContent('/static/Locations/all-goals.html');
     });
     dailyLink.addEventListener("click", e => {
         e.preventDefault();
