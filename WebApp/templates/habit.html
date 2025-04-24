@@ -2,18 +2,16 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Habit Tracker</title>
-  <link rel="stylesheet"
-        href="{{ url_for('static', filename='style.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
   <div class="background"></div>
 
   <ul id="navbar">
     <li id="logo-item">
-      <img src="{{ url_for('static', filename='img/logo.jpg') }}"
-           class="logo" alt="Logo">
+      <img src="{{ url_for('static', filename='img/logo.jpg') }}" class="logo" alt="Logo">
     </li>
     <li><a class="active" href="#">Home</a></li>
     <li><a href="#" id="load-goals">All Goals</a></li>

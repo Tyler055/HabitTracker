@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Habit Tracker</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <nav id="navbar">
+    <ul>
+      <li><a href="#" id="home-link">🏠 Home</a></li>
+      <li><a href="#" id="load-goals">📋 All Goals</a></li>
+      <li><a href="#" id="load-daily-goals">☀️ Daily</a></li>
+      <li><a href="#" id="load-weekly-goals">📆 Weekly</a></li>
+      <li><a href="#" id="load-monthly-goals">🗓 Monthly</a></li>
+      <li><a href="#" id="load-yearly-goals">📅 Yearly</a></li>
+      <li><a href="#" id="load-advanced-goals">🧩 Advanced</a></li>
+      <li><button id="theme-toggle">🌙/☀️</button></li>
+    </ul>
+  </nav>
+
+  <main id="main-content">
+    <section id="welcome-section">
+      <h1>Welcome to Your Habit Tracker</h1>
+      <p>Track goals by day, week, month, year or go advanced.</p>
+      <button id="show-all-goals" class="primary-btn">📋 Show All Goals</button>
+    </section>
+
+    <sectionsection id="goals-container" class="hidden"></section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>

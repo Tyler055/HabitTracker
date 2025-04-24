@@ -1,75 +1,57 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>All Goals - Habit Tracker</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>All Goals - Habit Tracker</title>
+  <link rel="stylesheet" href="/static/styles.css" />
 </head>
 <body>
 
-    <a href="habit.html" id="home-link">Home</a>
+  <a href="#" id="home-link" class="home-button">← Home</a>
 
-    <section id="content">
-        <h1>All The Goals</h1>
-        <p> Some of the Goals that can be tracked :</p>
+  <section id="content">
+    <h1>🌟 All The Goals</h1>
+    <p>Browse and manage your habits by category:</p>
 
-        <!-- Goal Types -->
-        <div class="goal-category">
-            <h2>Daily Goals</h2>
-            <ul>
-                <li>Wake up Early</li>
-                <li>Exercise</li>
-                <li>Something</li>
-            </ul>
-        </div>
+    <div class="goal-category" id="daily-goals-container">
+      <h2>☀️ Daily Goals</h2>
+      <div id="daily-goals" class="goal-list"></div>
+    </div>
 
-        <div class="goal-category">
-            <h2>Weekly Goals</h2>
-            <ul>
-                <li>Work on a Project</li>
-                <li>Attend all classes</li>
-                <li>Read a book</li>
-            </ul>
-        </div>
+    <div class="goal-category" id="weekly-goals-container">
+      <h2>📆 Weekly Goals</h2>
+      <div id="weekly-goals" class="goal-list"></div>
+    </div>
 
-        <div class="goal-category">
-            <h2>Monthly Goals</h2>
-            <ul>
-                <li>Long term Project</li>
-                <li>Save Money</li>
-                <li>Attend Social Gathering</li>
-            </ul>
-        </div>
+    <div class="goal-category" id="monthly-goals-container">
+      <h2>🗓 Monthly Goals</h2>
+      <div id="monthly-goals" class="goal-list"></div>
+    </div>
 
-        <div class="goal-category">
-            <h2>Yearly Goals</h2>
-            <ul>
-                <li>Travel</li>
-                <li>Achieve a career milestone</li>
-                <li>Finish a Project</li>
-            </ul>
-        </div>
-    </section>
+    <div class="goal-category" id="yearly-goals-container">
+      <h2>📅 Yearly Goals</h2>
+      <div id="yearly-goals" class="goal-list"></div>
+    </div>
+  </section>
 
-    <!-- Input Section -->
-    <section id="input">
-        <div>
-            <h3>Add a New Goal</h3>
-            <form id="goal-form">
-                <input type="text" id="goal-input" placeholder="Enter your goal" required>
-                <label for="goal-category">Select Goal Category:</label>
-                <select id="goal-category" required>
-                    <option value="daily">Daily</option>
-                    <option value="weekly">Weekly</option>
-                    <option value="monthly">Monthly</option>
-                    <option value="yearly">Yearly</option>
-                </label>
-                <button type="submit">Add Goal</button>
-            </form>
-        </div>
-    </section>
+  <section id="input">
+    <div>
+      <h3>Add a New Goal</h3>
+      <form id="goal-form">
+        <input type="text" id="goal-text" placeholder="Enter your goal" required>
+        <label for="goal-category">Category:</label>
+        <select id="goal-category" required>
+          <option value="daily">Daily</option>
+          <option value="weekly">Weekly</option>
+          <option value="monthly">Monthly</option>
+          <option value="yearly">Yearly</option>
+        </select>
+        <button type="submit">➕ Add Goal</button>
+      </form>
+    </div>
+  </section>
 
-    <script src="script.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>

@@ -5,250 +5,207 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Advanced Habit Tracker</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
+    :root {
+      --morning-color: #ffedc2;
+      --evening-color: #c2e9ff;
+      --night-color: #d7c2ff;
+      --none-color: #eee;
     }
 
-    #calendar {
+    body {
+      font-family: sans-serif;
+      margin: 0;
+      display: flex;
+      height: 100vh;
+    }
+
+    .navbar {
+      width: 60px;
+      background: #333;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: width 0.3s;
+      overflow: hidden;
+    }
+
+    .navbar:hover {
+      width: 180px;
+    }
+
+    .navbar h2 {
+      font-size: 1rem;
+      margin: 1rem 0;
+      white-space: nowrap;
+    }
+
+    .content {
+      flex: 1;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .calendar {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+    }
+
+    .habit-card {
+      background: #f9f9f9;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 0.5rem;
+      min-height: 150px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .habit-header {
+      font-weight: bold;
+      margin-bottom: 0.5rem;
+    }
+
+    .habit-grid {
       display: flex;
       flex-wrap: wrap;
-      max-width: 220px;
-      margin-bottom: 20px;
+      gap: 0.25rem;
     }
 
     .day {
-      width: 30px;
-      height: 30px;
-      display: inline-block;
-      text-align: center;
-      line-height: 30px;
-      margin: 2px;
-      cursor: pointer;
-      background-color: #f0f0f0;
+      width: 28px;
+      height: 28px;
       border-radius: 4px;
+      background: #eee;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 0.8rem;
     }
 
-    .day:hover {
-      background-color: #d0eaff;
+    .day.completed {
+      background: #4caf50;
+      color: white;
     }
 
-    select, input, textarea, button {
-      width: 100%;
-      padding: 8px;
-      margin-top: 5px;
-      box-sizing: border-box;
+    .morning .habit-card { background: var(--morning-color); }
+    .evening .habit-card { background: var(--evening-color); }
+    .night .habit-card { background: var(--night-color); }
+    .none .habit-card { background: var(--none-color); }
+
+    .habit-container {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
     }
 
-    textarea {
-      resize: vertical;
+    .habit {
+      padding: 0.5rem;
+      border: 1px solid #aaa;
+      border-radius: 4px;
+      background: white;
+      cursor: grab;
     }
 
-    .hidden {
-      display: none;
+    .drop-zone {
+      border: 2px dashed #ccc;
+      min-height: 60px;
+      padding: 0.5rem;
+      border-radius: 4px;
+      flex: 1;
     }
 
-    #habit-display h3 {
-      margin-top: 15px;
-      margin-bottom: 5px;
-    }
-
-    #habit-display p {
-      margin: 3px 0;
-    }
-
-    form {
-      margin-bottom: 20px;
-    }
-
-    #selectedDate {
-      display: block;
-      font-weight: bold;
-      margin-bottom: 10px;
+    .drop-zone.highlight {
+      background: #d0ffd0;
     }
   </style>
 </head>
 <body>
 
-  <h2>Habit Tracker Calendar</h2>
-  <div id="calendar"></div>
+  <div class="navbar">
+    <h2>☀️ Morning</h2>
+    <h2>🌆 Evening</h2>
+    <h2>🌙 Night</h2>
+    <h2>🌀 None</h2>
+  </div>
 
-  <span id="selectedDate">Select a date</span>
+  <div class="content">
+    <h1>Habit Tracker</h1>
+    <div class="habit-container">
+      <div class="habit" draggable="true">Exercise</div>
+      <div class="habit" draggable="true">Read</div>
+      <div class="habit" draggable="true">Meditate</div>
+    </div>
 
-  <form id="habitForm">
-    <input type="text" id="habitName" placeholder="Habit Name" required />
-    <textarea id="habitDescription" placeholder="Description (optional)"></textarea>
-    
-    <label>Repeat:
-      <select id="habitRepeat">
-        <option value="daily">Daily</option>
-        <option value="weekly">Weekly</option>
-        <option value="monthly">Monthly</option>
-        <option value="yearly">Yearly</option>
-        <option value="none">None</option>
-      </select>
-    </label>
-
-    <label>Time of day:
-      <select id="habitTime">
-        <option value="morning">Morning</option>
-        <option value="evening">Evening</option>
-        <option value="night">Night</option>
-      </select>
-    </label>
-
-    <label>Specific Time:
-      <input type="time" id="habitExactTime" />
-    </label>
-    
-    <button type="submit">Save Habit</button>
-  </form>
-
-  <div id="habit-display" class="hidden">
-    <div id="morningHabit"></div>
-    <div id="eveningHabit"></div>
-    <div id="nightHabit"></div>
+    <div class="calendar">
+      <div class="morning drop-zone" data-category="morning"></div>
+      <div class="evening drop-zone" data-category="evening"></div>
+      <div class="night drop-zone" data-category="night"></div>
+      <div class="none drop-zone" data-category="none"></div>
+    </div>
   </div>
 
   <script>
-    const calendar = document.getElementById('calendar');
-    const habitForm = document.getElementById('habitForm');
-    const habitNameInput = document.getElementById('habitName');
-    const habitDescInput = document.getElementById('habitDescription');
-    const habitTimeInput = document.getElementById('habitTime');
-    const habitExactTimeInput = document.getElementById('habitExactTime');
-    const habitRepeatInput = document.getElementById('habitRepeat');
-    const habitDisplay = document.getElementById('habit-display');
-    const selectedDateSpan = document.getElementById('selectedDate');
-    const morningHabit = document.getElementById('morningHabit');
-    const eveningHabit = document.getElementById('eveningHabit');
-    const nightHabit = document.getElementById('nightHabit');
+    const habits = document.querySelectorAll('.habit');
+    const dropZones = document.querySelectorAll('.drop-zone');
+    const today = new Date().getDate();
 
-    let habits = [];
-    let currentSelectedDate = null;
-
-    function generateCalendar() {
-      const today = new Date();
-      const year = today.getFullYear();
-      const month = today.getMonth();
-      const firstDay = new Date(year, month, 1).getDay();
-      const daysInMonth = new Date(year, month + 1, 0).getDate();
-
-      calendar.innerHTML = "";
-
-      for (let i = 0; i < firstDay; i++) {
-        const emptyCell = document.createElement('div');
-        emptyCell.classList.add('day');
-        calendar.appendChild(emptyCell);
-      }
-
-      for (let day = 1; day <= daysInMonth; day++) {
-        const date = new Date(year, month, day);
-        const dateStr = formatDate(date);
-        const dayEl = document.createElement('div');
-        dayEl.classList.add('day');
-        dayEl.textContent = day;
-        dayEl.addEventListener('click', () => selectDate(dateStr));
-        calendar.appendChild(dayEl);
-      }
-    }
-
-    function formatDate(date) {
-      const month = ('0' + (date.getMonth() + 1)).slice(-2);
-      const day = ('0' + date.getDate()).slice(-2);
-      const year = date.getFullYear();
-      return `${month}-${day}-${year}`;
-    }
-
-    function selectDate(dateStr) {
-      currentSelectedDate = dateStr;
-      selectedDateSpan.textContent = "Selected: " + dateStr;
-
-      const matchingHabits = getHabitsForDate(dateStr);
-
-      displayTimeHabit("morning", matchingHabits.morning);
-      displayTimeHabit("evening", matchingHabits.evening);
-      displayTimeHabit("night", matchingHabits.night);
-
-      habitNameInput.value = '';
-      habitDescInput.value = '';
-      habitExactTimeInput.value = '';
-      habitTimeInput.value = 'morning';
-      habitRepeatInput.value = 'daily';
-
-      habitDisplay.classList.remove('hidden');
-    }
-
-    function getHabitsForDate(dateStr) {
-      const result = { morning: null, evening: null, night: null };
-
-      for (const habit of habits) {
-        const habitDate = new Date(habit.date);
-        const selectedDate = new Date(dateStr);
-
-        const matches =
-          habit.repeat === 'daily' ||
-          (habit.repeat === 'weekly' && habitDate.getDay() === selectedDate.getDay()) ||
-          (habit.repeat === 'monthly' && habitDate.getDate() === selectedDate.getDate()) ||
-          (habit.repeat === 'yearly' &&
-            habitDate.getMonth() === selectedDate.getMonth() &&
-            habitDate.getDate() === selectedDate.getDate()) ||
-          (habit.repeat === 'none' && habit.date === dateStr);
-
-        if (matches) {
-          result[habit.time] = habit;
-        }
-      }
-
-      return result;
-    }
-
-    function displayTimeHabit(time, habit) {
-      const container = document.getElementById(`${time}Habit`);
-      if (habit) {
-        container.innerHTML = `
-          <h3>${capitalize(time)}</h3>
-          <p><strong>Name:</strong> ${habit.name}</p>
-          ${habit.description ? `<p><strong>Description:</strong> ${habit.description}</p>` : ''}
-          <p><strong>Repeat:</strong> ${habit.repeat}</p>
-          ${habit.exactTime ? `<p><strong>Time:</strong> ${habit.exactTime}</p>` : ''}
-        `;
-      } else {
-        container.innerHTML = `
-          <h3>${capitalize(time)}</h3>
-          <p>No habit set.</p>
-        `;
-      }
-    }
-
-    function capitalize(str) {
-      return str.charAt(0).toUpperCase() + str.slice(1);
-    }
-
-    habitForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      if (!currentSelectedDate) return;
-
-      const newHabit = {
-        date: currentSelectedDate,
-        time: habitTimeInput.value,
-        name: habitNameInput.value,
-        description: habitDescInput.value.trim(),
-        repeat: habitRepeatInput.value,
-        exactTime: habitExactTimeInput.value
-      };
-
-      // Remove duplicates if 'none'
-      habits = habits.filter(
-        h => !(h.date === newHabit.date && h.time === newHabit.time && h.repeat === 'none')
-      );
-
-      habits.push(newHabit);
-      selectDate(currentSelectedDate);
-      alert(`Habit saved for ${newHabit.time} (${newHabit.repeat})`);
+    // Drag logic
+    habits.forEach(habit => {
+      habit.addEventListener('dragstart', (e) => {
+        e.dataTransfer.setData('text/plain', habit.textContent);
+      });
     });
 
-    generateCalendar();
+    dropZones.forEach(zone => {
+      zone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        zone.classList.add('highlight');
+      });
+
+      zone.addEventListener('dragleave', () => {
+        zone.classList.remove('highlight');
+      });
+
+      zone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        zone.classList.remove('highlight');
+        const text = e.dataTransfer.getData('text/plain');
+        createHabitCard(text, zone.dataset.category);
+      });
+    });
+
+    function createHabitCard(name, category) {
+      const card = document.createElement('div');
+      card.className = 'habit-card';
+
+      const header = document.createElement('div');
+      header.className = 'habit-header';
+      header.textContent = name;
+
+      const grid = document.createElement('div');
+      grid.className = 'habit-grid';
+
+      for (let i = 1; i <= 30; i++) {
+        const day = document.createElement('div');
+        day.className = 'day';
+        day.textContent = i;
+        day.addEventListener('click', () => {
+          day.classList.toggle('completed');
+        });
+        grid.appendChild(day);
+      }
+
+      card.appendChild(header);
+      card.appendChild(grid);
+
+      const categoryZone = document.querySelector(`.${category}`);
+      categoryZone.appendChild(card);
+    }
   </script>
 </body>
 </html>
