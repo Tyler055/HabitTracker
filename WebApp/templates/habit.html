@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Habit Tracker</title>
+  <link rel="stylesheet"
+        href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="background"></div>
+
+  <ul id="navbar">
+    <li id="logo-item">
+      <img src="{{ url_for('static', filename='img/logo.jpg') }}"
+           class="logo" alt="Logo">
+    </li>
+    <li><a class="active" href="#">Home</a></li>
+    <li><a href="#" id="load-goals">All Goals</a></li>
+    <li><a href="#" id="load-daily-goals">Daily</a></li>
+    <li><a href="#" id="load-weekly-goals">Weekly</a></li>
+    <li><a href="#" id="load-monthly-goals">Monthly</a></li>
+    <li><a href="#" id="load-yearly-goals">Yearly</a></li>
+    <li><a href="#" id="load-advanced-goals">Advanced</a></li>
+  </ul>
+
+  <div id="goals-container"></div>
+
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
