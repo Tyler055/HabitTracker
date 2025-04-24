@@ -23,161 +23,283 @@ document.addEventListener("DOMContentLoaded", function () {
         localStorage.setItem("theme", document.body.classList.contains("dark-mode") ? "dark" : "light");
     });
 
-    // Navbar Expand
-    navbar?.addEventListener("mouseenter", () => document.body.classList.add("nav-expanded"));
-    navbar?.addEventListener("mouseleave", () => document.body.classList.remove("nav-expanded"));
+    // Initially hide the container
+    if (goalsContainer) goalsContainer.style.display = "none";
 
-    // Home link background reset
-    homeLink?.addEventListener("click", (e) => {
-        e.preventDefault();
-        goalsContainer.style.display = "none";
-        document.body.style.backgroundImage = "url('https://images.unsplash.com/photo-1507608616759-54f48f0af0ee?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80')";
-    });
+    let currentContent = "";
 
-    // Navigation link handlers
-    Object.keys(links).forEach(id => {
-        document.getElementById(id)?.addEventListener("click", (e) => {
+    if (navbar) {
+        navbar.addEventListener("mouseenter", () => document.body.classList.add("nav-expanded"));
+        navbar.addEventListener("mouseleave", () => document.body.classList.remove("nav-expanded"));
+    }
+
+    if (homeLink) {
+        homeLink.addEventListener("click", function (e) {
             e.preventDefault();
-            loadContent(links[id]);
+            if (goalsContainer) goalsContainer.style.display = "none";
+            currentContent = "";
+            document.body.style.backgroundImage = "url('https://images.unsplash.com/photo-1507608616759-54f48f0af0ee?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80')";
+            document.body.style.backgroundSize = "cover";
+            document.body.style.backgroundPosition = "center";
+            document.body.style.backgroundAttachment = "fixed";
         });
+    }
+
+    // Event listeners for each link
+    Object.keys(links).forEach(id => {
+        const link = document.getElementById(id);
+        if (link) {
+            link.addEventListener("click", function (e) {
+                e.preventDefault();
+                toggleContent(links[id]);
+            });
+        }
     });
 
-    async function loadContent(url) {
+    function toggleContent(url) {
+        if (currentContent === url) {
+            if (goalsContainer) goalsContainer.style.display = "none";
+            currentContent = "";
+        } else {
+            loadContent(url);
+        }
+    }
+
+    function loadContent(url) {
+        if (!goalsContainer) return;
+
         goalsContainer.innerHTML = "";
-        try {
-            const res = await fetch(url);
-            if (!res.ok) throw new Error("Failed to load content");
-            const html = await res.text();
-            const doc = new DOMParser().parseFromString(html, "text/html");
 
-            const content = doc.querySelector("#content");
-            const input = doc.querySelector("#input");
-            if (content) goalsContainer.appendChild(content);
-            if (input) goalsContainer.appendChild(input);
+        fetch(url)
+            .then(response => {
+                if (!response.ok) throw new Error(`Failed to load ${url}: ${response.status} ${response.statusText}`);
+                return response.text();
+            })
+            .then(html => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, "text/html");
+                const content = doc.querySelector("#content");
+                const input = doc.querySelector("#input");
 
-            goalsContainer.style.display = "block";
+                if (!content) throw new Error(`No content found in ${url}`);
 
-            bindGoalForm();
-            initializeDragAndDrop();
-            await loadSavedGoals();
-        } catch (err) {
-            goalsContainer.innerHTML = `<div class="error-message">Error: ${err.message}</div>`;
-        }
-    }
+                if (content) goalsContainer.appendChild(content);
+                if (input) goalsContainer.appendChild(input);
 
-    function bindGoalForm() {
-        const form = document.getElementById("goal-form");
-        const suggestBtn = document.getElementById("suggest-goal");
+                initializeDragAndDrop();
+                loadSavedGoals();
+                bindGoalForm();
 
-        if (form) {
-            form.addEventListener("submit", async (e) => {
-                e.preventDefault();
-                const text = document.getElementById("goal-text").value.trim();
-                const category = document.getElementById("goal-category").value;
-                if (!text || !category) return alert("Please enter a goal and select a category.");
-
-                const goal = { id: Date.now(), text, completed: false };
-                await saveGoal(goal, category);
-                addGoalToDOM(goal, category);
-                form.reset();
+                goalsContainer.style.display = "block";
+                currentContent = url;
+            })
+            .catch(error => {
+                console.error("Failed to load content:", error.message);
+                goalsContainer.innerHTML = `<div class="error-message">Failed to load content: ${error.message}</div>`;
+                goalsContainer.style.display = "block";
             });
-        }
-
-        if (suggestBtn) {
-            suggestBtn.addEventListener("click", async () => {
-                const res = await fetch("/api/goal-suggestions");
-                const data = await res.json();
-                document.getElementById("goal-text").value = data.goal;
-            });
-        }
     }
 
-    function addGoalToDOM(goal, category) {
-        const container = document.getElementById(`${category}-goals`);
-        if (!container) return;
+    initializeDragAndDrop();
+});
 
-        const div = document.createElement("div");
-        div.className = "goal-item";
-        div.setAttribute("draggable", "true");
-        div.dataset.id = goal.id;
-        div.innerHTML = `
-            <input type="checkbox" ${goal.completed ? "checked" : ""}>
-            <span>${goal.text}</span>
-            <button class="delete-btn">✖</button>
-        `;
+let draggedItem = null;
 
-        div.querySelector("input").addEventListener("change", async () => {
-            goal.completed = div.querySelector("input").checked;
-            await updateGoalStatus(goal.id, category, goal.completed);
-        });
+function initializeDragAndDrop() {
+    const listIds = ['daily-goals-list', 'weekly-goals-list', 'monthly-goals-list', 'yearly-goals-list'];
 
-        div.querySelector("button").addEventListener("click", async () => {
-            container.removeChild(div);
-            await deleteGoal(goal.id, category);
-        });
-
-        div.addEventListener("dragstart", e => {
-            e.dataTransfer.setData("text/plain", JSON.stringify({ ...goal, from: category }));
-            div.classList.add("dragging");
-        });
-
-        div.addEventListener("dragend", () => {
-            div.classList.remove("dragging");
-        });
-
-        container.appendChild(div);
-    }
-
-    function initializeDragAndDrop() {
-        const dropZones = document.querySelectorAll(".goal-category");
-
-        dropZones.forEach(zone => {
-            zone.addEventListener("dragover", e => e.preventDefault());
-
-            zone.addEventListener("drop", async e => {
+    listIds.forEach(listId => {
+        const list = document.getElementById(listId);
+        if (list) {
+            list.addEventListener('dragover', e => {
                 e.preventDefault();
-                const { id, from, text, completed } = JSON.parse(e.dataTransfer.getData("text/plain"));
-                const targetCategory = zone.id;
-                if (from !== targetCategory) {
-                    await deleteGoal(id, from);
-                    const newGoal = { id, text, completed };
-                    await saveGoal(newGoal, targetCategory);
-                    addGoalToDOM(newGoal, targetCategory);
+                e.dataTransfer.dropEffect = 'move';
+            });
+
+            list.addEventListener('drop', handleDrop);
+
+            const items = list.getElementsByTagName('li');
+            Array.from(items).forEach(item => {
+                if (!item.hasAttribute('draggable')) item.setAttribute('draggable', 'true');
+                if (!item.classList.contains('drag-enabled')) {
+                    item.classList.add('drag-enabled');
+
+                    item.addEventListener('dragstart', function (e) {
+                        draggedItem = this;
+                        setTimeout(() => this.classList.add('dragging'), 0);
+                        e.dataTransfer.effectAllowed = 'move';
+                        e.dataTransfer.setData('text/plain', this.textContent);
+                    });
+
+                    item.addEventListener('dragend', function () {
+                        this.classList.remove('dragging');
+                        document.querySelectorAll('li').forEach(li => {
+                            li.classList.remove('drag-over');
+                            li.style.borderTop = '';
+                            li.style.borderBottom = '';
+                        });
+                    });
+
+                    item.addEventListener('dragenter', function (e) {
+                        e.preventDefault();
+                        if (this !== draggedItem) {
+                            const offset = this.getBoundingClientRect().y + this.getBoundingClientRect().height / 2;
+                            if (e.clientY > offset) {
+                                this.style.borderBottom = '2px solid #4CAF50';
+                                this.style.borderTop = '';
+                            } else {
+                                this.style.borderTop = '2px solid #4CAF50';
+                                this.style.borderBottom = '';
+                            }
+                        }
+                    });
+
+                    item.addEventListener('dragleave', function () {
+                        this.style.borderTop = '';
+                        this.style.borderBottom = '';
+                    });
                 }
             });
-        });
-    }
-
-    async function loadSavedGoals() {
-        const categories = ["daily", "weekly", "monthly", "yearly"];
-        for (let cat of categories) {
-            try {
-                const res = await fetch(`/api/goals/${cat}`);
-                const goals = await res.json();
-                goals.forEach(goal => addGoalToDOM(goal, cat));
-            } catch (err) {
-                console.error(`Failed to load ${cat} goals`, err);
-            }
         }
+    });
+}
+
+function handleDrop(e) {
+    e.preventDefault();
+    if (!draggedItem) return;
+
+    const targetList = e.currentTarget;
+    if (e.target.tagName === 'LI') {
+        const offset = e.target.getBoundingClientRect().y + e.target.getBoundingClientRect().height / 2;
+        if (e.clientY > offset) {
+            e.target.parentNode.insertBefore(draggedItem, e.target.nextSibling);
+        } else {
+            e.target.parentNode.insertBefore(draggedItem, e.target);
+        }
+    } else {
+        targetList.appendChild(draggedItem);
     }
 
-    async function saveGoal(goal, category) {
-        await fetch(`/api/goals/${category}`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(goal)
+    draggedItem = null;
+    document.querySelectorAll('li').forEach(li => {
+        li.style.borderTop = '';
+        li.style.borderBottom = '';
+    });
+
+    saveGoals();
+}
+
+function getCurrentCategory() {
+    const heading = document.querySelector("#content h1");
+    if (heading) {
+        const text = heading.textContent.toLowerCase();
+        if (text.includes("daily")) return "daily";
+        if (text.includes("weekly")) return "weekly";
+        if (text.includes("monthly")) return "monthly";
+        if (text.includes("yearly")) return "yearly";
+    }
+    return "all";
+}
+
+function loadSavedGoals() {
+    const goalLists = document.querySelectorAll(".goal-category ul");
+    if (!goalLists.length) return;
+
+    goalLists.forEach(goalList => {
+        const category = goalList.closest('.goal-category').classList[1].replace('-goals', '');
+        const savedGoals = JSON.parse(localStorage.getItem(category) || '[]');
+
+        const defaultGoals = Array.from(goalList.children).map(li => ({
+            text: li.textContent.trim(),
+            completed: false,
+            isDefault: true
+        }));
+
+        goalList.innerHTML = '';
+
+        defaultGoals.forEach(goal => {
+            const li = createGoalElement(goal.text, goal.completed, true);
+            goalList.appendChild(li);
+        });
+
+        savedGoals.forEach(goal => {
+            if (!defaultGoals.some(defaultGoal => defaultGoal.text === goal.text)) {
+                const li = createGoalElement(goal.text, goal.completed, false);
+                goalList.appendChild(li);
+            }
+        });
+    });
+
+    initializeDragAndDrop();
+}
+
+function createGoalElement(text, completed = false, isDefault = false) {
+    const li = document.createElement("li");
+    li.setAttribute("draggable", "true");
+
+    if (!isDefault) {
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.checked = completed;
+        checkbox.addEventListener("change", () => {
+            li.classList.toggle("completed");
+            saveGoals();
+        });
+        li.appendChild(checkbox);
+    }
+
+    const span = document.createElement("span");
+    span.textContent = text;
+    if (completed) li.classList.add("completed");
+    li.appendChild(span);
+
+    if (!isDefault) {
+        const deleteBtn = document.createElement("span");
+        deleteBtn.textContent = "×";
+        deleteBtn.className = "delete-btn";
+        deleteBtn.addEventListener("click", () => {
+            li.remove();
+            saveGoals();
+        });
+        li.appendChild(deleteBtn);
+    }
+
+    return li;
+}
+
+function saveGoals() {
+    const goalLists = document.querySelectorAll(".goal-category ul");
+
+    goalLists.forEach(goalList => {
+        const category = goalList.closest('.goal-category').classList[1].replace('-goals', '');
+        const goals = Array.from(goalList.children).map(li => ({
+            text: li.querySelector("span").textContent.trim(),
+            completed: li.querySelector("input") ? li.querySelector("input").checked : false,
+            isDefault: false
+        }));
+
+        localStorage.setItem(category, JSON.stringify(goals));
+    });
+}
+
+function bindGoalForm() {
+    const goalForm = document.getElementById("goal-form");
+    const goalInput = document.getElementById("goal-input");
+
+    if (goalForm && goalInput) {
+        goalForm.addEventListener("submit", (e) => {
+            e.preventDefault();
+            const goalText = goalInput.value.trim();
+            if (goalText) {
+                const category = getCurrentCategory();
+                const goalList = document.getElementById(`${category}-goals-list`);
+                if (goalList) {
+                    const li = createGoalElement(goalText);
+                    goalList.appendChild(li);
+                    goalInput.value = '';
+                    saveGoals();
+                }
+            }
         });
     }
-
-    async function updateGoalStatus(id, category, completed) {
-        await fetch(`/api/goals/${category}/${id}`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ completed })
-        });
-    }
-
-    async function deleteGoal(id, category) {
-        await fetch(`/api/goals/${category}/${id}`, { method: "DELETE" });
-    }
-});
+}
