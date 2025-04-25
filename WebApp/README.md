@@ -43,7 +43,7 @@ You can clone and run the project locally using the steps below, or deploy it to
 ### Installation
 
 ```bash
-git clone https://github.com/yourusername/flask-habit-tracker.git
+git clone https://github.com/Tyler055/HabitTracker.git
 cd flask-habit-tracker
 python -m venv venv
 source venv/bin/activate  # or venv\Scripts\activate on Windows
