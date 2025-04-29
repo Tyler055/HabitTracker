@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <div id="category-charts">
+    <div class="chart-container">
+      <canvas id="allGoalsChart"></canvas>
+      <div class="chart-title all">All Goals</div>
+    </div>
+    <div class="chart-container">
+      <canvas id="dailyChart"></canvas>
+      <div class="chart-title daily">Daily</div>
+    </div>
+    <div class="chart-container">
+      <canvas id="weeklyChart"></canvas>
+      <div class="chart-title weekly">Weekly</div>
+    </div>
+    <div class="chart-container">
+      <canvas id="monthlyChart"></canvas>
+      <div class="chart-title monthly">Monthly</div>
+    </div>
+    <div class="chart-container">
+      <canvas id="yearlyChart"></canvas>
+      <div class="chart-title yearly">Yearly</div>
+    </div>
+  </div>
+
+  <button class="reset-btn" id="reset-btn">Reset Goals</button>
+{% endblock %}
+
+{% block scripts %}
+  <script type="module" src="{{ url_for('static', filename='js/home.js') }}"></script>
+{% endblock %}

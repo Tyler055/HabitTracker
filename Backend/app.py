@@ -1,117 +1,128 @@
 import os
-import secrets
-from flask import Flask, render_template, request, redirect, url_for, flash, session
+from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
-from dataservice import get_db_connection, init_db, save_goal
 
-# Project setup
+from dataservice import (
+    init_db,
+    create_user,
+    find_user_by_username,
+    get_goals_by_category,
+    save_goals_for_category,
+    reset_all_goals
+)
+
+# Project structure setup
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 TEMPLATE_DIR = os.path.join(PROJECT_ROOT, 'WebApp', 'templates')
 STATIC_DIR = os.path.join(PROJECT_ROOT, 'WebApp', 'static')
 
+# Flask app setup
 app = Flask(__name__, template_folder=TEMPLATE_DIR, static_folder=STATIC_DIR)
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY') or secrets.token_hex(16)
+app.secret_key = os.urandom(24)  # Generates a new key on each server start
 
-# Route to home page, redirecting to login
-@app.route('/')
-def home():
-    return redirect(url_for('login'))
+# ─────── Before Request ──────────────────────────────
 
-# Route for user signup
+@app.before_request
+def before_request():
+    init_db()  # Ensures database is initialized
+    if not session.get('user_id') and request.endpoint not in ['signup', 'login', 'static']:
+        return redirect(url_for('login'))
+
+# ─────── Authentication ──────────────────────────────
+
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        hashed_password = generate_password_hash(password)
+        error = None
 
-        conn = get_db_connection()
-        cur = conn.cursor()
+        if not username:
+            error = 'Username is required.'
+        elif not password:
+            error = 'Password is required.'
+        elif find_user_by_username(username):
+            error = f'User "{username}" is already registered.'
 
-        # Check if the username already exists
-        cur.execute('SELECT 1 FROM users WHERE username = ?', (username,))
-        if cur.fetchone():
-            flash('Username already exists!', 'error')
-            conn.close()
-            return redirect(url_for('signup'))
+        if error is None:
+            create_user(username, password)
+            flash('Registration successful! Please log in.')
+            return redirect(url_for('login'))
 
-        # Insert the new user into the users table
-        cur.execute('INSERT INTO users (username, password) VALUES (?, ?)', (username, hashed_password))
-        conn.commit()
-        conn.close()
+        flash(error)
 
-        flash('Signup successful—please log in.', 'success')
-        return redirect(url_for('login'))
+    return render_template('auth.html', action='signup')
 
-    return render_template('auth.html', mode='signup')
-
-# Route for user login
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
+        user = find_user_by_username(username)
 
-        conn = get_db_connection()
-        cur = conn.cursor()
-        cur.execute('SELECT id, password FROM users WHERE username = ?', (username,))
-        row = cur.fetchone()
-        conn.close()
-
-        if row and check_password_hash(row[1], password):
-            session['user_id'] = row[0]
+        if user is None:
+            flash('Incorrect username.')
+        elif not check_password_hash(user['password'], password):
+            flash('Incorrect password.')
+        else:
+            session['user_id'] = user['id']
             return redirect(url_for('habit_tracker'))
 
-        flash('Invalid username or password', 'error')
-        return redirect(url_for('login'))
+    return render_template('auth.html', action='login')
 
-    return render_template('auth.html', mode='login')
-
-# Route for habit tracker page
-@app.route('/habit_tracker')
-def habit_tracker():
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
-    return render_template('habit.html')
-
-# Route for user logout
 @app.route('/logout')
 def logout():
     session.pop('user_id', None)
-    flash('Logged out', 'info')
     return redirect(url_for('login'))
 
-# Route to save a new goal
-@app.route('/save_goal', methods=['POST'])
-def save_goal_route():
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
+# ─────── Main Pages ──────────────────────────────────
 
-    goal_text = request.form['goal']
-    category = request.form['category']
+@app.route('/')
+def habit_tracker():
+    return render_template('habit.html')
 
-    # Save goal to the database
-    goal_data = {
-        'text': goal_text,
-        'category': category,
-        'user_id': session['user_id']
-    }
-    save_goal(goal_data)
+@app.route('/goals/<category>')
+def goals_page(category):
+    goals = get_goals_by_category(session['user_id'], category)
+    return render_template(f'{category}.html', goals=goals)
 
-    flash('Goal saved successfully!', 'success')
-    return redirect(url_for('habit_tracker'))
+@app.route('/goals/all-goals')
+def all_goals_page():
+    user_id = session['user_id']
+    return render_template(
+        'all-goals.html',
+        daily_goals=get_goals_by_category(user_id, 'daily'),
+        weekly_goals=get_goals_by_category(user_id, 'weekly'),
+        monthly_goals=get_goals_by_category(user_id, 'monthly'),
+        yearly_goals=get_goals_by_category(user_id, 'yearly')
+    )
 
-# Route to view all goals
-@app.route('/goals')
-def goals():
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
+# ─────── API Endpoints ───────────────────────────────
 
-    conn = get_db_connection()
-    goals = conn.execute('SELECT * FROM goals WHERE user_id = ?', (session['user_id'],)).fetchall()
-    conn.close()
-    return render_template('goals.html', goals=goals)
+@app.route('/api/goals', methods=['GET', 'POST'])
+def api_goals():
+    user_id = session['user_id']
+    category = request.args.get('category')
+
+    if request.method == 'GET':
+        goals = get_goals_by_category(user_id, category)
+        return jsonify([
+            {'text': row['text'], 'completed': bool(row['completed'])}
+            for row in goals
+        ])
+
+    elif request.method == 'POST':
+        data = request.get_json()
+        goals = data.get('goals', [])
+        save_goals_for_category(user_id, category, goals)
+        return jsonify({'message': 'Goals saved successfully'})
+
+@app.route('/api/reset', methods=['POST'])
+def reset_goals_api():
+    reset_all_goals(session['user_id'])
+    return jsonify({'message': 'Goals reset successfully'})
+
+# ─────── Run Server ──────────────────────────────────
 
 if __name__ == '__main__':
-    init_db()  # Ensure the DB is initialized
     app.run(debug=True)
