@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Advanced Habit Tracker</title>
+  <title>Advanced Habit & Goal Tracker</title>
   <style>
     :root {
       --morning-color: #ffedc2;
@@ -17,6 +17,7 @@
       margin: 0;
       display: flex;
       height: 100vh;
+      overflow: hidden;
     }
 
     .navbar {
@@ -42,9 +43,11 @@
 
     .content {
       flex: 1;
+      overflow-y: auto;
       padding: 1rem;
       display: flex;
       flex-direction: column;
+      gap: 2rem;
     }
 
     .calendar {
@@ -122,11 +125,47 @@
     .drop-zone.highlight {
       background: #d0ffd0;
     }
+
+    .goal-category {
+      background: #f0f0f0;
+      padding: 1rem;
+      border-radius: 8px;
+    }
+
+    #goal-form input, #goal-form select {
+      margin: 0.25rem 0;
+      padding: 0.25rem;
+      width: 100%;
+    }
+
+    #goal-form button {
+      margin-top: 0.5rem;
+      padding: 0.5rem;
+      background: #4caf50;
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+
+    #goal-list {
+      margin-top: 1rem;
+      list-style: none;
+      padding-left: 0;
+    }
+
+    #goal-list li {
+      background: white;
+      border: 1px solid #ccc;
+      padding: 0.5rem;
+      margin-bottom: 0.5rem;
+      border-radius: 4px;
+    }
   </style>
 </head>
 <body>
-
   <div class="navbar">
+    <a href="/" class="nav-item">🏠 Home</a>
     <h2>☀️ Morning</h2>
     <h2>🌆 Evening</h2>
     <h2>🌙 Night</h2>
@@ -134,27 +173,45 @@
   </div>
 
   <div class="content">
-    <h1>Habit Tracker</h1>
-    <div class="habit-container">
-      <div class="habit" draggable="true">Exercise</div>
-      <div class="habit" draggable="true">Read</div>
-      <div class="habit" draggable="true">Meditate</div>
-    </div>
+    <section>
+      <h1>Habit Tracker</h1>
+      <div class="habit-container">
+        <div class="habit" draggable="true">Exercise</div>
+        <div class="habit" draggable="true">Read</div>
+        <div class="habit" draggable="true">Meditate</div>
+      </div>
 
-    <div class="calendar">
-      <div class="morning drop-zone" data-category="morning"></div>
-      <div class="evening drop-zone" data-category="evening"></div>
-      <div class="night drop-zone" data-category="night"></div>
-      <div class="none drop-zone" data-category="none"></div>
-    </div>
+      <div class="calendar">
+        <div class="morning drop-zone" data-category="morning"></div>
+        <div class="evening drop-zone" data-category="evening"></div>
+        <div class="night drop-zone" data-category="night"></div>
+        <div class="none drop-zone" data-category="none"></div>
+      </div>
+    </section>
+
+    <section class="goal-category">
+      <h2>Manage Advanced Goals</h2>
+      <form id="goal-form">
+        <input type="text" id="goal-input" placeholder="Enter goal" required>
+        <label for="goal-priority">Priority:</label>
+        <select id="goal-priority">
+          <option value="high">High Priority</option>
+          <option value="medium">Medium Priority</option>
+          <option value="low">Low Priority</option>
+        </select>
+        <label for="goal-deadline">Deadline:</label>
+        <input type="date" id="goal-deadline">
+        <button type="submit">Add Goal</button>
+      </form>
+      <ul id="goal-list"></ul>
+    </section>
   </div>
 
   <script>
+    // Habit Drag and Drop
     const habits = document.querySelectorAll('.habit');
     const dropZones = document.querySelectorAll('.drop-zone');
-    const today = new Date().getDate();
 
-    // Drag logic
     habits.forEach(habit => {
       habit.addEventListener('dragstart', (e) => {
         e.dataTransfer.setData('text/plain', habit.textContent);
@@ -206,35 +263,25 @@
       const categoryZone = document.querySelector(`.${category}`);
       categoryZone.appendChild(card);
     }
+
+    // Advanced Goal Manager
+    const goalForm = document.getElementById('goal-form');
+    const goalList = document.getElementById('goal-list');
+
+    goalForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+
+      const input = document.getElementById('goal-input');
+      const priority = document.getElementById('goal-priority').value;
+      const deadline = document.getElementById('goal-deadline').value;
+
+      const li = document.createElement('li');
+      li.textContent = `${input.value} (Priority: ${priority}, Deadline: ${deadline || 'None'})`;
+      goalList.appendChild(li);
+
+      input.value = '';
+      document.getElementById('goal-deadline').value = '';
+    });
   </script>
-</body>
-</html>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <title>Advanced Goals</title>
-    <link rel="stylesheet" href="styles.css">
-</head>
-<body>
-    <div id="content">
-        <h1>Advanced Goals</h1>
-        <div class="goal-category advanced-goals">
-            <h2>Manage Advanced Goals</h2>
-            <form id="goal-form">
-                <input type="text" id="goal-input" placeholder="Enter goal">
-                <label for="goal-priority">Priority:</label>
-                <select id="goal-priority" title="Select the priority level for your goal">
-                    <option value="high">High Priority</option>
-                    <option value="medium">Medium Priority</option>
-                    <option value="low">Low Priority</option>
-                </select>
-                <label for="goal-deadline">Deadline:</label>
-                <input type="date" id="goal-deadline" title="Select a deadline for your goal">
-                <button type="submit">Add Goal</button>
-            </form>
-            <ul id="goal-list"></ul>
-        </div>
-    </div>
-    <script src="advanced.js"></script>
 </body>
 </html>

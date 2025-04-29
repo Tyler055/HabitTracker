@@ -117,7 +117,7 @@ body.nav-expanded #goals-container {
 /* Title */
 #content > h1 {
   margin-bottom: 40px;
-  color: white;
+  color: rgb(214, 208, 208);
   font-size: 3rem; /* Larger font size */
   text-align: center;
   text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5); /* Text shadow for contrast */
@@ -339,4 +339,15 @@ canvas {
   font-weight: bold;
   font-size: 1.2rem;
   letter-spacing: 0.5px;
+}
+.close-btn {
+  color: red;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 5px;
+  transition: color 0.3s ease;
+}
+
+.close-btn:hover {
+  color: darkred;
 }
