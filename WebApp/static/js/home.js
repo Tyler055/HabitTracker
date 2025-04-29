@@ -17,8 +17,10 @@ function setupButtons() {
     resetBtn.addEventListener('click', async () => {
       if (confirm('Are you sure you want to reset all your goals? This cannot be undone.')) {
         try {
+          // Optimistically clear the charts
+          updateAllCharts();
+
           await resetGoalsData();
-          await updateAllCharts();
           alert('All goals have been reset.');
         } catch (error) {
           console.error('Reset failed:', error);
@@ -39,7 +41,7 @@ function setupButtons() {
 // Function to fetch and update all charts
 async function updateAllCharts() {
   try {
-    const [daily, weekly, monthly, yearly,advanced] = await Promise.all([
+    const [daily, weekly, monthly, yearly, advanced] = await Promise.all([
       fetchContent('daily'),
       fetchContent('weekly'),
       fetchContent('monthly'),
@@ -70,6 +72,7 @@ function countCompleted(goals) {
 function updateChart(canvasId, completed, total, color) {
   const ctx = document.getElementById(canvasId).getContext('2d');
 
+  // Check if chart already exists and destroy the previous chart if necessary
   if (charts[canvasId]) {
     charts[canvasId].destroy(); // Destroy previous chart instance if it exists
   }

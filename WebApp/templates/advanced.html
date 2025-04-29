@@ -5,161 +5,165 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Advanced Habit & Goal Tracker</title>
   <style>
-    :root {
-      --morning-color: #ffedc2;
-      --evening-color: #c2e9ff;
-      --night-color: #d7c2ff;
-      --none-color: #eee;
-    }
-
-    body {
-      font-family: sans-serif;
+    * {
+      box-sizing: border-box;
       margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', sans-serif;
+    }
+  
+    body {
+      background: #f0f2f5;
+      min-height: 100vh;
       display: flex;
-      height: 100vh;
-      overflow: hidden;
+      justify-content: center;
+      padding: 40px 20px;
     }
-
-    .navbar {
-      width: 60px;
-      background: #333;
-      color: #fff;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      transition: width 0.3s;
-      overflow: hidden;
-    }
-
-    .navbar:hover {
-      width: 180px;
-    }
-
-    .navbar h2 {
-      font-size: 1rem;
-      margin: 1rem 0;
-      white-space: nowrap;
-    }
-
+  
     .content {
-      flex: 1;
-      overflow-y: auto;
-      padding: 1rem;
-      display: flex;
-      flex-direction: column;
-      gap: 2rem;
+      max-width: 1200px;
+      width: 100%;
     }
-
+  
+    h1, h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #333;
+    }
+  
+    .habit-container {
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+      margin-bottom: 30px;
+    }
+  
+    .habit {
+      background-color: #ffc107;
+      padding: 10px 15px;
+      border-radius: 6px;
+      cursor: grab;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      font-weight: bold;
+    }
+  
     .calendar {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 1rem;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
     }
-
+  
+    .drop-zone {
+      background: #ffffff;
+      padding: 20px;
+      min-height: 250px;
+      border: 2px dashed #ccc;
+      border-radius: 10px;
+      transition: background 0.3s;
+    }
+  
+    .drop-zone.highlight {
+      background-color: #e0f7fa;
+    }
+  
     .habit-card {
-      background: #f9f9f9;
-      border: 1px solid #ccc;
+      margin-top: 15px;
       border-radius: 8px;
-      padding: 0.5rem;
-      min-height: 150px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
+      background: #fefefe;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      padding: 10px;
     }
-
+  
     .habit-header {
       font-weight: bold;
-      margin-bottom: 0.5rem;
+      margin-bottom: 10px;
+      text-align: center;
+      color: #444;
     }
-
+  
     .habit-grid {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.25rem;
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 6px;
     }
-
+  
     .day {
-      width: 28px;
-      height: 28px;
+      background: #e0e0e0;
+      padding: 6px;
+      text-align: center;
       border-radius: 4px;
-      background: #eee;
-      display: flex;
-      align-items: center;
-      justify-content: center;
       cursor: pointer;
-      font-size: 0.8rem;
+      transition: background 0.2s;
     }
-
+  
     .day.completed {
       background: #4caf50;
       color: white;
     }
-
-    .morning .habit-card { background: var(--morning-color); }
-    .evening .habit-card { background: var(--evening-color); }
-    .night .habit-card { background: var(--night-color); }
-    .none .habit-card { background: var(--none-color); }
-
-    .habit-container {
-      display: flex;
-      gap: 1rem;
-      flex-wrap: wrap;
-    }
-
-    .habit {
-      padding: 0.5rem;
-      border: 1px solid #aaa;
-      border-radius: 4px;
-      background: white;
-      cursor: grab;
-    }
-
-    .drop-zone {
-      border: 2px dashed #ccc;
-      min-height: 60px;
-      padding: 0.5rem;
-      border-radius: 4px;
-      flex: 1;
-    }
-
-    .drop-zone.highlight {
-      background: #d0ffd0;
-    }
-
+  
     .goal-category {
-      background: #f0f0f0;
-      padding: 1rem;
-      border-radius: 8px;
+      background: white;
+      margin-top: 50px;
+      padding: 25px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
     }
-
-    #goal-form input, #goal-form select {
-      margin: 0.25rem 0;
-      padding: 0.25rem;
-      width: 100%;
+  
+    #goal-form {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 20px;
     }
-
+  
+    #goal-form input,
+    #goal-form select {
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+  
     #goal-form button {
-      margin-top: 0.5rem;
-      padding: 0.5rem;
-      background: #4caf50;
+      background-color: #28a745;
       color: white;
+      font-weight: bold;
       border: none;
+      border-radius: 6px;
+      padding: 10px;
       cursor: pointer;
-      border-radius: 4px;
     }
-
+  
+    #goal-form button:hover {
+      background-color: #218838;
+    }
+  
     #goal-list {
-      margin-top: 1rem;
       list-style: none;
       padding-left: 0;
     }
-
+  
     #goal-list li {
-      background: white;
-      border: 1px solid #ccc;
-      padding: 0.5rem;
-      margin-bottom: 0.5rem;
-      border-radius: 4px;
+      padding: 8px;
+      background: #f8f9fa;
+      border-radius: 5px;
+      margin-bottom: 5px;
+    }
+  
+    .navbar {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+  
+    .nav-item {
+      font-weight: bold;
+      text-decoration: none;
+      color: #007bff;
+      display: inline-block;
+      margin-bottom: 10px;
+    }
+  
+    .nav-item:hover {
+      text-decoration: underline;
     }
   </style>
 </head>
