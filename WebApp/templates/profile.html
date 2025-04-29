@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <div class="container">
+    <h2>User Profile</h2>
+    <p><strong>Username:</strong> {{ username }}</p>
+    <p><strong>Login Count:</strong> {{ login_count }}</p>
+    <a href="{{ url_for('habit_tracker') }}">← Back to Tracker</a>
+  </div>
+{% endblock %}
