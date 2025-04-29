@@ -1,60 +1,115 @@
 document.addEventListener("DOMContentLoaded", function () {
-    const links = {
-        "load-goals": '/static/Locations/all-goals.html',
-        "load-daily-goals": '/static/Locations/daily.html',
-        "load-weekly-goals": '/static/Locations/weekly.html',
-        "load-monthly-goals": '/static/Locations/monthly.html',
-        "load-yearly-goals": '/static/Locations/yearly.html',
-        "load-advanced-goals": '/static/Locations/advanced.html'
-    };
-
-    const navbar = document.getElementById("navbar");
-    const goalsContainer = document.getElementById("goals-container");
     const homeLink = document.getElementById("home-link");
-    const themeToggle = document.getElementById("theme-toggle");
+    const goalsLink = document.getElementById("load-goals");
+    const dailyLink = document.getElementById("load-daily-goals");
+    const weeklyLink = document.getElementById("load-weekly-goals");
+    const monthlyLink = document.getElementById("load-monthly-goals");
+    const yearlyLink = document.getElementById("load-yearly-goals");
+    const goalsContainer = document.getElementById("goals-container");
+    const navbar = document.getElementById("navbar");
+    const logoutBtn = document.getElementById("logout-btn");
+    const chartsDiv = document.getElementById("category-charts");
+    
+    // Initialize localStorage goals and charts
+    let currentContent = "";
+    let charts = {};
 
-    // Theme Initialization
-    if (localStorage.getItem("theme") === "dark") {
-        document.body.classList.add("dark-mode");
+    // Show/Hide content on navbar links
+    function renderCategoryCharts() {
+        const categories = ["daily", "weekly", "monthly", "yearly"];
+        const chartIds = ["dailyChart", "weeklyChart", "monthlyChart", "yearlyChart"];
+        const categoryColors = ["#28a745", "#17a2b8", "#ffc107", "#dc3545"];
+        let allGoals = [];
+
+        categories.forEach(cat => {
+            const data = JSON.parse(localStorage.getItem(cat) || "[]");
+            allGoals = allGoals.concat(data);
+        });
+        
+        const allTotal = allGoals.length;
+        const allCompleted = allGoals.filter(g => g.completed).length;
+        const allPercent = allTotal === 0 ? 0 : Math.round((allCompleted / allTotal) * 100);
+        const allCtx = document.getElementById("allGoalsChart").getContext('2d');
+        if (charts['all']) charts['all'].destroy();
+        charts['all'] = new Chart(allCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Completed', 'Incomplete'],
+                datasets: [{
+                    data: [allPercent, 100 - allPercent],
+                    backgroundColor: ['#673ab7', '#e0e0e0'],
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                cutout: '70%',
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { callbacks: { label: (context) => `${context.label}: ${context.parsed}%` }},
+                    title: { display: true, text: `${allPercent}%`, position: 'center', color: '#333', font: { size: 22, weight: 'bold' }}
+                }
+            }
+        });
+
+        categories.forEach((cat, idx) => {
+            const data = JSON.parse(localStorage.getItem(cat) || "[]");
+            const total = data.length;
+            const completed = data.filter(g => g.completed).length;
+            const percent = total === 0 ? 0 : Math.round((completed / total) * 100);
+            const ctx = document.getElementById(chartIds[idx]).getContext('2d');
+            if (charts[cat]) charts[cat].destroy();
+            charts[cat] = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Completed', 'Incomplete'],
+                    datasets: [{
+                        data: [percent, 100 - percent],
+                        backgroundColor: [categoryColors[idx], '#e0e0e0'],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    cutout: '70%',
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { callbacks: { label: (context) => `${context.label}: ${context.parsed}%` }},
+                        title: { display: true, text: `${percent}%`, position: 'center', color: '#333', font: { size: 22, weight: 'bold' }}
+                    }
+                }
+            });
+        });
     }
 
-    themeToggle?.addEventListener("click", () => {
-        document.body.classList.toggle("dark-mode");
-        localStorage.setItem("theme", document.body.classList.contains("dark-mode") ? "dark" : "light");
-    });
+    // Hide/show specific sections when loading content
+    function hideLogoutBtn() {
+        if (logoutBtn) logoutBtn.style.display = "none";
+    }
 
-    // Initially hide the container
-    if (goalsContainer) goalsContainer.style.display = "none";
+    function hideCharts() {
+        if (chartsDiv) chartsDiv.style.display = "none";
+    }
 
-    let currentContent = "";
-
-    if (navbar) {
-        navbar.addEventListener("mouseenter", () => document.body.classList.add("nav-expanded"));
-        navbar.addEventListener("mouseleave", () => document.body.classList.remove("nav-expanded"));
+    function expandGoalsContainer() {
+        if (goalsContainer) goalsContainer.classList.add("full-width-goals");
     }
 
     if (homeLink) {
         homeLink.addEventListener("click", function (e) {
             e.preventDefault();
             if (goalsContainer) goalsContainer.style.display = "none";
+            if (logoutBtn) logoutBtn.style.display = "block";
+            if (chartsDiv) chartsDiv.style.display = "flex";
+            if (goalsContainer) goalsContainer.classList.remove("full-width-goals");
+            renderCategoryCharts();
             currentContent = "";
-            document.body.style.backgroundImage = "url('https://images.unsplash.com/photo-1507608616759-54f48f0af0ee?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80')";
-            document.body.style.backgroundSize = "cover";
-            document.body.style.backgroundPosition = "center";
-            document.body.style.backgroundAttachment = "fixed";
         });
     }
 
-    // Event listeners for each link
-    Object.keys(links).forEach(id => {
-        const link = document.getElementById(id);
-        if (link) {
-            link.addEventListener("click", function (e) {
-                e.preventDefault();
-                toggleContent(links[id]);
-            });
-        }
-    });
+    if (goalsLink) goalsLink.addEventListener("click", e => { e.preventDefault(); hideLogoutBtn(); hideCharts(); expandGoalsContainer(); toggleContent('Locations/all-goals.html'); });
+    if (dailyLink) dailyLink.addEventListener("click", e => { e.preventDefault(); hideLogoutBtn(); hideCharts(); expandGoalsContainer(); toggleContent('Locations/daily.html'); });
+    if (weeklyLink) weeklyLink.addEventListener("click", e => { e.preventDefault(); hideLogoutBtn(); hideCharts(); expandGoalsContainer(); toggleContent('Locations/weekly.html'); });
+    if (monthlyLink) monthlyLink.addEventListener("click", e => { e.preventDefault(); hideLogoutBtn(); hideCharts(); expandGoalsContainer(); toggleContent('Locations/monthly.html'); });
+    if (yearlyLink) yearlyLink.addEventListener("click", e => { e.preventDefault(); hideLogoutBtn(); hideCharts(); expandGoalsContainer(); toggleContent('Locations/yearly.html'); });
 
     function toggleContent(url) {
         if (currentContent === url) {
@@ -67,9 +122,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function loadContent(url) {
         if (!goalsContainer) return;
-
         goalsContainer.innerHTML = "";
-
         fetch(url)
             .then(response => {
                 if (!response.ok) throw new Error(`Failed to load ${url}: ${response.status} ${response.statusText}`);
@@ -80,16 +133,12 @@ document.addEventListener("DOMContentLoaded", function () {
                 const doc = parser.parseFromString(html, "text/html");
                 const content = doc.querySelector("#content");
                 const input = doc.querySelector("#input");
-
                 if (!content) throw new Error(`No content found in ${url}`);
-
                 if (content) goalsContainer.appendChild(content);
                 if (input) goalsContainer.appendChild(input);
-
                 initializeDragAndDrop();
                 loadSavedGoals();
                 bindGoalForm();
-
                 goalsContainer.style.display = "block";
                 currentContent = url;
             })
@@ -100,206 +149,102 @@ document.addEventListener("DOMContentLoaded", function () {
             });
     }
 
+    // Advanced goal creation: includes progress and timestamp
+    function createGoalElement(text, completed = false, isDefault = false, progress = 0) {
+        const li = document.createElement("li");
+        li.setAttribute("draggable", "true");
+
+        if (!isDefault) {
+            const checkbox = document.createElement("input");
+            checkbox.type = "checkbox";
+            checkbox.checked = completed;
+            checkbox.addEventListener("change", () => {
+                li.classList.toggle("completed");
+                saveGoals();
+            });
+            li.appendChild(checkbox);
+        }
+
+        const span = document.createElement("span");
+        span.textContent = text;
+        li.appendChild(span);
+
+        // Add progress bar
+        const progressBarContainer = document.createElement("div");
+        progressBarContainer.classList.add("progress-bar-container");
+        const progressBar = document.createElement("div");
+        progressBar.classList.add("progress-bar");
+        progressBar.style.width = `${progress}%`;
+        progressBarContainer.appendChild(progressBar);
+        li.appendChild(progressBarContainer);
+
+        if (completed) li.classList.add("completed");
+
+        if (!isDefault) {
+            const deleteBtn = document.createElement("span");
+            deleteBtn.textContent = "×";
+            deleteBtn.className = "delete-btn";
+            deleteBtn.addEventListener("click", () => {
+                li.remove();
+                saveGoals();
+            });
+            li.appendChild(deleteBtn);
+        }
+
+        return li;
+    }
+
+    // Load saved goals with enhanced properties (progress, timestamps)
+    function loadSavedGoals() {
+        const goalLists = document.querySelectorAll(".goal-category ul");
+        if (!goalLists.length) return;
+
+        goalLists.forEach(goalList => {
+            const category = goalList.closest('.goal-category').classList[1].replace('-goals', '');
+            const savedGoals = JSON.parse(localStorage.getItem(category) || '[]');
+
+            goalList.innerHTML = '';
+
+            savedGoals.forEach(goal => {
+                const li = createGoalElement(goal.text, goal.completed, false, goal.progress || 0);
+                goalList.appendChild(li);
+            });
+        });
+
+        initializeDragAndDrop();
+    }
+
+    // Save goal progress in localStorage
+    function saveGoals() {
+        const goalLists = document.querySelectorAll(".goal-category ul");
+
+        goalLists.forEach(goalList => {
+            const category = goalList.closest('.goal-category').classList[1].replace('-goals', '');
+            const goals = Array.from(goalList.children)
+                .filter(li => !li.classList.contains('default-goal'))
+                .map(li => ({
+                    text: li.querySelector("span").textContent,
+                    completed: li.querySelector("input")?.checked || false,
+                    progress: li.querySelector(".progress-bar")?.style.width.replace("%", "") || 0
+                }));
+
+            localStorage.setItem(category, JSON.stringify(goals));
+        });
+    }
+
+    // Logout functionality
+    document.addEventListener('DOMContentLoaded', () => {
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', function () {
+                localStorage.clear();  // Clear all stored goals
+                location.href = '/login';  // Redirect to login page
+            });
+        }
+    });
+
+    renderCategoryCharts(); // Initial chart rendering
+    if (chartsDiv) chartsDiv.style.display = "flex";
+    if (logoutBtn) logoutBtn.style.display = "block";
+    if (goalsContainer) goalsContainer.classList.remove("full-width-goals");
     initializeDragAndDrop();
 });
-
-let draggedItem = null;
-
-function initializeDragAndDrop() {
-    const listIds = ['daily-goals-list', 'weekly-goals-list', 'monthly-goals-list', 'yearly-goals-list'];
-
-    listIds.forEach(listId => {
-        const list = document.getElementById(listId);
-        if (list) {
-            list.addEventListener('dragover', e => {
-                e.preventDefault();
-                e.dataTransfer.dropEffect = 'move';
-            });
-
-            list.addEventListener('drop', handleDrop);
-
-            const items = list.getElementsByTagName('li');
-            Array.from(items).forEach(item => {
-                if (!item.hasAttribute('draggable')) item.setAttribute('draggable', 'true');
-                if (!item.classList.contains('drag-enabled')) {
-                    item.classList.add('drag-enabled');
-
-                    item.addEventListener('dragstart', function (e) {
-                        draggedItem = this;
-                        setTimeout(() => this.classList.add('dragging'), 0);
-                        e.dataTransfer.effectAllowed = 'move';
-                        e.dataTransfer.setData('text/plain', this.textContent);
-                    });
-
-                    item.addEventListener('dragend', function () {
-                        this.classList.remove('dragging');
-                        document.querySelectorAll('li').forEach(li => {
-                            li.classList.remove('drag-over');
-                            li.style.borderTop = '';
-                            li.style.borderBottom = '';
-                        });
-                    });
-
-                    item.addEventListener('dragenter', function (e) {
-                        e.preventDefault();
-                        if (this !== draggedItem) {
-                            const offset = this.getBoundingClientRect().y + this.getBoundingClientRect().height / 2;
-                            if (e.clientY > offset) {
-                                this.style.borderBottom = '2px solid #4CAF50';
-                                this.style.borderTop = '';
-                            } else {
-                                this.style.borderTop = '2px solid #4CAF50';
-                                this.style.borderBottom = '';
-                            }
-                        }
-                    });
-
-                    item.addEventListener('dragleave', function () {
-                        this.style.borderTop = '';
-                        this.style.borderBottom = '';
-                    });
-                }
-            });
-        }
-    });
-}
-
-function handleDrop(e) {
-    e.preventDefault();
-    if (!draggedItem) return;
-
-    const targetList = e.currentTarget;
-    if (e.target.tagName === 'LI') {
-        const offset = e.target.getBoundingClientRect().y + e.target.getBoundingClientRect().height / 2;
-        if (e.clientY > offset) {
-            e.target.parentNode.insertBefore(draggedItem, e.target.nextSibling);
-        } else {
-            e.target.parentNode.insertBefore(draggedItem, e.target);
-        }
-    } else {
-        targetList.appendChild(draggedItem);
-    }
-
-    draggedItem = null;
-    document.querySelectorAll('li').forEach(li => {
-        li.style.borderTop = '';
-        li.style.borderBottom = '';
-    });
-
-    saveGoals();
-}
-
-function getCurrentCategory() {
-    const heading = document.querySelector("#content h1");
-    if (heading) {
-        const text = heading.textContent.toLowerCase();
-        if (text.includes("daily")) return "daily";
-        if (text.includes("weekly")) return "weekly";
-        if (text.includes("monthly")) return "monthly";
-        if (text.includes("yearly")) return "yearly";
-    }
-    return "all";
-}
-
-function loadSavedGoals() {
-    const goalLists = document.querySelectorAll(".goal-category ul");
-    if (!goalLists.length) return;
-
-    goalLists.forEach(goalList => {
-        const category = goalList.closest('.goal-category').classList[1].replace('-goals', '');
-        const savedGoals = JSON.parse(localStorage.getItem(category) || '[]');
-
-        const defaultGoals = Array.from(goalList.children).map(li => ({
-            text: li.textContent.trim(),
-            completed: false,
-            isDefault: true
-        }));
-
-        goalList.innerHTML = '';
-
-        defaultGoals.forEach(goal => {
-            const li = createGoalElement(goal.text, goal.completed, true);
-            goalList.appendChild(li);
-        });
-
-        savedGoals.forEach(goal => {
-            if (!defaultGoals.some(defaultGoal => defaultGoal.text === goal.text)) {
-                const li = createGoalElement(goal.text, goal.completed, false);
-                goalList.appendChild(li);
-            }
-        });
-    });
-
-    initializeDragAndDrop();
-}
-
-function createGoalElement(text, completed = false, isDefault = false) {
-    const li = document.createElement("li");
-    li.setAttribute("draggable", "true");
-
-    if (!isDefault) {
-        const checkbox = document.createElement("input");
-        checkbox.type = "checkbox";
-        checkbox.checked = completed;
-        checkbox.addEventListener("change", () => {
-            li.classList.toggle("completed");
-            saveGoals();
-        });
-        li.appendChild(checkbox);
-    }
-
-    const span = document.createElement("span");
-    span.textContent = text;
-    if (completed) li.classList.add("completed");
-    li.appendChild(span);
-
-    if (!isDefault) {
-        const deleteBtn = document.createElement("span");
-        deleteBtn.textContent = "×";
-        deleteBtn.className = "delete-btn";
-        deleteBtn.addEventListener("click", () => {
-            li.remove();
-            saveGoals();
-        });
-        li.appendChild(deleteBtn);
-    }
-
-    return li;
-}
-
-function saveGoals() {
-    const goalLists = document.querySelectorAll(".goal-category ul");
-
-    goalLists.forEach(goalList => {
-        const category = goalList.closest('.goal-category').classList[1].replace('-goals', '');
-        const goals = Array.from(goalList.children).map(li => ({
-            text: li.querySelector("span").textContent.trim(),
-            completed: li.querySelector("input") ? li.querySelector("input").checked : false,
-            isDefault: false
-        }));
-
-        localStorage.setItem(category, JSON.stringify(goals));
-    });
-}
-
-function bindGoalForm() {
-    const goalForm = document.getElementById("goal-form");
-    const goalInput = document.getElementById("goal-input");
-
-    if (goalForm && goalInput) {
-        goalForm.addEventListener("submit", (e) => {
-            e.preventDefault();
-            const goalText = goalInput.value.trim();
-            if (goalText) {
-                const category = getCurrentCategory();
-                const goalList = document.getElementById(`${category}-goals-list`);
-                if (goalList) {
-                    const li = createGoalElement(goalText);
-                    goalList.appendChild(li);
-                    goalInput.value = '';
-                    saveGoals();
-                }
-            }
-        });
-    }
-}

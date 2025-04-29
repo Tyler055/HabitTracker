@@ -5,7 +5,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
   let draggedItem = null;
 
-  // Load goals when page loads
+  // Load goals from DB when the page loads
   await loadGoalsFromDB();
   initializeDragAndDrop();
   bindGoalForm();

@@ -209,3 +209,32 @@
   </script>
 </body>
 </html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Advanced Goals</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="content">
+        <h1>Advanced Goals</h1>
+        <div class="goal-category advanced-goals">
+            <h2>Manage Advanced Goals</h2>
+            <form id="goal-form">
+                <input type="text" id="goal-input" placeholder="Enter goal">
+                <label for="goal-priority">Priority:</label>
+                <select id="goal-priority" title="Select the priority level for your goal">
+                    <option value="high">High Priority</option>
+                    <option value="medium">Medium Priority</option>
+                    <option value="low">Low Priority</option>
+                </select>
+                <label for="goal-deadline">Deadline:</label>
+                <input type="date" id="goal-deadline" title="Select a deadline for your goal">
+                <button type="submit">Add Goal</button>
+            </form>
+            <ul id="goal-list"></ul>
+        </div>
+    </div>
+    <script src="advanced.js"></script>
+</body>
+</html>

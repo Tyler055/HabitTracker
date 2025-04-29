@@ -1,11 +1,9 @@
-
-
 import { fetchContent, resetGoalsData } from './saveData.js';
 
 let charts = {};
 
 document.addEventListener('DOMContentLoaded', () => {
-  console.log('Home.js loaded ');
+  console.log('Home.js loaded');
   setupButtons();
   updateAllCharts();
 });
@@ -14,6 +12,7 @@ function setupButtons() {
   const resetBtn = document.getElementById('reset-btn');
   const logoutBtn = document.getElementById('logout-btn');
 
+  // Reset button event listener
   if (resetBtn) {
     resetBtn.addEventListener('click', async () => {
       if (confirm('Are you sure you want to reset all your goals? This cannot be undone.')) {
@@ -23,11 +22,13 @@ function setupButtons() {
           alert('All goals have been reset.');
         } catch (error) {
           console.error('Reset failed:', error);
+          alert('Failed to reset goals. Please try again.');
         }
       }
     });
   }
 
+  // Logout button event listener
   if (logoutBtn) {
     logoutBtn.addEventListener('click', () => {
       window.location.href = '/logout';
@@ -35,12 +36,16 @@ function setupButtons() {
   }
 }
 
+// Function to fetch and update all charts
 async function updateAllCharts() {
   try {
-    const daily = await fetchContent('daily');
-    const weekly = await fetchContent('weekly');
-    const monthly = await fetchContent('monthly');
-    const yearly = await fetchContent('yearly');
+    const [daily, weekly, monthly, yearly,advanced] = await Promise.all([
+      fetchContent('daily'),
+      fetchContent('weekly'),
+      fetchContent('monthly'),
+      fetchContent('yearly'),
+      fetchContent('advanced')
+    ]);
 
     const allGoals = [...daily, ...weekly, ...monthly, ...yearly];
 
@@ -52,18 +57,21 @@ async function updateAllCharts() {
     
   } catch (error) {
     console.error('Error updating charts:', error);
+    alert('Failed to load or update charts. Please try again later.');
   }
 }
 
+// Function to count completed goals
 function countCompleted(goals) {
   return goals.filter(g => g.completed).length;
 }
 
+// Function to update chart
 function updateChart(canvasId, completed, total, color) {
   const ctx = document.getElementById(canvasId).getContext('2d');
 
   if (charts[canvasId]) {
-    charts[canvasId].destroy();
+    charts[canvasId].destroy(); // Destroy previous chart instance if it exists
   }
 
   charts[canvasId] = new Chart(ctx, {

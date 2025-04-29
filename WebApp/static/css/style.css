@@ -3,12 +3,9 @@ html, body {
   height: 100%;
   margin: 0;
   padding: 0;
-  font-family: Arial, sans-serif;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* More modern font */
   overflow-x: hidden;
-  overflow-y: auto; /* ✅ Allow vertical scrolling */
-}
-
-body {
+  overflow-y: auto;
   display: flex;
 }
 
@@ -19,7 +16,8 @@ body {
   left: 0;
   width: 100%;
   height: 100%;
-  background-image: url('../img/background.jpg');
+  object-fit: cover;
+  background-image: url('img/background.jpg');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -44,7 +42,7 @@ body {
 }
 
 #navbar:hover {
-  width: 150px;
+  width: 180px; /* Increased width for better user experience */
 }
 
 #logo-item {
@@ -76,14 +74,16 @@ body {
   color: white;
   text-decoration: none;
   font-weight: bold;
-  font-size: 18px;
+  font-size: 20px; /* Increased font size */
   display: block;
-  padding: 10px 15px;
-  transition: background-color 0.2s;
+  padding: 10px 20px; /* Increased padding for better click ability */
+  transition: background-color 0.3s, transform 0.3s ease-in-out;
+  border-radius: 8px; /* Rounded corners for links */
 }
 
 #navbar a:hover {
   background-color: rgba(255, 255, 255, 0.1);
+  transform: translateX(10px); /* Slight horizontal movement for interaction */
 }
 
 #navbar a.active {
@@ -91,20 +91,18 @@ body {
 }
 
 /* Main Content Area */
-#page-content, 
-#goals-container {
+#page-content, #goals-container {
   margin-left: 60px;
   padding: 30px;
   flex-grow: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  overflow: visible; /* ✅ No hidden scroll */
 }
 
 body.nav-expanded #page-content,
 body.nav-expanded #goals-container {
-  margin-left: 150px;
+  margin-left: 180px; /* Adjusted for wider navbar */
 }
 
 /* Content Section */
@@ -113,14 +111,16 @@ body.nav-expanded #goals-container {
   flex-direction: column;
   align-items: center;
   padding: 30px;
+  color: white;
 }
 
 /* Title */
 #content > h1 {
   margin-bottom: 40px;
   color: white;
-  font-size: 2.5rem;
+  font-size: 3rem; /* Larger font size */
   text-align: center;
+  text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5); /* Text shadow for contrast */
 }
 
 /* Goals Row */
@@ -134,7 +134,7 @@ body.nav-expanded #goals-container {
 
 /* Goal Card */
 .goal-category {
-  background: white;
+  background: #fff;
   border-radius: 12px;
   padding: 25px;
   width: 300px;
@@ -152,6 +152,8 @@ body.nav-expanded #goals-container {
   margin-bottom: 15px;
   color: #333;
   border-bottom: 2px solid #eee;
+  font-size: 1.8rem;
+  text-transform: uppercase; /* Adding uppercase for a more professional look */
 }
 
 /* Goals List inside Goal Card */
@@ -213,6 +215,7 @@ body.nav-expanded #goals-container {
   border-radius: 8px;
   font-size: 16px;
   background: #f8f9fa;
+  transition: all 0.3s ease;
 }
 
 #goal-input:focus, select:focus {
@@ -287,6 +290,14 @@ button:hover {
     width: 100%;
     max-width: 100%;
   }
+
+  #navbar {
+    width: 60px;
+  }
+
+  #navbar:hover {
+    width: 150px;
+  }
 }
 
 /* Charts Section for Home Page */
@@ -328,50 +339,4 @@ canvas {
   font-weight: bold;
   font-size: 1.2rem;
   letter-spacing: 0.5px;
-  color: #333;
-}
-
-/* Reset and Logout buttons */
-.reset-btn, .logout-btn {
-  position: fixed;
-  top: 20px;
-  padding: 10px 20px;
-  font-size: 16px;
-  font-weight: bold;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  z-index: 1001;
-}
-
-.reset-btn {
-  right: 150px;
-  background-color: #17a2b8;
-}
-
-.logout-btn {
-  right: 20px;
-  background-color: #dc3545;
-}
-
-.reset-btn:hover {
-  background-color: #138496;
-}
-
-.logout-btn:hover {
-  background-color: #c82333;
-}
-
-/* Responsive Charts */
-@media (max-width: 768px) {
-  #category-charts {
-    margin: 40px 20px;
-    flex-direction: column;
-  }
-
-  .chart-container {
-    width: 100%;
-    max-width: 300px;
-  }
 }

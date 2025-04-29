@@ -18,6 +18,8 @@ STATIC_DIR = os.path.join(PROJECT_ROOT, 'WebApp', 'static')
 
 # Flask app setup
 app = Flask(__name__, template_folder=TEMPLATE_DIR, static_folder=STATIC_DIR)
+
+# Secret key setup (for development only, should be fixed in production)
 app.secret_key = os.urandom(24)  # Generates a new key on each server start
 
 # ─────── Before Request ──────────────────────────────
@@ -88,14 +90,11 @@ def goals_page(category):
 
 @app.route('/goals/all-goals')
 def all_goals_page():
-    user_id = session['user_id']
-    return render_template(
-        'all-goals.html',
-        daily_goals=get_goals_by_category(user_id, 'daily'),
-        weekly_goals=get_goals_by_category(user_id, 'weekly'),
-        monthly_goals=get_goals_by_category(user_id, 'monthly'),
-        yearly_goals=get_goals_by_category(user_id, 'yearly')
-    )
+    daily_goals = get_goals_by_category(session['user_id'], 'daily')
+    weekly_goals = get_goals_by_category(session['user_id'], 'weekly')
+    monthly_goals = get_goals_by_category(session['user_id'], 'monthly')
+    yearly_goals = get_goals_by_category(session['user_id'], 'yearly')
+    return render_template('all-goals.html', daily_goals=daily_goals, weekly_goals=weekly_goals, monthly_goals=monthly_goals, yearly_goals=yearly_goals)
 
 # ─────── API Endpoints ───────────────────────────────
 
@@ -106,10 +105,7 @@ def api_goals():
 
     if request.method == 'GET':
         goals = get_goals_by_category(user_id, category)
-        return jsonify([
-            {'text': row['text'], 'completed': bool(row['completed'])}
-            for row in goals
-        ])
+        return jsonify([{'text': row['text'], 'completed': bool(row['completed'])} for row in goals])
 
     elif request.method == 'POST':
         data = request.get_json()
