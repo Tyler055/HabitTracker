@@ -1,29 +1,32 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-  <title>Habit Tracker</title>
-  <link rel="stylesheet"
-        href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
-  <div class="background"></div>
+{% extends "base.html" %}
 
-  <ul id="navbar">
-    <li id="logo-item">
-      <img src="{{ url_for('static', filename='img/logo.jpg') }}"
-           class="logo" alt="Logo">
-    </li>
-    <li><a class="active" href="#">Home</a></li>
-    <li><a href="#" id="load-goals">All Goals</a></li>
-    <li><a href="#" id="load-daily-goals">Daily</a></li>
-    <li><a href="#" id="load-weekly-goals">Weekly</a></li>
-    <li><a href="#" id="load-yearly-goals">Yearly</a></li>
-  </ul>
+{% block content %}
+  <div id="category-charts">
+    <div class="chart-container">
+      <canvas id="allGoalsChart"></canvas>
+      <div class="chart-title all">All Goals</div>
+    </div>
+    <div class="chart-container">
+      <canvas id="dailyChart"></canvas>
+      <div class="chart-title daily">Daily</div>
+    </div>
+    <div class="chart-container">
+      <canvas id="weeklyChart"></canvas>
+      <div class="chart-title weekly">Weekly</div>
+    </div>
+    <div class="chart-container">
+      <canvas id="monthlyChart"></canvas>
+      <div class="chart-title monthly">Monthly</div>
+    </div>
+    <div class="chart-container">
+      <canvas id="yearlyChart"></canvas>
+      <div class="chart-title yearly">Yearly</div>
+    </div>
+  </div>
 
-  <div id="goals-container"></div>
+  <button class="reset-btn" id="reset-btn">Reset Goals</button>
+{% endblock %}
 
-  <script src="{{ url_for('static', filename='script.js') }}"></script>
-</body>
-</html>
+{% block scripts %}
+  <script type="module" src="{{ url_for('static', filename='js/home.js') }}"></script>
+{% endblock %}

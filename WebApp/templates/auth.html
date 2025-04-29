@@ -4,16 +4,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1.0">
   <title>{{ 'Sign Up' if mode=='signup' else 'Login' }}</title>
-  <link rel="stylesheet"
-        href="{{ url_for('static', filename='authStyle.css') }}">
-  <link href="https://fonts.googleapis.com/css2?family=Jost:wght@500&display=swap"
-        rel="stylesheet">
+
+  <!-- Correct Auth CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/authStyle.css') }}">
+  <link href="https://fonts.googleapis.com/css2?family=Jost:wght@500&display=swap" rel="stylesheet">
 </head>
+
 <body>
   <div class="main">
-    <!-- checkbox toggles between modes -->
-    <input type="checkbox" id="chk" aria-hidden="true"
-           {{ 'checked' if mode=='signup' else '' }}>
+    <!-- checkbox toggles between login/signup -->
+    <input type="checkbox" id="chk" aria-hidden="true" {{ 'checked' if mode=='signup' else '' }}>
 
     <div class="signup">
       <form method="POST" action="{{ url_for('signup') }}">
@@ -34,6 +34,8 @@
     </div>
   </div>
 
-  <script src="{{ url_for('static', filename='script.js') }}"></script>
+  <!-- Optional: include auth-specific JS if needed -->
+  <!-- No main script.js linked here unless necessary -->
+
 </body>
 </html>
