@@ -11,7 +11,7 @@
       padding: 0;
       font-family: 'Segoe UI', sans-serif;
     }
-  
+
     body {
       background: #f0f2f5;
       min-height: 100vh;
@@ -19,25 +19,28 @@
       justify-content: center;
       padding: 40px 20px;
     }
-  
+
     .content {
       max-width: 1200px;
       width: 100%;
     }
-  
+
     h1, h2 {
       text-align: center;
       margin-bottom: 20px;
       color: #333;
     }
-  
-    .habit-container {
+
+    .habit-bank {
       display: flex;
-      gap: 15px;
-      justify-content: center;
-      margin-bottom: 30px;
+      flex-direction: column;
+      gap: 10px;
+      align-items: center;
+      margin: 20px 0;
+      list-style: none;
+      padding-left: 0;
     }
-  
+
     .habit {
       background-color: #ffc107;
       padding: 10px 15px;
@@ -45,14 +48,17 @@
       cursor: grab;
       box-shadow: 0 4px 6px rgba(0,0,0,0.1);
       font-weight: bold;
+      width: 200px;
+      text-align: center;
     }
-  
+
     .calendar {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
       gap: 20px;
+      margin-bottom: 40px;
     }
-  
+
     .drop-zone {
       background: #ffffff;
       padding: 20px;
@@ -61,11 +67,11 @@
       border-radius: 10px;
       transition: background 0.3s;
     }
-  
+
     .drop-zone.highlight {
       background-color: #e0f7fa;
     }
-  
+
     .habit-card {
       margin-top: 15px;
       border-radius: 8px;
@@ -73,20 +79,20 @@
       box-shadow: 0 4px 8px rgba(0,0,0,0.1);
       padding: 10px;
     }
-  
+
     .habit-header {
       font-weight: bold;
       margin-bottom: 10px;
       text-align: center;
       color: #444;
     }
-  
+
     .habit-grid {
       display: grid;
       grid-template-columns: repeat(6, 1fr);
       gap: 6px;
     }
-  
+
     .day {
       background: #e0e0e0;
       padding: 6px;
@@ -95,12 +101,12 @@
       cursor: pointer;
       transition: background 0.2s;
     }
-  
+
     .day.completed {
       background: #4caf50;
       color: white;
     }
-  
+
     .goal-category {
       background: white;
       margin-top: 50px;
@@ -108,21 +114,21 @@
       border-radius: 10px;
       box-shadow: 0 4px 8px rgba(0,0,0,0.15);
     }
-  
+
     #goal-form {
       display: flex;
       flex-direction: column;
       gap: 10px;
       margin-bottom: 20px;
     }
-  
+
     #goal-form input,
     #goal-form select {
       padding: 10px;
       border-radius: 6px;
       border: 1px solid #ccc;
     }
-  
+
     #goal-form button {
       background-color: #28a745;
       color: white;
@@ -132,28 +138,32 @@
       padding: 10px;
       cursor: pointer;
     }
-  
+
     #goal-form button:hover {
       background-color: #218838;
     }
-  
+
     #goal-list {
       list-style: none;
       padding-left: 0;
     }
-  
+
     #goal-list li {
       padding: 8px;
       background: #f8f9fa;
       border-radius: 5px;
       margin-bottom: 5px;
     }
-  
+
+    .priority-high { border-left: 5px solid red; }
+    .priority-medium { border-left: 5px solid orange; }
+    .priority-low { border-left: 5px solid green; }
+
     .navbar {
       text-align: center;
       margin-bottom: 40px;
     }
-  
+
     .nav-item {
       font-weight: bold;
       text-decoration: none;
@@ -161,7 +171,7 @@
       display: inline-block;
       margin-bottom: 10px;
     }
-  
+
     .nav-item:hover {
       text-decoration: underline;
     }
@@ -170,26 +180,26 @@
 <body>
   <div class="navbar">
     <a href="/" class="nav-item">🏠 Home</a>
-    <h2>☀️ Morning</h2>
-    <h2>🌆 Evening</h2>
-    <h2>🌙 Night</h2>
-    <h2>🌀 None</h2>
   </div>
 
   <div class="content">
     <section>
       <h1>Habit Tracker</h1>
-      <div class="habit-container">
-        <div class="habit" draggable="true">Exercise</div>
-        <div class="habit" draggable="true">Read</div>
-        <div class="habit" draggable="true">Meditate</div>
-      </div>
+
+      <h2>Available Habits</h2>
+      <ul class="habit-bank">
+        <li class="habit" draggable="true">🏃 Exercise</li>
+        <li class="habit" draggable="true">📖 Read</li>
+        <li class="habit" draggable="true">🧘 Meditate</li>
+        <li class="habit" draggable="true">💧 Drink Water</li>
+        <li class="habit" draggable="true">📝 Journal</li>
+      </ul>
 
       <div class="calendar">
-        <div class="morning drop-zone" data-category="morning"></div>
-        <div class="evening drop-zone" data-category="evening"></div>
-        <div class="night drop-zone" data-category="night"></div>
-        <div class="none drop-zone" data-category="none"></div>
+        <div class="drop-zone morning" data-category="morning">☀️ Morning</div>
+        <div class="drop-zone evening" data-category="evening">🌆 Evening</div>
+        <div class="drop-zone night" data-category="night">🌙 Night</div>
+        <div class="drop-zone none" data-category="none">🌀 None</div>
       </div>
     </section>
 
@@ -281,6 +291,8 @@
 
       const li = document.createElement('li');
       li.textContent = `${input.value} (Priority: ${priority}, Deadline: ${deadline || 'None'})`;
+
+      li.classList.add(`priority-${priority}`);
       goalList.appendChild(li);
 
       input.value = '';
