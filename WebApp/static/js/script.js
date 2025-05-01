@@ -151,7 +151,7 @@ function detectCurrentCategory() {
     if (text.includes("weekly")) return "weekly";
     if (text.includes("monthly")) return "monthly";
     if (text.includes("yearly")) return "yearly";
-    if (text.includes("all")) return "daily"; // Default for all goals page
+    if (text.includes("all")) return "daily"; 
   }
-  return "daily"; // Fallback
+  return "daily"; 
 }

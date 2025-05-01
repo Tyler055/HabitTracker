@@ -23,6 +23,7 @@ body {
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
+  opacity: 0.5;
   z-index: -1;
 }
 
@@ -98,7 +99,7 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  overflow: visible; /* ✅ No hidden scroll */
+  overflow: visible; 
 }
 
 body.nav-expanded #page-content,
@@ -117,7 +118,7 @@ body.nav-expanded #goals-container {
 /* Title */
 #content > h1 {
   margin-bottom: 40px;
-  color: white;
+  color: darkblue;
   font-size: 2.5rem;
   text-align: center;
 }
@@ -133,10 +134,10 @@ body.nav-expanded #goals-container {
 
 /* Goal Card */
 .goal-category {
-  background: white;
+  background: lightblue;
   border-radius: 12px;
   padding: 25px;
-  width: 300px;
+  width: 500px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
   animation: fadeIn 0.5s ease-out;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
@@ -182,10 +183,10 @@ body.nav-expanded #goals-container {
 
 /* Add New Goal Card */
 #input {
-  background: white;
+  background: lightblue;
   border-radius: 12px;
   padding: 25px;
-  width: 300px;
+  width: 400px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
   margin-top: 10px;
   text-align: center;
@@ -328,6 +329,13 @@ canvas {
   font-size: 1.2rem;
   letter-spacing: 0.5px;
   color: #333;
+}
+
+.delete-btn{
+  background: none;
+  color: red;
+  align-items: center;
+  
 }
 
 /* Reset and Logout buttons */
