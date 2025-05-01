@@ -19,9 +19,8 @@ STATIC_DIR = os.path.join(PROJECT_ROOT, 'WebApp', 'static')
 # Create Flask app
 app = Flask(__name__, template_folder=TEMPLATE_DIR, static_folder=STATIC_DIR)
 
-# You can keep a random key here if you want for development
-app.secret_key = os.urandom(24)  # random key every time
-
+# Random Key
+app.secret_key = os.urandom(24)
 @app.before_request
 def before_request():
     init_db()
@@ -29,7 +28,7 @@ def before_request():
     if not session.get('user_id') and request.endpoint not in ['signup', 'login', 'static']:
         return redirect(url_for('login'))
 
-# ─────── Routes ───────────────────────────────────────────
+# Routes
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
