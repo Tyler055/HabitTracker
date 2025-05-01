@@ -1,5 +1,7 @@
+// saveData.js
+
 // Generic function to handle API requests
-function request(url, options = {}) {
+export function request(url, options = {}) {
   return fetch(url, options)
     .then(res => {
       if (!res.ok) {
@@ -11,12 +13,6 @@ function request(url, options = {}) {
       console.error(error);
       throw error;
     });
-}
-
-// Load HTML content from a URL
-export function loadHTML(url) {
-  return request(url)
-    .then(res => res);  // Just return the HTML content
 }
 
 // Fetch content for a specific goal category (e.g., daily, weekly)
@@ -33,7 +29,6 @@ export function saveGoalsData(category, goalsList) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ goals: goalsList })
   }).then(() => {
-    // Optional: Add success message handling here
     console.log('Goals saved successfully');
   });
 }
@@ -42,7 +37,12 @@ export function saveGoalsData(category, goalsList) {
 export function resetGoalsData() {
   return request('/api/reset', { method: 'POST' })
     .then(() => {
-      // Optional: Add success message handling here
       console.log('Goals reset successfully');
     });
+}
+
+// Load HTML content from a URL (optional)
+export function loadHTML(url) {
+  return request(url)
+    .then(res => res);  // Just return the HTML content
 }
