@@ -11,39 +11,6 @@
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <!-- Additional CSS for Logout Button -->
-  <style>
-    .logout-btn {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      padding: 10px 20px;
-      background-color: #dc3545;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 16px;
-      transition: background-color 0.3s;
-      z-index: 1001;
-      display: none; /* Initially hidden */
-    }
-    .logout-btn:hover {
-      background-color: #c82333;
-    }
-
-    /* Responsive navbar */
-    @media (max-width: 768px) {
-      #navbar {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-      }
-      #navbar li {
-        margin: 10px 0;
-      }
-    }
-  </style>
 </head>
 
 <body>
@@ -66,20 +33,6 @@
     <li><a href="/profile" id="load-profile">👤 Profile</a></li>
     <li><a href="/settings" id="load-settings">⚙️ Settings</a></li>
     <li><a href="/notifications" id="load-notifications">🔔 Notifications</a></li>
-    <li><a href="/help" id="load-help">❓ Help</a></li>
-    <li><a href="/about" id="load-about">ℹ️ About</a></li>
-    <li><a href="/contact" id="load-contact">📞 Contact</a></li>
-    <li><a href="/support" id="load-support">🛠️ Support</a></li>
-    <li><a href="/register" id="load-register">📝 Register</a></li>
-    <li><a href="/login" id="load-login">🔑 Login</a></li>
-    <li><a href="/reset" id="load-reset">🔄 Reset</a></li>
-    <li><a href="/feedback" id="load-feedback">📝 Feedback</a></li>
-    <li><a href="/terms" id="load-terms">📜 Terms</a></li>
-    <li><a href="/privacy" id="load-privacy">🔒 Privacy</a></li>
-    <li><a href="/logout" id="load-logout">🚪 Logout</a></li>
-    <li><a href="/admin" id="load-admin">👨‍💼 Admin</a></li>
-    <li><a href="/debug" id="load-debug">🐞 Debug</a></li>
-    <li><a href="/api" id="load-api">🔌 API</a></li>
   </ul>
 
   <!-- Logout Button (conditionally shown based on auth status) -->
