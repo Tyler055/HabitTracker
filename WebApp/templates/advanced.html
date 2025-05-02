@@ -4,358 +4,67 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Goal Planner</title>
-  <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(to right, #f5f7fa, #c3cfe2);
-      margin: 0;
-      padding: 2rem;
-      color: #333;
-    }
-
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      margin-bottom: 2rem;
-    }
-
-    header h1 {
-      font-size: 2rem;
-      color: #2c3e50;
-    }
-
-    .home-button {
-      background: #28a745;
-      color: white;
-      border: none;
-      padding: 0.5rem 1rem;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 1rem;
-      text-decoration: none;
-      transition: background 0.2s ease;
-    }
-
-    .home-button:hover {
-      background: #218838;
-    }
-
-    #category-filter {
-      padding: 0.5rem;
-      font-size: 1rem;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      background-color: white;
-    }
-
-    form {
-      background: white;
-      padding: 1.5rem;
-      border-radius: 16px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      display: flex;
-      flex-wrap: wrap;
-      gap: 1rem;
-      margin-bottom: 2rem;
-    }
-
-    input, select, button {
-      font-size: 1rem;
-      padding: 0.6rem;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      min-width: 160px;
-    }
-
-    button {
-      background-color: #007bff;
-      color: white;
-      border: none;
-      cursor: pointer;
-      transition: background 0.2s ease;
-    }
-
-    button:hover {
-      background-color: #0056b3;
-    }
-
-    .goal-time-group {
-      background: white;
-      margin: 1.5rem auto;
-      padding: 1rem;
-      max-width: 800px;
-      border-radius: 16px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
-    }
-
-    .goal-time-group h3 {
-      text-align: center;
-      margin-bottom: 1rem;
-      color: #34495e;
-    }
-
-    .category-header {
-      text-align: center;
-      font-size: 1.5rem;
-      font-weight: 600;
-      color: #2c3e50;
-    }
-
-    ul.goal-sublist {
-      list-style: none;
-      padding: 0;
-    }
-
-    li {
-      background: #ecf0f1;
-      margin: 0.5rem 0;
-      padding: 0.8rem;
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-      transition: box-shadow 0.2s;
-    }
-
-    li:hover {
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    }
-
-    li span {
-      flex: 1;
-    }
-
-    .priority-high { border-left: 6px solid #e74c3c; }
-    .priority-medium { border-left: 6px solid #f39c12; }
-    .priority-low { border-left: 6px solid #2ecc71; }
-
-    li button {
-      background: none;
-      border: none;
-      font-size: 1.2rem;
-      cursor: pointer;
-      transition: transform 0.1s;
-    }
-
-    li button:hover {
-      color: #e74c3c;
-      transform: scale(1.1);
-    }
-
-    @media (max-width: 600px) {
-      form {
-        flex-direction: column;
-      }
-
-      input, select {
-        width: 100%;
-      }
-
-      header {
-        flex-direction: column;
-        gap: 1rem;
-      }
-    }
-  </style>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/advancedStyle.css') }}" />
+  <link rel="icon" href="{{ url_for('static', filename='img/favicon.ico') }}" type="image/x-icon" />
 </head>
+
 <body>
+  <!-- Header -->
   <header>
     <ul id="navbar">
       <li><a href="/" class="home-button">🏠 Home</a></li>
     </ul>
     <h1>Goal Planner</h1>
-    <label for="category-filter" class="visually-hidden">Filter by:</label>
-    <select id="category-filter">
+    <select id="category-filter" title="Filter by category">
+      <option value="all">All Goals</option>
       <option value="daily">Daily Goals</option>
       <option value="weekly">Weekly Goals</option>
       <option value="monthly">Monthly Goals</option>
       <option value="yearly">Yearly Goals</option>
     </select>
   </header>
-  <div id="goal-list"></div>
 
-  <form id="goal-form">
-    <input type="text" id="goal-input" placeholder="Goal name" required />
+  <!-- Goal List Area -->
+  <main>
+    <div id="goal-list"></div>
+  </main>
 
-    <label for="goal-category">Select Category:</label>
-    <select id="goal-category">
-      <option value="daily">Daily</option>
-      <option value="weekly">Weekly</option>
-      <option value="monthly">Monthly</option>
-      <option value="yearly">Yearly</option>
-    </select>
+  <!-- Add/Edit Goal Form -->
+  <section>
+    <form id="goal-form">
+      <input type="text" id="goal-input" placeholder="Goal name" required />
 
-    <label for="goal-priority">Priority:</label>
-    <select id="goal-priority">
-      <option value="none">None</option>
-      <option value="low">Low</option>
-      <option value="medium" selected>Medium</option>
-      <option value="high">High</option>
-    </select>
+      <label for="goal-category">Select Category:</label>
+      <select id="goal-category" required>
+        <option value="daily">Daily</option>
+        <option value="weekly">Weekly</option>
+        <option value="monthly">Monthly</option>
+        <option value="yearly">Yearly</option>
+      </select>
 
-    <label for="goal-deadline">Deadline*:</label>
-    <input type="date" id="goal-deadline" />
+      <label for="goal-priority">Priority:</label>
+      <select id="goal-priority">
+        <option value="high">High</option>
+        <option value="medium" selected>Medium</option>
+        <option value="low">Low</option>
+      </select>
 
-    <label for="goal-time">Time of Day*:</label>
-    <select id="goal-time">
-      <option value="none">None</option>
-      <option value="morning">Morning</option>
-      <option value="evening">Evening</option>
-      <option value="night">Night</option>
-    </select>
+      <label for="goal-deadline">Deadline:</label>
+      <input type="date" id="goal-deadline" />
 
-    <label for="goal-repeat">Repeat:</label>
-    <select id="goal-repeat">
-      <option value="none">No Repeat</option>
-      <option value="daily">Daily</option>
-      <option value="weekly">Weekly</option>
-      <option value="monthly">Monthly</option>
-      <option value="yearly">Yearly</option>
-    </select>
+      <label for="goal-time">Time of Day:</label>
+      <select id="goal-time">
+        <option value="morning">Morning</option>
+        <option value="afternoon">Afternoon</option>
+        <option value="evening">Evening</option>
+        <option value="any">Any Time</option>
+      </select>
 
-    <button type="submit">Add Goal</button>
-  </form>
+      <button type="submit">Add Goal</button>
+    </form>
+  </section>
 
-  <script>
-    const goalForm = document.getElementById('goal-form');
-    const goalInput = document.getElementById('goal-input');
-    const goalCategory = document.getElementById('goal-category');
-    const goalPriority = document.getElementById('goal-priority');
-    const goalDeadline = document.getElementById('goal-deadline');
-    const goalTime = document.getElementById('goal-time');
-    const goalRepeat = document.getElementById('goal-repeat');
-    const categoryFilter = document.getElementById('category-filter');
-    const goalListContainer = document.getElementById('goal-list');
-
-    const goalCategories = ['daily', 'weekly', 'monthly', 'yearly'];
-    const timeSections = ['morning', 'evening', 'night', 'none'];
-
-    const goals = {};
-    goalCategories.forEach(category => {
-      goals[category] = {};
-      timeSections.forEach(time => {
-        goals[category][time] = [];
-      });
-    });
-
-    goalForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const name = goalInput.value.trim();
-      const category = goalCategory.value;
-      const priority = goalPriority.value;
-      const deadline = goalDeadline.value;
-      const time = goalTime.value || 'none';
-      const repeat = goalRepeat.value || 'none';
-
-      if (!name) return;
-
-      const formattedDeadline = deadline
-        ? new Date(deadline).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })
-        : 'None';
-
-      const goalObj = {
-        name,
-        priority,
-        deadline,
-        formattedDeadline,
-        time,
-        repeat
-      };
-
-      goals[category][time].push(goalObj);
-      goalInput.value = '';
-      goalDeadline.value = '';
-      goalTime.value = 'none';
-      goalRepeat.value = 'none';
-
-      renderGoals(categoryFilter.value);
-    });
-
-    categoryFilter.addEventListener('change', () => renderGoals(categoryFilter.value));
-
-    function renderGoals(selectedCategory) {
-      goalListContainer.innerHTML = '';
-      const categoryTitle = document.createElement('div');
-      categoryTitle.className = 'category-header';
-      categoryTitle.textContent = `${capitalize(selectedCategory)} Goals`;
-      goalListContainer.appendChild(categoryTitle);
-
-      timeSections.forEach(time => {
-        const section = document.createElement('div');
-        section.className = 'goal-time-group';
-        section.ondragover = (e) => e.preventDefault();
-        section.ondrop = (e) => handleDrop(e, selectedCategory, time);
-
-        const heading = document.createElement('h3');
-        heading.textContent = capitalize(time);
-        section.appendChild(heading);
-
-        const ul = document.createElement('ul');
-        ul.classList.add('goal-sublist');
-
-        goals[selectedCategory][time].forEach((goal, index) => {
-          const li = document.createElement('li');
-          li.className = `priority-${goal.priority}`;
-          li.draggable = true;
-          li.dataset.index = index;
-          li.dataset.time = time;
-
-          li.ondragstart = (e) => {
-            e.dataTransfer.setData('text/plain', JSON.stringify({ category: selectedCategory, time, index }));
-          };
-
-          const text = document.createElement('span');
-          text.textContent = `${goal.name} (Priority: ${goal.priority}, Deadline: ${goal.formattedDeadline}, Repeat: ${goal.repeat})`;
-
-          const editBtn = document.createElement('button');
-          editBtn.textContent = '✏️';
-          editBtn.onclick = () => {
-            goalInput.value = goal.name;
-            goalCategory.value = selectedCategory;
-            goalPriority.value = goal.priority;
-            goalDeadline.value = goal.deadline;
-            goalTime.value = goal.time;
-            goalRepeat.value = goal.repeat;
-            goals[selectedCategory][time].splice(index, 1);
-            renderGoals(selectedCategory);
-          };
-
-          const deleteBtn = document.createElement('button');
-          deleteBtn.textContent = '🗑️';
-          deleteBtn.onclick = () => {
-            goals[selectedCategory][time].splice(index, 1);
-            renderGoals(selectedCategory);
-          };
-
-          li.appendChild(text);
-          li.appendChild(editBtn);
-          li.appendChild(deleteBtn);
-          ul.appendChild(li);
-        });
-
-        section.appendChild(ul);
-        goalListContainer.appendChild(section);
-      });
-    }
-
-    function handleDrop(e, targetCategory, targetTime) {
-      const data = JSON.parse(e.dataTransfer.getData('text'));
-      const { category, time, index } = data;
-      const movedGoal = goals[category][time].splice(index, 1)[0];
-      movedGoal.time = targetTime;
-      goals[targetCategory][targetTime].push(movedGoal);
-      renderGoals(categoryFilter.value);
-    }
-
-    function capitalize(str) {
-      return str.charAt(0).toUpperCase() + str.slice(1);
-    }
-
-    renderGoals('daily');
-  </script>
+  <!-- JavaScript -->
+  <script type="module" src="{{ url_for('static', filename='js/advanced.js') }}"></script>
 </body>
 </html>
