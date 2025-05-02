@@ -4,6 +4,7 @@ let draggedItem = null;
 
 document.addEventListener("DOMContentLoaded", async () => {
   await initializeApp();
+  setupPageLinks(); // Called once here
 });
 
 async function initializeApp() {
@@ -15,7 +16,7 @@ async function initializeApp() {
 
 function setupButtons() {
   const logoutBtn = document.getElementById("logout-btn");
- 
+
   if (logoutBtn) {
     logoutBtn.style.display = "block";
     logoutBtn.addEventListener("click", () => {
@@ -24,10 +25,7 @@ function setupButtons() {
   } else {
     console.warn("Logout button not found in the DOM.");
   }
-
-
-  }
-
+}
 
 function createGoalElement({ text, completed = false, color = '', dueDate = '' }) {
   const li = document.createElement("li");
@@ -240,4 +238,47 @@ function showErrorMessage(message) {
   errorDiv.textContent = message;
   document.body.appendChild(errorDiv);
   setTimeout(() => errorDiv.remove(), 5000);
+}
+
+function setupPageLinks() {
+  const loadProfileLink = document.getElementById("load-profile");
+  const loadSettingsLink = document.getElementById("load-settings");
+  const loadNotificationsLink = document.getElementById("load-notifications");
+
+  const pageLinks = [
+    { link: loadProfileLink, url: '/profile', title: 'Profile' },
+    { link: loadSettingsLink, url: '/settings', title: 'Settings' },
+    { link: loadNotificationsLink, url: '/notifications', title: 'Notifications' }
+  ];
+
+  pageLinks.forEach(({ link, url, title }) => {
+    if (link) {
+      link.addEventListener("click", async (e) => {
+        e.preventDefault();
+        await loadPageContent(url, title);
+      });
+    }
+  });
+}
+
+async function loadPageContent(url, pageTitle) {
+  try {
+    const response = await fetch(url);
+    if (response.ok) {
+      const content = await response.text();
+      
+      const pageContentDiv = document.getElementById("page-content");
+      pageContentDiv.innerHTML = content;
+
+      document.title = `${pageTitle} - Habit Tracker`;
+      bindGoalForm();
+      setupButtons();
+      initializeDragAndDrop();
+    } else {
+      throw new Error('Failed to load content');
+    }
+  } catch (error) {
+    console.error('Error loading page content:', error);
+    showErrorMessage('Failed to load content. Please try again later.');
+  }
 }

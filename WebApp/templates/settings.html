@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings & Notifications - Goal Tracker</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <button id="logout-btn">Logout</button>
+  </header>
+
+  <main>
+    <section id="content">
+      <h1>Settings & Notifications</h1>
+
+      <!-- Theme Settings -->
+      <div id="theme-settings">
+        <h2>Theme</h2>
+        <label for="theme-selector">Select Theme:</label>
+        <select id="theme-selector">
+          <option value="light">Light</option>
+          <option value="dark">Dark</option>
+        </select>
+        <button id="save-theme">Save Theme</button>
+      </div>
+
+      <!-- Notification Settings -->
+      <div id="notification-settings">
+        <h2>Notification Settings</h2>
+        <label for="email-notifications">Email Notifications:</label>
+        <input type="checkbox" id="email-notifications" checked>
+        <label for="push-notifications">Push Notifications:</label>
+        <input type="checkbox" id="push-notifications" checked>
+        <button id="save-notifications">Save Notifications</button>
+      </div>
+
+      <!-- Your Notifications -->
+      <div id="notification-list">
+        <h2>Your Notifications</h2>
+        <div class="notification-item">
+          <p><strong>Reminder:</strong> Complete your daily goals!</p>
+          <span class="notification-time">10:30 AM</span>
+        </div>
+        <div class="notification-item">
+          <p><strong>Reminder:</strong> Review your weekly goals.</p>
+          <span class="notification-time">09:00 AM</span>
+        </div>
+        <!-- More notifications can be added dynamically here -->
+      </div>
+
+      <!-- Clear Notifications Button -->
+      <button id="clear-notifications">Clear All Notifications</button>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 Goal Tracker. All rights reserved.</p>
+  </footer>
+
+  <script src="settings-notifications.js"></script>
+</body>
+</html>
