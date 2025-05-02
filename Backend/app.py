@@ -107,6 +107,5 @@ def reset_goals_api():
     reset_all_goals(session['user_id'])
     return jsonify({'message': 'Goals reset successfully'})
 
-
 if __name__ == '__main__':
     app.run(debug=True)

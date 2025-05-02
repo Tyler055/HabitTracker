@@ -1,32 +1,40 @@
 import { fetchContent, saveGoalsData, resetGoalsData } from './saveData.js';
 
-document.addEventListener("DOMContentLoaded", async function () {
-  const logoutBtn = document.getElementById("logout-btn");
+let draggedItem = null;
 
-  // Load goals when page loads
+document.addEventListener("DOMContentLoaded", async () => {
+  await initializeApp();
+});
+
+async function initializeApp() {
   await loadGoalsFromDB();
-  initializeDragAndDrop();
   bindGoalForm();
+  setupButtons();
+  initializeDragAndDrop();
+}
 
+function setupButtons() {
+  const logoutBtn = document.getElementById("logout-btn");
+ 
   if (logoutBtn) {
     logoutBtn.style.display = "block";
     logoutBtn.addEventListener("click", () => {
-      resetGoalsData();
       window.location.href = "/logout";
     });
+  } else {
+    console.warn("Logout button not found in the DOM.");
   }
-});
 
-let draggedItem = null;
 
-// Create a goal list item
+  }
+
+
 function createGoalElement({ text, completed = false, color = '', dueDate = '' }) {
   const li = document.createElement("li");
+  li.className = "goal-item";
   li.setAttribute("draggable", "true");
-  li.classList.add("goal-item");
   li.setAttribute("role", "listitem");
 
-  // Color tag
   if (color) {
     const colorTag = document.createElement("span");
     colorTag.className = "color-tag";
@@ -34,7 +42,6 @@ function createGoalElement({ text, completed = false, color = '', dueDate = '' }
     li.appendChild(colorTag);
   }
 
-  // Checkbox
   const checkbox = document.createElement("input");
   checkbox.type = "checkbox";
   checkbox.checked = completed;
@@ -42,12 +49,10 @@ function createGoalElement({ text, completed = false, color = '', dueDate = '' }
   checkbox.addEventListener("change", saveCurrentGoals);
   li.appendChild(checkbox);
 
-  // Goal text
   const span = document.createElement("span");
   span.textContent = text;
   li.appendChild(span);
 
-  // Due date
   if (dueDate) {
     const due = document.createElement("small");
     due.className = "due-date";
@@ -55,40 +60,85 @@ function createGoalElement({ text, completed = false, color = '', dueDate = '' }
     li.appendChild(due);
   }
 
-  // Delete button
   const deleteBtn = document.createElement("span");
   deleteBtn.textContent = "×";
   deleteBtn.className = "delete-btn";
+  deleteBtn.setAttribute("role", "button");
+  deleteBtn.setAttribute("tabindex", "0");
   deleteBtn.setAttribute("aria-label", "Delete goal");
   deleteBtn.addEventListener("click", () => {
     li.remove();
     saveCurrentGoals();
   });
+  deleteBtn.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      li.remove();
+      saveCurrentGoals();
+    }
+  });
+
   li.appendChild(deleteBtn);
 
-  // Add drag support and keyboard support
   makeItemDraggable(li);
   addKeyboardDragSupport(li);
 
   return li;
 }
 
-// Make any goal draggable
 function makeItemDraggable(item) {
   item.addEventListener('dragstart', (e) => {
     draggedItem = item;
-    e.dataTransfer.setData('text/plain', item.dataset.id || item.id);
+    e.dataTransfer.effectAllowed = "move";
     item.classList.add('dragging');
+    item.style.opacity = '0.5';
   });
 
   item.addEventListener('dragend', () => {
     item.classList.remove('dragging');
+    item.style.opacity = '';
+    draggedItem = null;
     saveCurrentGoals();
   });
 }
 
-// Add keyboard-based drag support
+function initializeDragAndDrop() {
+  const uls = document.querySelectorAll('.goal-category ul');
+
+  uls.forEach(ul => {
+    ul.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      const draggingItem = document.querySelector('.dragging');
+      const afterElement = getDragAfterElement(ul, e.clientY);
+      if (!afterElement) {
+        ul.appendChild(draggingItem);
+      } else {
+        ul.insertBefore(draggingItem, afterElement);
+      }
+    });
+
+    ul.addEventListener("drop", (e) => {
+      e.preventDefault();
+      saveCurrentGoals();
+    });
+  });
+}
+
+function getDragAfterElement(container, y) {
+  const draggableElements = [...container.querySelectorAll('.goal-item:not(.dragging)')];
+  return draggableElements.reduce((closest, child) => {
+    const box = child.getBoundingClientRect();
+    const offset = y - box.top - box.height / 2;
+    if (offset < 0 && offset > closest.offset) {
+      return { offset: offset, element: child };
+    } else {
+      return closest;
+    }
+  }, { offset: Number.NEGATIVE_INFINITY }).element;
+}
+
 function addKeyboardDragSupport(item) {
+  item.setAttribute("tabindex", "0");
   item.addEventListener("keydown", (e) => {
     if (e.key === "ArrowUp" || e.key === "ArrowDown") {
       e.preventDefault();
@@ -106,14 +156,13 @@ function addKeyboardDragSupport(item) {
   });
 }
 
-// Load goals from the server
 async function loadGoalsFromDB() {
   const lists = document.querySelectorAll('.goal-category ul');
   for (const ul of lists) {
     const category = ul.id.replace('-goals-list', '');
     try {
       const goals = await fetchContent(category);
-      ul.innerHTML = ""; // Clear existing list
+      ul.innerHTML = "";
       goals.forEach(goal => {
         const li = createGoalElement(goal);
         ul.appendChild(li);
@@ -125,14 +174,13 @@ async function loadGoalsFromDB() {
   }
 }
 
-// Save goals to the server
 async function saveCurrentGoals() {
   const lists = document.querySelectorAll('.goal-category ul');
   for (const ul of lists) {
     const category = ul.id.replace('-goals-list', '');
     const goals = Array.from(ul.children).map(li => ({
-      text: li.querySelector('span').textContent,
-      completed: li.querySelector('input').checked,
+      text: li.querySelector('span')?.textContent || '',
+      completed: li.querySelector('input')?.checked || false,
       color: li.querySelector('.color-tag')?.style.backgroundColor || '',
       dueDate: li.querySelector('.due-date')?.textContent?.replace(/^Due:\s*/, '') || ''
     }));
@@ -146,75 +194,50 @@ async function saveCurrentGoals() {
   }
 }
 
-// Display error message to user
-function showErrorMessage(message) {
-  const errorDiv = document.createElement('div');
-  errorDiv.classList.add('error-message');
-  errorDiv.textContent = message;
-  document.body.appendChild(errorDiv);
-  setTimeout(() => errorDiv.remove(), 5000);
-}
-
-// Bind form submission for adding goals
 function bindGoalForm() {
   const goalForm = document.getElementById("goal-form");
   const goalInput = document.getElementById("goal-input");
 
-  if (goalForm && goalInput) {
-    goalForm.addEventListener("submit", async function (e) {
-      e.preventDefault();
-      const currentCategory = detectCurrentCategory();
-      const goalList = document.querySelector(`.${currentCategory}-goals ul`);
+  if (!goalForm || !goalInput) return;
 
-      const goalText = goalInput.value.trim();
-      if (!goalText || !goalList) return;
+  goalForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const goalText = goalInput.value.trim();
+    const currentCategory = detectCurrentCategory();
+    const goalList = document.querySelector(`.${currentCategory}-goals ul`);
+    if (!goalText || !goalList) return;
 
-      // Check for duplicate goals
-      const existingGoals = Array.from(goalList.children).map(li =>
-        li.querySelector("span").textContent.toLowerCase()
-      );
-      if (existingGoals.includes(goalText.toLowerCase())) {
-        alert("Goal already exists!");
-        return;
-      }
+    const existingGoals = Array.from(goalList.children).map(li =>
+      li.querySelector("span").textContent.toLowerCase()
+    );
+    if (existingGoals.includes(goalText.toLowerCase())) {
+      alert("Goal already exists!");
+      return;
+    }
 
-      const newGoal = {
-        text: goalText,
-        completed: false
-      };
-
-      const li = createGoalElement(newGoal);
-      goalList.appendChild(li);
-      goalInput.value = "";
-      await saveCurrentGoals();
-    });
-  }
+    const newGoal = { text: goalText, completed: false };
+    const li = createGoalElement(newGoal);
+    goalList.appendChild(li);
+    goalInput.value = "";
+    await saveCurrentGoals();
+  });
 }
 
-// Determine the current goal category based on heading
 function detectCurrentCategory() {
   const heading = document.querySelector("#content h1");
-  if (heading) {
-    const text = heading.textContent.toLowerCase();
-    if (text.includes("daily")) return "daily";
-    if (text.includes("weekly")) return "weekly";
-    if (text.includes("monthly")) return "monthly";
-    if (text.includes("yearly")) return "yearly";
-  }
-  return "daily"; // Default
+  const text = heading?.textContent.toLowerCase() || '';
+  if (text.includes("daily")) return "daily";
+  if (text.includes("weekly")) return "weekly";
+  if (text.includes("monthly")) return "monthly";
+  if (text.includes("yearly")) return "yearly";
+  return "daily";
 }
 
-// Enable drag-and-drop UI
-function initializeDragAndDrop() {
-  const lists = document.querySelectorAll('.goal-category ul');
-
-  lists.forEach(ul => {
-    ul.addEventListener("dragover", (e) => {
-      e.preventDefault();
-      const draggingItem = document.querySelector('.dragging');
-      const targetItem = e.target.closest('li');
-      if (!targetItem || targetItem === draggingItem) return;
-      ul.insertBefore(draggingItem, targetItem);
-    });
-  });
+function showErrorMessage(message) {
+  const errorDiv = document.createElement('div');
+  errorDiv.className = 'error-message';
+  errorDiv.setAttribute('aria-live', 'polite');
+  errorDiv.textContent = message;
+  document.body.appendChild(errorDiv);
+  setTimeout(() => errorDiv.remove(), 5000);
 }
