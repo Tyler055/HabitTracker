@@ -1,9 +1,32 @@
 import { fetchContent, resetGoalsData } from './saveData.js';
 
 let charts = {};
+let chartPercentages = {};
+
+// Register the center text plugin once
+Chart.register({
+  id: 'centerText',
+  afterDraw(chart) {
+    const { ctx, chartArea: { left, right, top, bottom, width, height } } = chart;
+    const canvasId = chart.canvas.id;
+    const percentage = chartPercentages[canvasId] || 0;
+    
+    // Calculate the center of the chart area
+    const centerX = (left + right) / 2;
+    const centerY = (top + bottom) / 2;
+    
+    ctx.save();
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.font = 'bold 24px Arial';
+    ctx.fillStyle = '#333';
+    ctx.fillText(`${percentage}%`, centerX, centerY);
+    ctx.restore();
+  }
+});
 
 document.addEventListener('DOMContentLoaded', () => {
-  console.log('Home.js loaded');
+  console.log('Home.js loaded ');
   setupButtons();
   updateAllCharts();
 });
@@ -12,25 +35,20 @@ function setupButtons() {
   const resetBtn = document.getElementById('reset-btn');
   const logoutBtn = document.getElementById('logout-btn');
 
-  // Reset button event listener
   if (resetBtn) {
     resetBtn.addEventListener('click', async () => {
       if (confirm('Are you sure you want to reset all your goals? This cannot be undone.')) {
         try {
-          // Optimistically clear the charts
-          updateAllCharts();
-
           await resetGoalsData();
+          await updateAllCharts();
           alert('All goals have been reset.');
         } catch (error) {
           console.error('Reset failed:', error);
-          alert('Failed to reset goals. Please try again.');
         }
       }
     });
   }
 
-  // Logout button event listener
   if (logoutBtn) {
     logoutBtn.addEventListener('click', () => {
       window.location.href = '/logout';
@@ -38,16 +56,12 @@ function setupButtons() {
   }
 }
 
-// Function to fetch and update all charts
 async function updateAllCharts() {
   try {
-    const [daily, weekly, monthly, yearly, advanced] = await Promise.all([
-      fetchContent('daily'),
-      fetchContent('weekly'),
-      fetchContent('monthly'),
-      fetchContent('yearly'),
-      fetchContent('advanced')
-    ]);
+    const daily = await fetchContent('daily');
+    const weekly = await fetchContent('weekly');
+    const monthly = await fetchContent('monthly');
+    const yearly = await fetchContent('yearly');
 
     const allGoals = [...daily, ...weekly, ...monthly, ...yearly];
 
@@ -59,22 +73,22 @@ async function updateAllCharts() {
     
   } catch (error) {
     console.error('Error updating charts:', error);
-    alert('Failed to load or update charts. Please try again later.');
   }
 }
 
-// Function to count completed goals
 function countCompleted(goals) {
   return goals.filter(g => g.completed).length;
 }
 
-// Function to update chart
 function updateChart(canvasId, completed, total, color) {
   const ctx = document.getElementById(canvasId).getContext('2d');
+  const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
+  
+  // Store the percentage for this chart
+  chartPercentages[canvasId] = percentage;
 
-  // Check if chart already exists and destroy the previous chart if necessary
   if (charts[canvasId]) {
-    charts[canvasId].destroy(); // Destroy previous chart instance if it exists
+    charts[canvasId].destroy();
   }
 
   charts[canvasId] = new Chart(ctx, {
@@ -101,6 +115,13 @@ function updateChart(canvasId, completed, total, color) {
               return `${context.label}: ${context.parsed}`;
             }
           }
+        },
+        centerText: true
+      },
+      layout: {
+        padding: {
+          top: 20,
+          bottom: 20
         }
       }
     }
