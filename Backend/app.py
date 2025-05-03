@@ -75,6 +75,11 @@ def logout():
 def habit_tracker():
     return render_template('habit.html')
 
+@app.route('/advanced', methods=['GET'])
+def get_advanced_data():
+    return jsonify({...})
+
+
 @app.route('/goals/<category>')
 def goals_page(category):
     goals = get_goals_by_category(session['user_id'], category)

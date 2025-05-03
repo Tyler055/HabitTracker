@@ -7,7 +7,6 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/advancedStyle.css') }}" />
   <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='img/favicon2.ico') }}" />
 </head>
-
 <body>
   <!-- Header -->
   <header>
@@ -26,13 +25,29 @@
 
   <!-- Goal List Area -->
   <main>
-    <div id="goal-list"></div>
+    <div class="goal-section" id="daily">
+      <h2>Daily</h2>
+      <div class="goal-dropzone"></div>
+    </div>
+    <div class="goal-section" id="weekly">
+      <h2>Weekly</h2>
+      <div class="goal-dropzone"></div>
+    </div>
+    <div class="goal-section" id="monthly">
+      <h2>Monthly</h2>
+      <div class="goal-dropzone"></div>
+    </div>
+    <div class="goal-section" id="yearly">
+      <h2>Yearly</h2>
+      <div class="goal-dropzone"></div>
+    </div>
   </main>
 
   <!-- Add/Edit Goal Form -->
   <section>
     <form id="goal-form">
-      <input type="text" id="goal-input" placeholder="Goal name" required />
+      <input type="text" id="goal-title" placeholder="Goal title" required />
+      <textarea id="goal-description" placeholder="Description (optional)"></textarea>
 
       <label for="goal-category">Select Category:</label>
       <select id="goal-category" required>
