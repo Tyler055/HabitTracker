@@ -1,7 +1,7 @@
 import sqlite3
 import os
 from flask import g
-from werkzeug.security import generate_password_hash
+from werkzeug.security import generate_password_hash, check_password_hash
 
 DATABASE_PATH = os.path.join(os.path.dirname(__file__), 'habitDatabase.sqlite')
 
@@ -26,7 +26,7 @@ def init_db():
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         username TEXT NOT NULL UNIQUE,
         password TEXT NOT NULL,
-        email TEXT
+        email TEXT UNIQUE
     )''')
     cur.execute('''CREATE TABLE IF NOT EXISTS goals (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -40,54 +40,53 @@ def init_db():
     conn.commit()
 
 def create_user(username, password, email=None):
+    if find_user_by_username(username) or (email and find_user_by_email(email)):
+        raise ValueError("User with this username or email already exists.")
+    
     conn = get_db_connection()
     cur = conn.cursor()
     hashed_password = generate_password_hash(password)
-    cur.execute(
-        'INSERT INTO users (username, password, email) VALUES (?, ?, ?)',
-        (username, hashed_password, email)
-    )
+    cur.execute('INSERT INTO users (username, password, email) VALUES (?, ?, ?)', (username, hashed_password, email))
     conn.commit()
 
 def find_user_by_username(username):
     conn = get_db_connection()
-    cur = conn.cursor()
-    return cur.execute('SELECT * FROM users WHERE username = ?', (username,)).fetchone()
+    return conn.execute('SELECT * FROM users WHERE username = ?', (username,)).fetchone()
 
 def find_user_by_email(email):
     conn = get_db_connection()
-    cur = conn.cursor()
-    return cur.execute('SELECT * FROM users WHERE email = ?', (email,)).fetchone()
+    return conn.execute('SELECT * FROM users WHERE email = ?', (email,)).fetchone()
 
 def find_user_by_id(user_id):
     conn = get_db_connection()
-    cur = conn.cursor()
-    return cur.execute('SELECT * FROM users WHERE id = ?', (user_id,)).fetchone()
+    return conn.execute('SELECT * FROM users WHERE id = ?', (user_id,)).fetchone()
 
 def get_goals_by_category(user_id, category):
     conn = get_db_connection()
-    cur = conn.cursor()
-    goals = cur.execute('''SELECT text, completed FROM goals
-                           WHERE user_id = ? AND category = ? ORDER BY sort_order''', 
-                           (user_id, category)).fetchall()
-    return goals
+    return conn.execute('SELECT id, text, completed FROM goals WHERE user_id = ? AND category = ? ORDER BY sort_order', 
+                        (user_id, category)).fetchall()
 
 def save_goals_for_category(user_id, category, goals):
     conn = get_db_connection()
     cur = conn.cursor()
     cur.execute('DELETE FROM goals WHERE user_id = ? AND category = ?', (user_id, category))
     for index, goal in enumerate(goals):
-        cur.execute('''INSERT INTO goals (user_id, category, text, completed, sort_order)
-                       VALUES (?, ?, ?, ?, ?)''', 
+        cur.execute('INSERT INTO goals (user_id, category, text, completed, sort_order) VALUES (?, ?, ?, ?, ?)',
                     (user_id, category, goal['text'], int(goal.get('completed', False)), index))
     conn.commit()
+
+def update_goal(goal_id, new_text, new_completed):
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute('UPDATE goals SET text = ?, completed = ? WHERE id = ?', (new_text, int(new_completed), goal_id))
+    conn.commit()
+    return 'Goal updated successfully.'
 
 def update_user_password(user_id, new_password):
     conn = get_db_connection()
     cur = conn.cursor()
     hashed_password = generate_password_hash(new_password)
-    cur.execute('''UPDATE users SET password = ? WHERE id = ?''', 
-                (hashed_password, user_id))
+    cur.execute('UPDATE users SET password = ? WHERE id = ?', (hashed_password, user_id))
     conn.commit()
 
 def reset_all_goals(user_id):
