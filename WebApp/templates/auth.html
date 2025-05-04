@@ -2,45 +2,58 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-  <title>{{ 'Sign Up' if action=='signup' else 'Login' }}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Habit Tracker - Authentication</title>
 
   <!-- Stylesheets -->
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/authStyle.css') }}">
-  <link href="https://fonts.googleapis.com/css2?family=Jost:wght@500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+  <link href="https://fonts.googleapis.com/css2?family=Jost:wght@500&display=swap" rel="stylesheet" />
   <link rel="icon" href="{{ url_for('static', filename='img/favicon1.ico') }}" type="image/x-icon" />
 </head>
 
 <body>
-
   <div class="main">
-    <!-- Checkbox toggle for login/signup -->
-    <input type="checkbox" id="chk" aria-hidden="true" {{ 'checked' if action=='signup' else '' }}>
+    <!-- Toggle login/signup -->
+    <input type="checkbox" id="chk" aria-hidden="true" {{ 'checked' if request.path.endswith('/signup') else '' }} />
 
-    <!-- Signup form -->
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash-messages">
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <!-- Sign Up Form -->
     <div class="signup">
-      <form method="POST" action="{{ url_for('signup') }}">
+      <form method="POST" action="{{ url_for('auth', mode='signup') }}" class="form-validate" novalidate>
         <label for="chk" aria-hidden="true">Sign up</label>
-        <input name="username" placeholder="User name" required>
-        <input name="email" type="email" placeholder="Email (optional)">
-        <input name="password" type="password" placeholder="Password" required>
+        <input type="text" name="username" id="signup-username" placeholder="Username" required autocomplete="username" aria-label="Username" />
+        <input type="password" name="password" id="signup-password" placeholder="Password" required autocomplete="new-password" aria-label="Password" />
+        <input type="password" name="confirm_password" id="confirm-password" placeholder="Confirm Password" required autocomplete="new-password" aria-label="Confirm Password" />
+        
+        <div id="password-strength" class="password-strength"></div>
+        <div id="form-error" class="form-error"></div>
+
         <button type="submit">Sign up</button>
       </form>
     </div>
 
-    <!-- Login form -->
+    <!-- Login Form -->
     <div class="login">
-      <form method="POST" action="{{ url_for('login') }}">
+      <form method="POST" action="{{ url_for('auth', mode='login') }}" novalidate>
         <label for="chk" aria-hidden="true">Login</label>
-        <input name="identifier" placeholder="Username or Email" required>
-        <input name="password" type="password" placeholder="Password" required>
+        <input type="text" name="username" placeholder="Username" required autocomplete="username" aria-label="Username" />
+        <input type="password" name="password" placeholder="Password" required autocomplete="current-password" aria-label="Password" />
         <button type="submit">Login</button>
       </form>
-      
-      <!-- Forgot password link -->
-      <a href="{{ url_for('forgot_password') }}" class="forgot-password">Forgot password?</a>
     </div>
   </div>
 
+  <!-- Auth JS -->
+  <script defer src="{{ url_for('static', filename='js/auth.js') }}"></script>
 </body>
 </html>

@@ -133,6 +133,20 @@ def reset_goals_api():
 @app.route('/advanced', methods=['GET'])
 def get_advanced_data():
     return jsonify({"message": "Advanced data goes here"})
+@app.route('/profile', methods=['GET'])
+def profile():
+    user_id = session['user_id']
+    user = find_user_by_username(user_id)
+    return render_template('profile.html', user=user)
+           
+@app.route('/settings', methods=['GET'])
+def settings():
+    return render_template('settings.html')
+
+@app.route('/forgot-password')
+def forgot_password():
+    return "Forgot password page coming soon!"
+
 
 if __name__ == '__main__':
     app.run(debug=True)
