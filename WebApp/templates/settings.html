@@ -1,20 +1,14 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+{% extends "base.html" %}
 
-  <title>Settings & Notifications - Goal Tracker</title>
-   <!-- Main CSS -->
+{% block title %}Settings & Notifications - Goal Tracker{% endblock %}
+
+{% block styles %}
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-
-  <!-- Favicon for Browser Tabs -->
   <link rel="icon" href="{{ url_for('static', filename='img/favicon.ico') }}" type="image/x-icon" />
-</head>
-<body>
-  <header>
-    <button id="logout-btn">Logout</button>
-  </header>
+{% endblock %}
+
+{% block content %}
+
 
   <main>
     <section id="content">
@@ -28,17 +22,21 @@
           <option value="light">Light</option>
           <option value="dark">Dark</option>
         </select>
-        <button id="save-theme">Save Theme</button>
+        <button id="save-theme" type="button">Save Theme</button>
       </div>
 
       <!-- Notification Settings -->
       <div id="notification-settings">
         <h2>Notification Settings</h2>
-        <label for="email-notifications">Email Notifications:</label>
-        <input type="checkbox" id="email-notifications" checked>
-        <label for="push-notifications">Push Notifications:</label>
-        <input type="checkbox" id="push-notifications" checked>
-        <button id="save-notifications">Save Notifications</button>
+        <label for="email-notifications">
+          <input type="checkbox" id="email-notifications" checked>
+          Email Notifications
+        </label>
+        <label for="push-notifications">
+          <input type="checkbox" id="push-notifications" checked>
+          Push Notifications
+        </label>
+        <button id="save-notifications" type="button">Save Notifications</button>
       </div>
 
       <!-- Your Notifications -->
@@ -56,14 +54,16 @@
       </div>
 
       <!-- Clear Notifications Button -->
-      <button id="clear-notifications">Clear All Notifications</button>
+      <button id="clear-notifications" type="button">Clear All Notifications</button>
     </section>
   </main>
 
   <footer>
     <p>&copy; 2025 Goal Tracker. All rights reserved.</p>
   </footer>
+{% endblock %}
 
-  <script src="settings.js"></script>
-</body>
-</html>
+{% block scripts %}
+  <script type="module" src="{{ url_for('static', filename='js/settings.js') }}"></script>
+  <script type="module" src="{{ url_for('static', filename='js/script.js') }}"></script>
+{% endblock %}

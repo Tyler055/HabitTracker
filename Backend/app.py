@@ -1,6 +1,7 @@
 import os
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
+from jinja2 import TemplateNotFound
 from dataservice import (
     init_db,
     create_user,
@@ -8,9 +9,14 @@ from dataservice import (
     find_user_by_email,
     get_goals_by_category,
     save_goals_for_category,
-    reset_all_goals
+    reset_all_goals,
+    find_user_by_id,
+    update_user_password,
 )
-from jinja2 import TemplateNotFound
+from forms import ChangePasswordForm
+from flask_wtf import FlaskForm
+from wtforms import PasswordField
+from wtforms.validators import DataRequired
 
 # Set project paths
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
@@ -33,7 +39,8 @@ with app.app_context():
 
 @app.before_request
 def check_login_required():
-    if not session.get('user_id') and request.endpoint not in {'signup', 'login', 'static'} and not request.endpoint.startswith('api'):
+    endpoint = request.endpoint or ''
+    if not session.get('user_id') and endpoint not in {'signup', 'login', 'static'} and not endpoint.startswith('api'):
         return redirect(url_for('login'))
 
 # ─────── Routes ───────────────────────────────────────────
@@ -93,6 +100,33 @@ def logout():
 def habit_tracker():
     return render_template('habit.html')
 
+@app.route('/settings')
+def settings():
+    # Your settings logic here
+    return render_template('settings.html')
+
+@app.route('/profile', methods=['GET', 'POST'])
+def profile():
+    form = ChangePasswordForm()  # Initialize the form
+    if form.validate_on_submit():
+        old_password = form.old_password.data
+        new_password = form.new_password.data
+        confirm_password = form.confirm_password.data
+
+        # Handle the password change logic
+        if new_password != confirm_password:
+            flash("New passwords do not match.")
+        else:
+            user = find_user_by_id(session['user_id'])
+            if not check_password_hash(user['password'], old_password):
+                flash('Old password is incorrect.')
+            else:
+                hashed_password = generate_password_hash(new_password)
+                update_user_password(user['id'], hashed_password)
+                flash('Password updated successfully.')
+                return redirect(url_for('profile'))  # Redirect after successful password change
+    return render_template('profile.html', form=form)
+
 @app.route('/goals/<category>')
 def goals_page(category):
     try:
@@ -133,20 +167,40 @@ def reset_goals_api():
 @app.route('/advanced', methods=['GET'])
 def get_advanced_data():
     return jsonify({"message": "Advanced data goes here"})
-@app.route('/profile', methods=['GET'])
-def profile():
-    user_id = session['user_id']
-    user = find_user_by_username(user_id)
-    return render_template('profile.html', user=user)
-           
-@app.route('/settings', methods=['GET'])
-def settings():
-    return render_template('settings.html')
 
-@app.route('/forgot-password')
+@app.route('/forgot-password', methods=['GET', 'POST'])
 def forgot_password():
-    return "Forgot password page coming soon!"
+    if request.method == 'POST':
+        email = request.form['email']
+        user = find_user_by_email(email)
+        if user:
+            # Send a password reset link (implement the email sending logic)
+            flash('Password reset email sent.')
+        else:
+            flash('Email address not found.')
+    return render_template('forgot_password.html')
 
+@app.route('/change-password', methods=['POST'])
+def change_password():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    old_password = request.form['old_password']
+    new_password = request.form['new_password']
+    user = find_user_by_id(session['user_id'])
+
+    if not check_password_hash(user['password'], old_password):
+        flash('Old password is incorrect.')
+    else:
+        hashed_password = generate_password_hash(new_password)
+        update_user_password(user['id'], hashed_password)
+        flash('Password updated successfully.')
+
+    return redirect(url_for('habit_tracker'))
+
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template('404.html'), 404
 
 if __name__ == '__main__':
     app.run(debug=True)

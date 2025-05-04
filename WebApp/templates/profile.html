@@ -1,27 +1,44 @@
 {% extends 'base.html' %}
 
+{% block title %}User Profile{% endblock %}
+
 {% block content %}
   <div class="container">
-    <h2>User Profile</h2>
+    <h1>User Profile</h1>
+
     <p><strong>Username:</strong> {{ username }}</p>
     <p><strong>Email:</strong> {{ email }}</p>
     <p><strong>Login Count:</strong> {{ login_count }}</p>
 
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <ul class="flashes">
+          {% for category, message in messages %}
+            <li class="{{ category }}">{{ message }}</li>
+          {% endfor %}
+        </ul>
+        </ul>
+      {% endif %}
+    {% endwith %}
+
     <!-- Change Password Form -->
-    <h3>Change Password</h3>
-    <form id="change-password-form" method="POST" action="{{ url_for('change_password') }}">
+    <h2>Change Password</h2>
+    <form id="change-password-form" method="POST" action="{{ url_for('profile') }}">
+      {% if form and form.hidden_tag %}
+        {{ form.hidden_tag() }}
+      {% endif %}
+
       <label for="old-password">Old Password:</label>
-      <input type="password" id="old-password" name="old_password" required>
+      {{ form.old_password(class="form-control") }}
 
       <label for="new-password">New Password:</label>
-      <input type="password" id="new-password" name="new_password" required>
+      {{ form.new_password(class="form-control") }}
+
+      <label for="confirm-password">Confirm New Password:</label>
+      {{ form.confirm_password(class="form-control") }}
 
       <button type="submit">Change Password</button>
     </form>
-
-    <!-- Logout Button -->
-    <a href="{{ url_for('logout') }}" id="logout-btn">Logout</a>
-
-    <a href="{{ url_for('habit_tracker') }}">← Back to Tracker</a>
   </div>
 {% endblock %}
