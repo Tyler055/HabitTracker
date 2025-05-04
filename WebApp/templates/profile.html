@@ -3,42 +3,45 @@
 {% block title %}User Profile{% endblock %}
 
 {% block content %}
-  <div class="container">
-    <h1>User Profile</h1>
+<div class="container">
+  <h1>User Profile</h1>
 
-    <p><strong>Username:</strong> {{ username }}</p>
-    <p><strong>Email:</strong> {{ email }}</p>
-    <p><strong>Login Count:</strong> {{ login_count }}</p>
+  <p><strong>Username:</strong> {{ username }}</p>
+  <p><strong>Email:</strong> {{ email }}</p>
+  <p><strong>Login Count:</strong> {{ login_count }}</p>
 
-    <!-- Flash messages -->
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        <ul class="flashes">
-          {% for category, message in messages %}
-            <li class="{{ category }}">{{ message }}</li>
-          {% endfor %}
-        </ul>
-        </ul>
-      {% endif %}
-    {% endwith %}
+  <!-- Flash messages -->
+  {%- with messages = get_flashed_messages(with_categories=true) -%}
+    {%- if messages -%}
+      <ul class="flashes">
+          <li class="{{ category }}">{{ message }}</li>
+      </ul>
+    {%- endif -%}
+  {%- endwith -%}
 
-    <!-- Change Password Form -->
-    <h2>Change Password</h2>
-    <form id="change-password-form" method="POST" action="{{ url_for('profile') }}">
-      {% if form and form.hidden_tag %}
-        {{ form.hidden_tag() }}
-      {% endif %}
+  <!-- Change Password Form -->
+  <h2>Change Password</h2>
+  <form id="change-password-form" method="POST" action="{{ url_for('profile') }}">
+    {%- if form and form.hidden_tag -%}
+      {{ form.hidden_tag() }}
+    {%- endif -%}
 
+    <div class="form-group">
       <label for="old-password">Old Password:</label>
-      {{ form.old_password(class="form-control") }}
+      {{ form.old_password(class="form-control", id="old-password") }}
+    </div>
 
+    <div class="form-group">
       <label for="new-password">New Password:</label>
-      {{ form.new_password(class="form-control") }}
+      {{ form.new_password(class="form-control", id="new-password") }}
+    </div>
 
+    <div class="form-group">
       <label for="confirm-password">Confirm New Password:</label>
-      {{ form.confirm_password(class="form-control") }}
+      {{ form.confirm_password(class="form-control", id="confirm-password") }}
+    </div>
 
-      <button type="submit">Change Password</button>
-    </form>
-  </div>
+    <button type="submit" class="btn btn-primary">Change Password</button>
+  </form>
+</div>
 {% endblock %}
