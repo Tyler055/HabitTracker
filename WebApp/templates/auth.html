@@ -21,6 +21,7 @@
       <form method="POST" action="{{ url_for('signup') }}">
         <label for="chk" aria-hidden="true">Sign up</label>
         <input name="username" placeholder="User name" required>
+        <input name="email" type="email" placeholder="Email (optional)" required>
         <input name="password" type="password" placeholder="Password" required>
         <button type="submit">Sign up</button>
       </form>
@@ -29,7 +30,7 @@
     <div class="login">
       <form method="POST" action="{{ url_for('login') }}">
         <label for="chk" aria-hidden="true">Login</label>
-        <input name="username" placeholder="User name" required>
+        <input name="identifier" placeholder="Username or Email" required>
         <input name="password" type="password" placeholder="Password" required>
         <button type="submit">Login</button>
       </form>

@@ -6,6 +6,7 @@ from dataservice import (
     init_db,
     create_user,
     find_user_by_username,
+    find_user_by_email,
     get_goals_by_category,
     save_goals_for_category,
     reset_all_goals
@@ -18,14 +19,14 @@ STATIC_DIR = os.path.join(PROJECT_ROOT, 'WebApp', 'static')
 
 # Create Flask app
 app = Flask(__name__, template_folder=TEMPLATE_DIR, static_folder=STATIC_DIR)
+app.secret_key = os.urandom(24)  # Change to a fixed key in production
 
-# You can keep a random key here if you want for development
-app.secret_key = os.urandom(24)  # random key every time
+# Initialize DB once at startup
+with app.app_context():
+    init_db()
 
 @app.before_request
-def before_request():
-    init_db()
-    # If session is missing or corrupted, force login
+def check_login_required():
     if not session.get('user_id') and request.endpoint not in ['signup', 'login', 'static']:
         return redirect(url_for('login'))
 
@@ -35,7 +36,9 @@ def before_request():
 def signup():
     if request.method == 'POST':
         username = request.form['username']
+        email = request.form.get('email')
         password = request.form['password']
+
         error = None
         if not username:
             error = 'Username is required.'
@@ -45,25 +48,30 @@ def signup():
             error = f'User {username} is already registered.'
 
         if error is None:
-            create_user(username, password)
+            create_user(username, password, email)
             flash('Registration successful! Please log in.')
             return redirect(url_for('login'))
+
         flash(error)
+
     return render_template('auth.html', action='signup')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        username = request.form['username']
+        identifier = request.form['identifier']
         password = request.form['password']
-        user = find_user_by_username(username)
+
+        user = find_user_by_username(identifier) or find_user_by_email(identifier)
+
         if user is None:
-            flash('Incorrect username.')
+            flash('User not found.')
         elif not check_password_hash(user['password'], password):
             flash('Incorrect password.')
         else:
             session['user_id'] = user['id']
             return redirect(url_for('habit_tracker'))
+
     return render_template('auth.html', action='login')
 
 @app.route('/logout')
@@ -75,11 +83,6 @@ def logout():
 def habit_tracker():
     return render_template('habit.html')
 
-@app.route('/advanced', methods=['GET'])
-def get_advanced_data():
-    return jsonify({...})
-
-
 @app.route('/goals/<category>')
 def goals_page(category):
     goals = get_goals_by_category(session['user_id'], category)
@@ -87,11 +90,13 @@ def goals_page(category):
 
 @app.route('/goals/all-goals')
 def all_goals_page():
-    daily_goals = get_goals_by_category(session['user_id'], 'daily')
-    weekly_goals = get_goals_by_category(session['user_id'], 'weekly')
-    monthly_goals = get_goals_by_category(session['user_id'], 'monthly')
-    yearly_goals = get_goals_by_category(session['user_id'], 'yearly')
-    return render_template('all-goals.html', daily_goals=daily_goals, weekly_goals=weekly_goals, monthly_goals=monthly_goals, yearly_goals=yearly_goals)
+    user_id = session['user_id']
+    return render_template('all-goals.html',
+        daily_goals=get_goals_by_category(user_id, 'daily'),
+        weekly_goals=get_goals_by_category(user_id, 'weekly'),
+        monthly_goals=get_goals_by_category(user_id, 'monthly'),
+        yearly_goals=get_goals_by_category(user_id, 'yearly')
+    )
 
 @app.route('/api/goals', methods=['GET', 'POST'])
 def api_goals():
@@ -111,6 +116,10 @@ def api_goals():
 def reset_goals_api():
     reset_all_goals(session['user_id'])
     return jsonify({'message': 'Goals reset successfully'})
+
+@app.route('/advanced', methods=['GET'])
+def get_advanced_data():
+    return jsonify({"message": "Advanced data goes here"})
 
 if __name__ == '__main__':
     app.run(debug=True)
