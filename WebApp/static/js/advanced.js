@@ -1,116 +1,75 @@
-document.addEventListener("DOMContentLoaded", function () {
-  const form = document.getElementById("goal-form");
-  const timeSections = document.querySelectorAll(".goal-dropzone");
-  let currentEditId = null;
+// advanced.js
+import { fetchContent, saveGoalsData, resetGoalsData } from './saveData.js';
 
-  fetchGoals();
+const form = document.getElementById('goal-form');
+const titleInput = document.getElementById('goal-title');
+const descInput = document.getElementById('goal-description');
+const prioritySelect = document.getElementById('goal-priority');
+const categorySelect = document.getElementById('goal-category');
+const deadlineInput = document.getElementById('goal-deadline');
+const timeSelect = document.getElementById('goal-time');
 
-  form.addEventListener("submit", function (e) {
-    e.preventDefault();
-    const goal = {
-      title: document.getElementById("goal-title").value.trim(),
-      description: document.getElementById("goal-description").value.trim(),
-      priority: document.getElementById("goal-priority").value,
-      timeCategory: document.getElementById("goal-category").value
+// Load all goals on page load
+['daily', 'weekly', 'monthly', 'yearly'].forEach(loadGoals);
+
+function loadGoals(category) {
+  fetchContent(category)
+    .then(goals => {
+      const dropzone = document.querySelector(`#${category} .goal-dropzone`);
+      dropzone.innerHTML = ''; // Clear existing
+      goals.forEach(goal => renderGoal(goal, category, dropzone));
+    })
+    .catch(err => console.error(`Failed to load ${category} goals:`, err));
+}
+
+// Render a goal into a dropzone
+function renderGoal(goal, category, container) {
+  const div = document.createElement('div');
+  div.className = 'goal-card';
+  div.textContent = `${goal.title} (${goal.priority})`;
+  div.title = goal.description || '';
+  container.appendChild(div);
+}
+
+// Collect all goals in a category's dropzone
+function collectGoals(category) {
+  const dropzone = document.querySelector(`#${category} .goal-dropzone`);
+  return Array.from(dropzone.children).map(el => {
+    const [title, priority] = el.textContent.split(' (');
+    return {
+      title: title.trim(),
+      priority: priority.replace(')', '').trim(),
+      description: el.title,
+      category,
     };
+  });
+}
 
-    if (!goal.title || !goal.timeCategory) {
-      return alert("Please fill in required fields.");
-    }
+// Handle form submit
+form.addEventListener('submit', e => {
+  e.preventDefault();
 
-    const url = currentEditId ? `/goals/${currentEditId}` : "/goals";
-    const method = currentEditId ? "PUT" : "POST";
+  const newGoal = {
+    title: titleInput.value.trim(),
+    description: descInput.value.trim(),
+    priority: prioritySelect.value,
+    category: categorySelect.value,
+    deadline: deadlineInput.value,
+    time: timeSelect.value,
+  };
 
-    fetch(url, {
-      method,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(goal)
-    }).then(() => {
-      fetchGoals();
+  const dropzone = document.querySelector(`#${newGoal.category} .goal-dropzone`);
+  renderGoal(newGoal, newGoal.category, dropzone);
+
+  const updatedGoals = collectGoals(newGoal.category);
+
+  saveGoalsData(newGoal.category, updatedGoals)
+    .then(() => {
       form.reset();
-      currentEditId = null;
+      timeSelect.value = 'any';
+    })
+    .catch(err => {
+      console.error('Failed to save goals:', err);
+      alert('❌ Failed to save your goal. Try again.');
     });
-  });
-
-  function fetchGoals() {
-    fetch("/goals")
-      .then(res => {
-        if (!res.ok) throw new Error("Failed to fetch goals");
-        return res.json();
-      })
-      .then(goals => {
-        document.querySelectorAll(".goal-dropzone").forEach(zone => zone.innerHTML = "");
-        goals.forEach(addGoalCard);
-      })
-      .catch(err => {
-        console.error("Error loading goals:", err);
-      });
-  }
-
-  function addGoalCard(goal) {
-    const card = document.createElement("div");
-    card.className = `goal-card ${goal.priority.toLowerCase()}`;
-    card.setAttribute("draggable", true);
-    card.dataset.id = goal.id;
-
-    card.innerHTML = `
-      <div class="goal-header">
-        <h3>${goal.title}</h3>
-        <div>
-          <button class="edit-btn">Edit</button>
-          <button class="delete-btn">Delete</button>
-        </div>
-      </div>
-      <div class="goal-details">
-        <p>${goal.description || ''}</p>
-        <strong>Priority:</strong> ${goal.priority}
-      </div>
-    `;
-
-    card.querySelector(".edit-btn").addEventListener("click", () => {
-      document.getElementById("goal-title").value = goal.title;
-      document.getElementById("goal-description").value = goal.description;
-      document.getElementById("goal-priority").value = goal.priority;
-      document.getElementById("goal-category").value = goal.timeCategory;
-      currentEditId = goal.id;
-    });
-
-    card.querySelector(".delete-btn").addEventListener("click", () => {
-      fetch(`/goals/${goal.id}`, { method: "DELETE" }).then(fetchGoals);
-    });
-
-    addDragEvents(card);
-    document.querySelector(`#${goal.timeCategory} .goal-dropzone`).appendChild(card);
-  }
-
-  function addDragEvents(card) {
-    card.addEventListener("dragstart", () => card.classList.add("dragging"));
-    card.addEventListener("dragend", () => card.classList.remove("dragging"));
-  }
-
-  timeSections.forEach(zone => {
-    zone.addEventListener("dragover", e => {
-      e.preventDefault();
-      zone.classList.add("dragover");
-    });
-
-    zone.addEventListener("dragleave", () => {
-      zone.classList.remove("dragover");
-    });
-
-    zone.addEventListener("drop", e => {
-      e.preventDefault();
-      const dragged = document.querySelector(".dragging");
-      if (dragged) {
-        const goalId = dragged.dataset.id;
-        const newCategory = zone.closest(".goal-section").id;
-        fetch(`/goals/${goalId}/move`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ timeCategory: newCategory })
-        }).then(fetchGoals);
-        zone.classList.remove("dragover");
-      }
-    });
-  });
 });

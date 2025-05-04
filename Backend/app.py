@@ -1,7 +1,6 @@
 import os
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
-
 from dataservice import (
     init_db,
     create_user,
@@ -11,6 +10,7 @@ from dataservice import (
     save_goals_for_category,
     reset_all_goals
 )
+from jinja2 import TemplateNotFound
 
 # Set project paths
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
@@ -19,7 +19,13 @@ STATIC_DIR = os.path.join(PROJECT_ROOT, 'WebApp', 'static')
 
 # Create Flask app
 app = Flask(__name__, template_folder=TEMPLATE_DIR, static_folder=STATIC_DIR)
-app.secret_key = os.urandom(24)  # Change to a fixed key in production
+app.secret_key = os.urandom(24)
+
+app.config.update(
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SECURE=True,
+    SESSION_COOKIE_SAMESITE='Lax',
+)
 
 # Initialize DB once at startup
 with app.app_context():
@@ -27,7 +33,7 @@ with app.app_context():
 
 @app.before_request
 def check_login_required():
-    if not session.get('user_id') and request.endpoint not in ['signup', 'login', 'static']:
+    if not session.get('user_id') and request.endpoint not in {'signup', 'login', 'static'} and not request.endpoint.startswith('api'):
         return redirect(url_for('login'))
 
 # ─────── Routes ───────────────────────────────────────────
@@ -48,11 +54,15 @@ def signup():
             error = f'User {username} is already registered.'
 
         if error is None:
-            create_user(username, password, email)
-            flash('Registration successful! Please log in.')
-            return redirect(url_for('login'))
-
-        flash(error)
+            try:
+                hashed_password = generate_password_hash(password)
+                create_user(username, hashed_password, email)
+                flash('Registration successful! Please log in.')
+                return redirect(url_for('login'))
+            except Exception as e:
+                flash(f'Error creating user: {e}')
+        else:
+            flash(error)
 
     return render_template('auth.html', action='signup')
 
@@ -85,8 +95,11 @@ def habit_tracker():
 
 @app.route('/goals/<category>')
 def goals_page(category):
-    goals = get_goals_by_category(session['user_id'], category)
-    return render_template(f'{category}.html', goals=goals)
+    try:
+        goals = get_goals_by_category(session['user_id'], category)
+        return render_template(f'{category}.html', goals=goals)
+    except TemplateNotFound:
+        return "Category not found", 404
 
 @app.route('/goals/all-goals')
 def all_goals_page():

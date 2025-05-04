@@ -1,10 +1,11 @@
 import { fetchContent, saveGoalsData, resetGoalsData } from './saveData.js';
 
 let draggedItem = null;
+let isDirty = false;
 
 document.addEventListener("DOMContentLoaded", async () => {
   await initializeApp();
-  setupPageLinks(); // Called once here
+  setupPageLinks(); // Assuming it's defined elsewhere
 });
 
 async function initializeApp() {
@@ -12,6 +13,24 @@ async function initializeApp() {
   bindGoalForm();
   setupButtons();
   initializeDragAndDrop();
+  setupBeforeUnload();
+}
+
+function setupBeforeUnload() {
+  window.addEventListener('beforeunload', (e) => {
+    if (isDirty) {
+      e.preventDefault();
+      e.returnValue = '';
+    }
+  });
+}
+
+function markDirty() {
+  isDirty = true;
+}
+
+function clearDirty() {
+  isDirty = false;
 }
 
 function setupButtons() {
@@ -43,13 +62,19 @@ function createGoalElement({ text, completed = false, color = '', dueDate = '' }
   const checkbox = document.createElement("input");
   checkbox.type = "checkbox";
   checkbox.checked = completed;
-  checkbox.setAttribute("aria-label", "Mark as complete");
-  checkbox.addEventListener("change", saveCurrentGoals);
-  li.appendChild(checkbox);
 
   const span = document.createElement("span");
+  const spanId = `goal-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
   span.textContent = text;
+  span.id = spanId;
   li.appendChild(span);
+
+  checkbox.setAttribute("aria-labelledby", spanId);
+  checkbox.addEventListener("change", () => {
+    markDirty();
+    saveCurrentGoals();
+  });
+  li.insertBefore(checkbox, span);
 
   if (dueDate) {
     const due = document.createElement("small");
@@ -66,12 +91,14 @@ function createGoalElement({ text, completed = false, color = '', dueDate = '' }
   deleteBtn.setAttribute("aria-label", "Delete goal");
   deleteBtn.addEventListener("click", () => {
     li.remove();
+    markDirty();
     saveCurrentGoals();
   });
   deleteBtn.addEventListener("keydown", (e) => {
     if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
       li.remove();
+      markDirty();
       saveCurrentGoals();
     }
   });
@@ -90,6 +117,7 @@ function makeItemDraggable(item) {
     e.dataTransfer.effectAllowed = "move";
     item.classList.add('dragging');
     item.style.opacity = '0.5';
+    markDirty();
   });
 
   item.addEventListener('dragend', () => {
@@ -117,6 +145,7 @@ function initializeDragAndDrop() {
 
     ul.addEventListener("drop", (e) => {
       e.preventDefault();
+      markDirty();
       saveCurrentGoals();
     });
   });
@@ -148,6 +177,7 @@ function addKeyboardDragSupport(item) {
       } else if (e.key === "ArrowDown" && index < items.length - 1) {
         parent.insertBefore(item, items[index + 1].nextSibling);
       }
+      markDirty();
       saveCurrentGoals();
       item.focus();
     }
@@ -190,6 +220,7 @@ async function saveCurrentGoals() {
       showErrorMessage(`Failed to save ${category} goals. Please try again later.`);
     }
   }
+  clearDirty();
 }
 
 function bindGoalForm() {
@@ -217,6 +248,7 @@ function bindGoalForm() {
     const li = createGoalElement(newGoal);
     goalList.appendChild(li);
     goalInput.value = "";
+    markDirty();
     await saveCurrentGoals();
   });
 }
@@ -232,53 +264,14 @@ function detectCurrentCategory() {
 }
 
 function showErrorMessage(message) {
-  const errorDiv = document.createElement('div');
-  errorDiv.className = 'error-message';
-  errorDiv.setAttribute('aria-live', 'polite');
-  errorDiv.textContent = message;
-  document.body.appendChild(errorDiv);
-  setTimeout(() => errorDiv.remove(), 5000);
-}
-
-function setupPageLinks() {
-  const loadProfileLink = document.getElementById("load-profile");
-  const loadSettingsLink = document.getElementById("load-settings");
-  const loadNotificationsLink = document.getElementById("load-notifications");
-
-  const pageLinks = [
-    { link: loadProfileLink, url: '/profile', title: 'Profile' },
-    { link: loadSettingsLink, url: '/settings', title: 'Settings' },
-    { link: loadNotificationsLink, url: '/notifications', title: 'Notifications' }
-  ];
-
-  pageLinks.forEach(({ link, url, title }) => {
-    if (link) {
-      link.addEventListener("click", async (e) => {
-        e.preventDefault();
-        await loadPageContent(url, title);
-      });
-    }
-  });
-}
-
-async function loadPageContent(url, pageTitle) {
-  try {
-    const response = await fetch(url);
-    if (response.ok) {
-      const content = await response.text();
-      
-      const pageContentDiv = document.getElementById("page-content");
-      pageContentDiv.innerHTML = content;
-
-      document.title = `${pageTitle} - Habit Tracker`;
-      bindGoalForm();
-      setupButtons();
-      initializeDragAndDrop();
-    } else {
-      throw new Error('Failed to load content');
-    }
-  } catch (error) {
-    console.error('Error loading page content:', error);
-    showErrorMessage('Failed to load content. Please try again later.');
+  let errorDiv = document.querySelector('.error-message');
+  if (!errorDiv) {
+    errorDiv = document.createElement('div');
+    errorDiv.className = 'error-message';
+    errorDiv.setAttribute('aria-live', 'polite');
+    document.body.appendChild(errorDiv);
   }
+  errorDiv.textContent = message;
+  clearTimeout(errorDiv.timeoutId);
+  errorDiv.timeoutId = setTimeout(() => errorDiv.remove(), 5000);
 }

@@ -11,75 +11,71 @@
   <!-- Header -->
   <header>
     <ul id="navbar">
-      <li><a href="/" class="home-button">🏠 Home</a></li>
+      <li><a href="/" class="home-button" aria-label="Go to home">🏠 Home</a></li>
     </ul>
-    <h1>Goal Planner</h1>
-    <select id="category-filter" title="Filter by category">
-      <option value="all">All Goals</option>
-      <option value="daily">Daily Goals</option>
-      <option value="weekly">Weekly Goals</option>
-      <option value="monthly">Monthly Goals</option>
-      <option value="yearly">Yearly Goals</option>
-    </select>
+    <h1>🗂️ My Goal Planner</h1>
   </header>
 
-  <!-- Goal List Area -->
+  <!-- Goal Sections -->
   <main>
-    <div class="goal-section" id="daily">
-      <h2>Daily</h2>
-      <div class="goal-dropzone"></div>
-    </div>
-    <div class="goal-section" id="weekly">
-      <h2>Weekly</h2>
-      <div class="goal-dropzone"></div>
-    </div>
-    <div class="goal-section" id="monthly">
-      <h2>Monthly</h2>
-      <div class="goal-dropzone"></div>
-    </div>
-    <div class="goal-section" id="yearly">
-      <h2>Yearly</h2>
-      <div class="goal-dropzone"></div>
-    </div>
+    <section id="daily" class="goal-section">
+      <h2>☀️ Daily Goals</h2>
+      <div class="goal-dropzone" data-category="daily"></div>
+    </section>
+
+    <section id="weekly" class="goal-section">
+      <h2>📆 Weekly Goals</h2>
+      <div class="goal-dropzone" data-category="weekly"></div>
+    </section>
+
+    <section id="monthly" class="goal-section">
+      <h2>🗓️ Monthly Goals</h2>
+      <div class="goal-dropzone" data-category="monthly"></div>
+    </section>
+
+    <section id="yearly" class="goal-section">
+      <h2>📈 Yearly Goals</h2>
+      <div class="goal-dropzone" data-category="yearly"></div>
+    </section>
   </main>
 
-  <!-- Add/Edit Goal Form -->
-  <section>
-    <form id="goal-form">
-      <input type="text" id="goal-title" placeholder="Goal title" required />
-      <textarea id="goal-description" placeholder="Description (optional)"></textarea>
+  <!-- Goal Input Form -->
+  <form id="goal-form" aria-label="Add a new goal">
+    <input id="goal-title" type="text" placeholder="📝 Title for Goals" required aria-label="Goal Title" />
+    
+    <textarea id="goal-description" placeholder="💬 Description (optional)" aria-label="Goal Description"></textarea>
+    
+    <label for="goal-priority">Priority</label>
+    <select id="goal-priority" required aria-label="Goal Priority">
+      <option>🔥 High</option>
+      <option>⚖️ Medium</option>
+      <option>🍃 Low</option>
+      <option> none</option>
+    </select>
+    
+    <label for="goal-category">Category</label>
+    <select id="goal-category" required aria-label="Goal Category">
+      <option value="daily">☀️ Daily</option>
+      <option value="weekly">📆 Weekly</option>
+      <option value="monthly">🗓️ Monthly</option>
+      <option value="yearly">📈 Yearly</option>
+    </select>
+    
+    <label for="goal-deadline">Deadline  (optional)</label>
+    <input type="date" id="goal-deadline" aria-label="Goal Deadline" />
+    
+    <label for="goal-time">Preferred Time (optional)</label>
+    <select id="goal-time" aria-label="Goal Time">
+      <option value="any">⏰ Any time</option>
+      <option value="morning">🌅 Morning</option>
+      <option value="afternoon">🏙️ Afternoon</option>
+      <option value="evening">🌙 Evening</option>
+    </select>
+    
+    <button type="submit" aria-label="Add Goal">➕ Add Goal</button>
+  </form>
 
-      <label for="goal-category">Select Category:</label>
-      <select id="goal-category" required>
-        <option value="daily">Daily</option>
-        <option value="weekly">Weekly</option>
-        <option value="monthly">Monthly</option>
-        <option value="yearly">Yearly</option>
-      </select>
-
-      <label for="goal-priority">Priority:</label>
-      <select id="goal-priority">
-        <option value="high">High</option>
-        <option value="medium" selected>Medium</option>
-        <option value="low">Low</option>
-      </select>
-
-      <label for="goal-deadline">Deadline:</label>
-      <input type="date" id="goal-deadline" />
-
-      <label for="goal-time">Time of Day:</label>
-      <select id="goal-time">
-        <option value="morning">Morning</option>
-        <option value="afternoon">Afternoon</option>
-        <option value="evening">Evening</option>
-        <option value="any">Any Time</option>
-      </select>
-
-      <button type="submit">Add Goal</button>
-    </form>
-  </section>
-
-  <!-- JavaScript -->
+  <!-- JS -->
   <script type="module" src="{{ url_for('static', filename='js/advanced.js') }}"></script>
 </body>
 </html>
