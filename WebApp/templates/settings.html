@@ -8,59 +8,79 @@
 {% endblock %}
 
 {% block content %}
+<main>
+  <section id="content">
+    <h1>Settings & Notifications</h1>
 
+    <!-- Theme Settings -->
+    <div id="theme-settings">
+      <h2>Theme</h2>
+      <label for="theme-selector">Select Theme:</label>
+      <select id="theme-selector">
+        <option value="light">Light</option>
+        <option value="dark">Dark</option>
+      </select>
+      <button id="save-theme" type="button">Save Theme</button>
+    </div>
 
-  <main>
-    <section id="content">
-      <h1>Settings & Notifications</h1>
+    <!-- Notification Settings -->
+    <div id="notification-settings">
+      <h2>Notification Settings</h2>
+      <label for="email-notifications">
+        <input type="checkbox" id="email-notifications" checked>
+        Email Notifications
+      </label>
+      <label for="push-notifications">
+        <input type="checkbox" id="push-notifications" checked>
+        Push Notifications
+      </label>
+      <button id="save-notifications" type="button">Save Notifications</button>
+    </div>
 
-      <!-- Theme Settings -->
-      <div id="theme-settings">
-        <h2>Theme</h2>
-        <label for="theme-selector">Select Theme:</label>
-        <select id="theme-selector">
-          <option value="light">Light</option>
-          <option value="dark">Dark</option>
-        </select>
-        <button id="save-theme" type="button">Save Theme</button>
+    <!-- Your Notifications -->
+    <div id="notification-list">
+      <h2>Your Notifications</h2>
+      <div class="notification-item">
+        <p><strong>Reminder:</strong> Complete your daily goals!</p>
+        <span class="notification-time">10:30 AM</span>
       </div>
-
-      <!-- Notification Settings -->
-      <div id="notification-settings">
-        <h2>Notification Settings</h2>
-        <label for="email-notifications">
-          <input type="checkbox" id="email-notifications" checked>
-          Email Notifications
-        </label>
-        <label for="push-notifications">
-          <input type="checkbox" id="push-notifications" checked>
-          Push Notifications
-        </label>
-        <button id="save-notifications" type="button">Save Notifications</button>
+      <div class="notification-item">
+        <p><strong>Reminder:</strong> Review your weekly goals.</p>
+        <span class="notification-time">09:00 AM</span>
       </div>
+      <!-- More notifications can be added dynamically here -->
+    </div>
 
-      <!-- Your Notifications -->
-      <div id="notification-list">
-        <h2>Your Notifications</h2>
-        <div class="notification-item">
-          <p><strong>Reminder:</strong> Complete your daily goals!</p>
-          <span class="notification-time">10:30 AM</span>
-        </div>
-        <div class="notification-item">
-          <p><strong>Reminder:</strong> Review your weekly goals.</p>
-          <span class="notification-time">09:00 AM</span>
-        </div>
-        <!-- More notifications can be added dynamically here -->
-      </div>
+    <!-- Clear Notifications Button -->
+    <button id="clear-notifications" type="button">Clear All Notifications</button>
 
-      <!-- Clear Notifications Button -->
-      <button id="clear-notifications" type="button">Clear All Notifications</button>
-    </section>
-  </main>
+    <!-- Create New Notification -->
+    <h2>Create New Notification</h2>
+    <form method="POST" action="{{ url_for('create_notification') }}">
+      <label for="message">Message:</label>
+      <input type="text" id="message" name="message" required>
+      <button type="submit">Add Notification</button>
+    </form>
 
-  <footer>
-    <p>&copy; 2025 Goal Tracker. All rights reserved.</p>
-  </footer>
+    <!-- Clear All Notifications Form -->
+    <form method="POST" action="{{ url_for('clear_all_notifications') }}">
+      <button type="submit">Clear All</button>
+    </form>
+
+    <!-- Display Notifications -->
+    <ul>
+      {% for notification in notifications %}
+        <li><strong>{{ notification.time }}</strong>: {{ notification.message }}</li>
+      {% else %}
+        <li>No notifications available.</li>
+      {% endfor %}
+    </ul>
+
+  </section>
+</main>
+<footer>
+  <p>&copy; 2025 Goal Tracker. All rights reserved.</p>
+</footer>
 {% endblock %}
 
 {% block scripts %}

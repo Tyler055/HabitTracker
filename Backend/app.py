@@ -8,7 +8,8 @@ from wtforms.validators import DataRequired
 from dataservice import (
     init_db, create_user, find_user_by_username, find_user_by_email,
     get_goals_by_category, save_goals_for_category, reset_all_goals,
-    find_user_by_id, update_user_password, update_goal
+    find_user_by_id, update_user_password, update_goal, clear_notifications,
+    create_notification, get_notifications
 )
 
 # ─── Flask App Configuration ─────────────────────────────────
@@ -92,6 +93,24 @@ def logout():
 @app.route('/settings')
 def settings():
     return render_template('settings.html')
+
+@app.route('/notifications', methods=['GET', 'POST'])
+def notifications():
+    user_id = session['user_id']
+    if request.method == 'POST':
+        message = request.form.get('message')
+        if message:
+            create_notification(user_id, message)
+            flash('Notification created!')
+            return redirect(url_for('notifications'))
+    notifs = get_notifications(user_id)
+    return render_template('notifications.html', notifications=notifs)
+
+@app.route('/notifications/clear', methods=['POST'])
+def clear_all_notifications():
+    clear_notifications(session['user_id'])
+    flash("Notifications cleared.")
+    return redirect(url_for('notifications'))
 
 @app.route('/profile', methods=['GET', 'POST'])
 def profile():

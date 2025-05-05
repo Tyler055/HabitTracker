@@ -1,33 +1,40 @@
 import sqlite3
 import os
 from flask import g
+from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 
 DATABASE_PATH = os.path.join(os.path.dirname(__file__), 'habitDatabase.sqlite')
 
 def get_db_connection():
+    """Helper function to get a database connection."""
     if 'db' not in g:
         g.db = sqlite3.connect(DATABASE_PATH, timeout=10, check_same_thread=False)
         g.db.row_factory = sqlite3.Row
     return g.db
 
 def close_db_connection(e=None):
+    """Helper function to close the database connection after request."""
     db = g.pop('db', None)
     if db is not None:
         db.close()
 
 def init_app(app):
+    """Initializes the Flask app by setting up teardown for DB connection."""
     app.teardown_appcontext(close_db_connection)
 
 def init_db():
+    """Initialize the database and create necessary tables."""
     conn = get_db_connection()
     cur = conn.cursor()
+    # Create users table
     cur.execute('''CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         username TEXT NOT NULL UNIQUE,
         password TEXT NOT NULL,
         email TEXT UNIQUE
     )''')
+    # Create goals table
     cur.execute('''CREATE TABLE IF NOT EXISTS goals (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id INTEGER NOT NULL,
@@ -37,9 +44,18 @@ def init_db():
         sort_order INTEGER,
         FOREIGN KEY (user_id) REFERENCES users(id)
     )''')
+    # Create notifications table
+    cur.execute('''CREATE TABLE IF NOT EXISTS notifications (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        message TEXT NOT NULL,
+        time TEXT NOT NULL,
+        FOREIGN KEY (user_id) REFERENCES users(id)
+    )''')
     conn.commit()
 
 def create_user(username, password, email=None):
+    """Creates a new user in the database."""
     if find_user_by_username(username) or (email and find_user_by_email(email)):
         raise ValueError("User with this username or email already exists.")
     
@@ -50,23 +66,28 @@ def create_user(username, password, email=None):
     conn.commit()
 
 def find_user_by_username(username):
+    """Finds a user by their username."""
     conn = get_db_connection()
     return conn.execute('SELECT * FROM users WHERE username = ?', (username,)).fetchone()
 
 def find_user_by_email(email):
+    """Finds a user by their email."""
     conn = get_db_connection()
     return conn.execute('SELECT * FROM users WHERE email = ?', (email,)).fetchone()
 
 def find_user_by_id(user_id):
+    """Finds a user by their user_id."""
     conn = get_db_connection()
     return conn.execute('SELECT * FROM users WHERE id = ?', (user_id,)).fetchone()
 
 def get_goals_by_category(user_id, category):
+    """Gets all goals by category for a specific user."""
     conn = get_db_connection()
     return conn.execute('SELECT id, text, completed FROM goals WHERE user_id = ? AND category = ? ORDER BY sort_order', 
                         (user_id, category)).fetchall()
 
 def save_goals_for_category(user_id, category, goals):
+    """Saves goals to the database for a specific category."""
     conn = get_db_connection()
     cur = conn.cursor()
     cur.execute('DELETE FROM goals WHERE user_id = ? AND category = ?', (user_id, category))
@@ -76,6 +97,7 @@ def save_goals_for_category(user_id, category, goals):
     conn.commit()
 
 def update_goal(goal_id, new_text, new_completed):
+    """Updates an existing goal."""
     conn = get_db_connection()
     cur = conn.cursor()
     cur.execute('UPDATE goals SET text = ?, completed = ? WHERE id = ?', (new_text, int(new_completed), goal_id))
@@ -83,6 +105,7 @@ def update_goal(goal_id, new_text, new_completed):
     return 'Goal updated successfully.'
 
 def update_user_password(user_id, new_password):
+    """Updates the user's password."""
     conn = get_db_connection()
     cur = conn.cursor()
     hashed_password = generate_password_hash(new_password)
@@ -90,7 +113,31 @@ def update_user_password(user_id, new_password):
     conn.commit()
 
 def reset_all_goals(user_id):
+    """Resets all goals for a specific user."""
     conn = get_db_connection()
     cur = conn.cursor()
     cur.execute('DELETE FROM goals WHERE user_id = ?', (user_id,))
+    conn.commit()
+
+def create_notification(user_id, message, time=None):
+    """Creates a new notification for a user."""
+    if time is None:
+        time = datetime.now().strftime("%H:%M")
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("INSERT INTO notifications (user_id, message, time) VALUES (?, ?, ?)", (user_id, message, time))
+    conn.commit()
+
+def get_notifications(user_id):
+    """Gets all notifications for a user."""
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM notifications WHERE user_id = ? ORDER BY id DESC", (user_id,))
+    return [{'id': row[0], 'message': row[2], 'time': row[3]} for row in cur.fetchall()]
+
+def clear_notifications(user_id):
+    """Clears all notifications for a user."""
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("DELETE FROM notifications WHERE user_id = ?", (user_id,))
     conn.commit()
