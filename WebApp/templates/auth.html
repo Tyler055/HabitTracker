@@ -14,14 +14,25 @@
 
 <body>
   <div class="main">
+    <!-- Display flash messages if they exist -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash-messages">
+          {% for category, message in messages %}
+            <div class="flash {{ category }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
     <!-- checkbox toggles between login/signup -->
     <input type="checkbox" id="chk" aria-hidden="true" {{ 'checked' if mode=='signup' else '' }}>
 
     <div class="signup">
-      <form method="POST" action="{{ url_for('signup') }}">
+      <form method="POST" action="{{ url_for('auth.signup') }}">
         <label for="chk" aria-hidden="true">Sign up</label>
         <input name="username" placeholder="User name" required value="{{ username if username else '' }}">
-        <input name="email" type="email" placeholder="Email" required autocomplete="email" value="{{ session.get('email', '') }}">
+        <input name="email" type="email" placeholder="Email" required autocomplete="email" value="{{ email if email else '' }}">
         <input name="password" type="password" placeholder="Password" required>
         <input type="password" name="password_confirm" placeholder="Confirm Password" required>
         <button type="submit">Sign up</button>
@@ -29,13 +40,13 @@
     </div>
 
     <div class="login">
-      <form method="POST" action="{{ url_for('login') }}">
+      <form method="POST" action="{{ url_for('auth.login') }}">
         <label for="chk" aria-hidden="true">Login</label>
-        <input name="identifier" placeholder="Username or Email" required value="{{ session.get('email', '') }}">
+        <input name="identifier" placeholder="Username or Email" required value="{{ session.get('identifier', '') }}">
         <input name="password" type="password" placeholder="Password" required>
         <button type="submit">Login</button>
       </form>
-      <a href="{{ url_for('forgot_password') }}">Forgot Password?</a>
+      <a href="{{ url_for('auth.forgot_password') }}">Forgot Password?</a>
     </div>
   </div>
 </body>
