@@ -39,9 +39,6 @@
         <option value="yearly">Yearly</option>
       </select>
 
-      <label for="goal-color">Color Tag:</label>
-      <input type="color" id="goal-color" name="goal-color" value="#0088cc">
-
       <label for="goal-due">Due Date:</label>
       <input type="date" id="goal-due" name="goal-due">
 
@@ -52,5 +49,6 @@
 {% endblock %}
 
 {% block scripts %}
-<script type="module" src="{{ url_for('static', filename='js/script.js') }}"></script>
+
+<script type="module" src="{{ url_for('static', filename='js/all-goals.js') }}"></script>
 {% endblock %}
