@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}Settings & Notifications - Goal Tracker{% endblock %}
+
+{% block styles %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="icon" href="{{ url_for('static', filename='img/favicon.ico') }}" type="image/x-icon" />
+{% endblock %}
+
+{% block content %}
+<main>
+  <section id="content">
+    <h1>Settings & Notifications</h1>
+
+    <!-- Theme Settings -->
+    <div id="theme-settings">
+      <h2>Theme</h2>
+      <form id="theme-form">
+        <label for="theme-selector">Select Theme:</label>
+        <select id="theme-selector" name="theme">
+          <option value="light" {% if current_theme == 'light' %}selected{% endif %}>Light</option>
+          <option value="dark" {% if current_theme == 'dark' %}selected{% endif %}>Dark</option>
+        </select>
+      </form>
+    </div>
+
+    <!-- Notification Settings -->
+    <div id="notification-settings">
+      <h2>Notification Settings</h2>
+      <form method="POST">
+        <label for="email-notifications">
+          <input type="checkbox" id="email-notifications" name="email-notifications" {% if email_notifications %}checked{% endif %}>
+          Email Notifications
+        </label>
+        <br>
+        <label for="push-notifications">
+          <input type="checkbox" id="push-notifications" name="push-notifications" {% if push_notifications %}checked{% endif %}>
+          Push Notifications
+        </label>
+        <br>
+        <button type="submit" id="save-notifications" name="save-notifications">Save Notifications</button>
+      </form>
+    </div>
+
+    <!-- Your Notifications -->
+    <div id="notification-list">
+      <h2>Your Notifications</h2>
+      {% if notifications %}
+        {% for notification in notifications %}
+          <div class="notification-item">
+            <p><strong>{{ notification.message }}</strong></p>
+            <span class="notification-time">{{ notification.time }}</span>
+          </div>
+        {% endfor %}
+      {% else %}
+        <p>No notifications available.</p>
+      {% endif %}
+    </div>
+
+    <!-- Clear Notifications Button -->
+    <form action="{{ url_for('views.clear_all_notifications') }}" method="post">
+      <button type="submit" id="clear-notifications">Clear All Notifications</button>
+    </form>
+
+    <!-- Create New Notification -->
+    <h2>Create New Notification</h2>
+    <form method="POST" action="{{ url_for('views.settings') }}" id="create-notification-form">
+      <label for="message">Message:</label>
+      <input type="text" id="message" name="message" required>
+      <button type="submit">Add Notification</button>
+    </form>
+
+  </section>
+</main>
+
+<footer>
+  <p>&copy; 2025 Goal Tracker. All rights reserved.</p>
+</footer>
+{% endblock %}
+
+{% block scripts %}
+  <script type="module" src="{{ url_for('static', filename='js/settings.js') }}"></script>
+  <script type="module" src="{{ url_for('static', filename='js/script.js') }}"></script>
+{% endblock %}

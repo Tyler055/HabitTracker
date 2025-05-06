@@ -1,56 +1,310 @@
 import sqlite3
 import os
-from werkzeug.security import generate_password_hash
+from flask import g
+from datetime import datetime
+from werkzeug.security import generate_password_hash, check_password_hash
 
+# Define path to SQLite database file
 DATABASE_PATH = os.path.join(os.path.dirname(__file__), 'habitDatabase.sqlite')
 
+
+# --- Database Connection Management ---
+
 def get_db_connection():
-    conn = sqlite3.connect(DATABASE_PATH)
-    conn.row_factory = sqlite3.Row
-    return conn
+    """
+    Create a new SQLite connection and store it in Flask's `g` object.
+    Ensures each request reuses the same connection.
+    """
+    if 'db' not in g:
+        g.db = sqlite3.connect(DATABASE_PATH, timeout=10, check_same_thread=False)
+        g.db.row_factory = sqlite3.Row  # Allow column access by name
+    return g.db
+
+
+def close_db_connection(e=None):
+    """
+    Closes the database connection when the request ends.
+    """
+    db = g.pop('db', None)
+    if db is not None:
+        db.close()
+
+
+def init_app(app):
+    """
+    Register teardown logic for the Flask app to close DB connection.
+    """
+    app.teardown_appcontext(close_db_connection)
+
 
 def init_db():
+    """
+    Initialize the database tables (users, goals, notifications).
+    Called once during setup or app start.
+    """
     conn = get_db_connection()
     cur = conn.cursor()
-    # ... (rest of init_db code) ...
-    conn.commit()
-    conn.close()
 
-def create_user(username, password):
+    # Create users table
+    cur.execute('''CREATE TABLE IF NOT EXISTS users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT NOT NULL UNIQUE,
+        password TEXT NOT NULL,
+        email TEXT UNIQUE,
+        reset_token TEXT,
+        reset_token_expiry TEXT
+    )''')
+
+    # Create goals table
+    cur.execute('''CREATE TABLE IF NOT EXISTS goals (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        category TEXT NOT NULL,
+        text TEXT NOT NULL,
+        completed INTEGER DEFAULT 0,
+        sort_order INTEGER,
+        FOREIGN KEY (user_id) REFERENCES users(id)
+    )''')
+
+    # Create user_settings table
+    cur.execute('''CREATE TABLE IF NOT EXISTS user_settings (
+        user_id INTEGER PRIMARY KEY,
+        theme TEXT DEFAULT 'light',
+        email_notifications INTEGER DEFAULT 1,
+        push_notifications INTEGER DEFAULT 0,
+        FOREIGN KEY (user_id) REFERENCES users(id)
+    )''')
+
+    # Create notifications table
+    cur.execute('''CREATE TABLE IF NOT EXISTS notifications (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        message TEXT NOT NULL,
+        time TEXT NOT NULL,
+        FOREIGN KEY (user_id) REFERENCES users(id)
+    )''')
+
+    conn.commit()
+
+
+# --- User Management ---
+
+def create_user(username, password, email=None):
+    """
+    Create a new user with a hashed password.
+    Raises error if username or email already exists.
+    """
+    if find_user_by_username(username) or (email and find_user_by_email(email)):
+        raise ValueError("User with this username or email already exists.")
     conn = get_db_connection()
     cur = conn.cursor()
     hashed_password = generate_password_hash(password)
-    cur.execute('INSERT INTO users (username, password) VALUES (?, ?)', (username, hashed_password))
+    cur.execute('INSERT INTO users (username, password, email) VALUES (?, ?, ?)',
+                (username, hashed_password, email))
     conn.commit()
-    conn.close()
+    return "User created successfully."
+
+
+def verify_password(stored_hash, provided_password):
+    """
+    Check if the provided password matches the stored hash.
+    """
+    return check_password_hash(stored_hash, provided_password)
+
+
+def update_user_password(user_id, new_password):
+    """
+    Update a user's password with a newly hashed password.
+    """
+    conn = get_db_connection()
+    cur = conn.cursor()
+    hashed_password = generate_password_hash(new_password)
+    cur.execute('UPDATE users SET password = ? WHERE id = ?', (hashed_password, user_id))
+    conn.commit()
+    return "Password updated successfully."
+
+
+def update_user_reset_token(user_id, token, expiration):
+    """
+    Update a user's reset token and expiration in the database.
+    """
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    # Update the user with the new reset token and its expiration time
+    cur.execute('''
+        UPDATE users
+        SET reset_token = ?, reset_token_expiry = ?
+        WHERE id = ?
+    ''', (token, expiration, user_id))
+    
+    conn.commit()
+    return "Reset token updated successfully."
+
 
 def find_user_by_username(username):
+    """
+    Find a user by their username.
+    """
     conn = get_db_connection()
-    cur = conn.cursor()
-    user = cur.execute('SELECT * FROM users WHERE username = ?', (username,)).fetchone()
-    conn.close()
-    return user
+    return conn.execute('SELECT * FROM users WHERE username = ?', (username,)).fetchone()
+
+
+def find_user_by_email(email):
+    """
+    Find a user by their email address.
+    """
+    conn = get_db_connection()
+    return conn.execute('SELECT * FROM users WHERE email = ?', (email,)).fetchone()
+
+
+def find_user_by_id(user_id):
+    """
+    Find a user by their ID.
+    """
+    conn = get_db_connection()
+    return conn.execute('SELECT * FROM users WHERE id = ?', (user_id,)).fetchone()
+
+
+def find_user_by_reset_token(reset_token):
+    """
+    Find a user by their reset token.
+    """
+    conn = get_db_connection()
+    return conn.execute('SELECT * FROM users WHERE reset_token = ?', (reset_token,)).fetchone()
+
+
+# --- Goal Management ---
 
 def get_goals_by_category(user_id, category):
+    """
+    Get all goals for a user filtered by category, sorted by their order.
+    """
     conn = get_db_connection()
-    cur = conn.cursor()
-    goals = cur.execute('SELECT text, completed FROM goals WHERE user_id = ? AND category = ? ORDER BY sort_order', (user_id, category)).fetchall()
-    conn.close()
-    return goals
+    return conn.execute(
+        'SELECT id, text, completed FROM goals WHERE user_id = ? AND category = ? ORDER BY sort_order',
+        (user_id, category)
+    ).fetchall()
+
 
 def save_goals_for_category(user_id, category, goals):
+    """
+    Replace all existing goals for a category with the new list provided.
+    Preserves the order based on the incoming list.
+    """
     conn = get_db_connection()
     cur = conn.cursor()
+
+    # Clear old goals
     cur.execute('DELETE FROM goals WHERE user_id = ? AND category = ?', (user_id, category))
+
+    # Insert new ones
     for index, goal in enumerate(goals):
-        cur.execute('INSERT INTO goals (user_id, category, text, completed, sort_order) VALUES (?, ?, ?, ?, ?)',
-                       (user_id, category, goal['text'], int(goal.get('completed', False)), index))
+        cur.execute(''' 
+            INSERT INTO goals (user_id, category, text, completed, sort_order)
+            VALUES (?, ?, ?, ?, ?)
+        ''', (user_id, category, goal['text'], int(goal.get('completed', False)), index))
     conn.commit()
-    conn.close()
+    return "Goals saved successfully."
+
+
+def update_goal(goal_id, new_text, new_completed):
+    """
+    Update a goal's text and completion status.
+    """
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute('UPDATE goals SET text = ?, completed = ? WHERE id = ?',
+                (new_text, int(new_completed), goal_id))
+    conn.commit()
+    return 'Goal updated successfully.'
+
+
+def toggle_goal_completion(goal_id):
+    """
+    Toggle a goal's completion status (0 to 1 or 1 to 0).
+    """
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute('UPDATE goals SET completed = 1 - completed WHERE id = ?', (goal_id,))
+    conn.commit()
+    return 'Goal completion toggled.'
+
 
 def reset_all_goals(user_id):
+    """
+    Delete all goals for a specific user.
+    """
     conn = get_db_connection()
     cur = conn.cursor()
     cur.execute('DELETE FROM goals WHERE user_id = ?', (user_id,))
     conn.commit()
-    conn.close()
+    return "All goals reset successfully."
+
+
+# --- Notification System ---
+
+def create_notification(user_id, message, time=None):
+    """
+    Add a new notification message for a user.
+    If time not provided, use current time.
+    """
+    if time is None:
+        time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute('INSERT INTO notifications (user_id, message, time) VALUES (?, ?, ?)',
+                (user_id, message, time))
+    conn.commit()
+    return "Notification created."
+
+
+def get_notifications(user_id):
+    """
+    Retrieve all notifications for a user, newest first.
+    """
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute('SELECT * FROM notifications WHERE user_id = ? ORDER BY id DESC', (user_id,))
+    return [{'id': row['id'], 'message': row['message'], 'time': row['time']} for row in cur.fetchall()]
+
+
+def delete_notification(notification_id, user_id):
+    """
+    Delete a single notification by ID for a user.
+    """
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute('DELETE FROM notifications WHERE id = ? AND user_id = ?', (notification_id, user_id))
+    conn.commit()
+    return "Notification deleted."
+
+
+def clear_notifications(user_id):
+    """
+    Clear all notifications for a specific user.
+    """
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute('DELETE FROM notifications WHERE user_id = ?', (user_id,))
+    conn.commit()
+    return "All notifications cleared."
+
+
+# --- Email Credential Access (Optional) ---
+
+def get_email_credentials():
+    """
+    Retrieve email credentials from environment variables.
+    This is used for sending emails securely via Flask-Mail or smtplib.
+    """
+    email = os.environ.get("EMAIL_USERNAME")
+    password = os.environ.get("EMAIL_PASSWORD")
+
+    if not email or not password:
+        raise ValueError("Email credentials not found in environment variables.")
+
+    return {
+        'email': email,
+        'password': password
+    }
