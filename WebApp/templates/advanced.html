@@ -1,14 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <meta name="description" content="A simple goal planner app to track daily, weekly, monthly, and yearly goals.">
-  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="A simple goal planner app to track daily, weekly, monthly, and yearly goals." />
   <title>Goal Planner</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/advancedStyle.css') }}" />
   <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='img/favicon2.ico') }}" />
 </head>
+
 <body>
   <!-- Header -->
   <header>
@@ -102,15 +103,12 @@
     </div>
   </form>
 
-  <!-- Live Region for Accessibility -->
-  <div id="live-region" class="visually-hidden" aria-live="polite"></div>
-
-  <!-- Fallback for No JS -->
-  <noscript>
-    <p class="noscript-warning">⚠️ This app requires JavaScript to function properly.</p>
-  </noscript>
+  <div id="goal-timers">
+    <!-- Timers will be appended here dynamically for each goal -->
+  </div>
 
   <!-- JS -->
   <script type="module" src="{{ url_for('static', filename='js/advanced.js') }}"></script>
 </body>
+
 </html>

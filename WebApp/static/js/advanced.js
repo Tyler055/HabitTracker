@@ -24,7 +24,6 @@ function loadGoals(category) {
     });
 }
 
-// Render a goal into a dropzone
 function renderGoal(goal, category, container) {
   const div = document.createElement('div');
   div.className = 'goal-card';
@@ -62,8 +61,15 @@ form.addEventListener('submit', e => {
     time: timeSelect.value,
   };
 
-  if (!newGoal.title || !newGoal.category) {
-    alert('❌ Please fill in both title and category.');
+  if (!newGoal.title || !newGoal.category || !newGoal.priority) {
+    alert('❌ Please fill in all required fields.');
+    return;
+  }
+
+  // Check for duplicate goals
+  const existingGoals = collectGoals(newGoal.category);
+  if (existingGoals.some(goal => goal.title === newGoal.title)) {
+    alert('❌ This goal already exists!');
     return;
   }
 
@@ -112,8 +118,76 @@ function removeGoal(button) {
   }
 }
 
-// Stop the timer for a category
-function stopTimer(category) {
-  console.log(`Stopping timer for category: ${category}`);
-  // Add logic to stop any timer associated with the category if applicable
+// Timer management
+const timers = {
+  daily: 0,
+  weekly: 0,
+  monthly: 0,
+  yearly: 0,
+};
+
+function updateTimerDisplay(category) {
+  const timerElement = document.getElementById(`${category}-timer`);
+  const hours = String(Math.floor(timers[category] / 3600)).padStart(2, "0");
+  const minutes = String(Math.floor((timers[category] % 3600) / 60)).padStart(2, "0");
+  const seconds = String(timers[category] % 60).padStart(2, "0");
+  timerElement.textContent = `${hours}:${minutes}:${seconds}`;
 }
+
+function startTimer(category) {
+  if (!timers[category].interval) {
+    timers[category].interval = setInterval(() => {
+      timers[category]++;
+      updateTimerDisplay(category);
+    }, 1000);
+  }
+}
+
+function stopTimer(category) {
+  clearInterval(timers[category].interval);
+  timers[category].interval = null;
+}
+
+function resetTimer(category) {
+  timers[category] = 0;
+  updateTimerDisplay(category);
+}
+
+// Notifications
+if ("Notification" in window && Notification.permission !== "granted") {
+  Notification.requestPermission();
+}
+
+function sendReminder(message) {
+  if (Notification.permission === "granted") {
+    new Notification(message);
+  }
+}
+
+setInterval(
+  () => sendReminder("🗓️ Daily Goal Reminder: Stay consistent!"),
+  1000 * 60 * 60 * 24
+);
+setInterval(
+  () => sendReminder("📅 Weekly Goal Reminder: Keep up the momentum!"),
+  1000 * 60 * 60 * 24 * 7
+);
+setInterval(
+  () => sendReminder("🗓️ Monthly Goal Reminder: Time to review progress!"),
+  1000 * 60 * 60 * 24 * 30
+);
+setInterval(
+  () => sendReminder("📆 Yearly Goal Reminder: Reflect and plan ahead!"),
+  1000 * 60 * 60 * 24 * 365
+);
+
+// Category filter functionality
+const categoryFilter = document.getElementById("category-filter");
+
+categoryFilter.addEventListener("change", (e) => {
+  const selectedCategory = e.target.value;
+  document.querySelectorAll('.goal-section').forEach((section) => {
+    section.style.display = section.id === selectedCategory || selectedCategory === 'all' ? 'block' : 'none';
+  });
+});
+
