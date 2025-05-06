@@ -1,29 +1,8 @@
+
+
 import { fetchContent, resetGoalsData } from './saveData.js';
 
 let charts = {};
-let chartPercentages = {};
-
-// Register the center text plugin once
-Chart.register({
-  id: 'centerText',
-  afterDraw(chart) {
-    const { ctx, chartArea: { left, right, top, bottom, width, height } } = chart;
-    const canvasId = chart.canvas.id;
-    const percentage = chartPercentages[canvasId] || 0;
-    
-    // Calculate the center of the chart area
-    const centerX = (left + right) / 2;
-    const centerY = (top + bottom) / 2;
-    
-    ctx.save();
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.font = 'bold 24px Arial';
-    ctx.fillStyle = '#333';
-    ctx.fillText(`${percentage}%`, centerX, centerY);
-    ctx.restore();
-  }
-});
 
 document.addEventListener('DOMContentLoaded', () => {
   console.log('Home.js loaded ');
@@ -82,10 +61,6 @@ function countCompleted(goals) {
 
 function updateChart(canvasId, completed, total, color) {
   const ctx = document.getElementById(canvasId).getContext('2d');
-  const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
-  
-  // Store the percentage for this chart
-  chartPercentages[canvasId] = percentage;
 
   if (charts[canvasId]) {
     charts[canvasId].destroy();
@@ -115,13 +90,6 @@ function updateChart(canvasId, completed, total, color) {
               return `${context.label}: ${context.parsed}`;
             }
           }
-        },
-        centerText: true
-      },
-      layout: {
-        padding: {
-          top: 20,
-          bottom: 20
         }
       }
     }
