@@ -20,7 +20,6 @@ function setupBeforeUnload() {
   window.addEventListener('beforeunload', (e) => {
     if (isDirty) {
       e.preventDefault();
-      e.returnValue = '';
     }
   });
 }

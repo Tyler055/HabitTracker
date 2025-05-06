@@ -54,6 +54,8 @@ def init_db():
     )''')
     conn.commit()
 
+# --- User functions ---
+
 def create_user(username, password, email=None):
     """Creates a new user in the database."""
     if find_user_by_username(username) or (email and find_user_by_email(email)):
@@ -64,6 +66,20 @@ def create_user(username, password, email=None):
     hashed_password = generate_password_hash(password)
     cur.execute('INSERT INTO users (username, password, email) VALUES (?, ?, ?)', (username, hashed_password, email))
     conn.commit()
+    return "User created successfully."
+
+def verify_password(stored_hash, provided_password):
+    """Verify a stored password hash with a provided password."""
+    return check_password_hash(stored_hash, provided_password)
+
+def update_user_password(user_id, new_password):
+    """Updates the user's password."""
+    conn = get_db_connection()
+    cur = conn.cursor()
+    hashed_password = generate_password_hash(new_password)
+    cur.execute('UPDATE users SET password = ? WHERE id = ?', (hashed_password, user_id))
+    conn.commit()
+    return "Password updated successfully."
 
 def find_user_by_username(username):
     """Finds a user by their username."""
@@ -80,6 +96,8 @@ def find_user_by_id(user_id):
     conn = get_db_connection()
     return conn.execute('SELECT * FROM users WHERE id = ?', (user_id,)).fetchone()
 
+# --- Goal functions ---
+
 def get_goals_by_category(user_id, category):
     """Gets all goals by category for a specific user."""
     conn = get_db_connection()
@@ -95,6 +113,7 @@ def save_goals_for_category(user_id, category, goals):
         cur.execute('INSERT INTO goals (user_id, category, text, completed, sort_order) VALUES (?, ?, ?, ?, ?)',
                     (user_id, category, goal['text'], int(goal.get('completed', False)), index))
     conn.commit()
+    return "Goals saved successfully."
 
 def update_goal(goal_id, new_text, new_completed):
     """Updates an existing goal."""
@@ -104,13 +123,13 @@ def update_goal(goal_id, new_text, new_completed):
     conn.commit()
     return 'Goal updated successfully.'
 
-def update_user_password(user_id, new_password):
-    """Updates the user's password."""
+def toggle_goal_completion(goal_id):
+    """Toggles the completion status of a goal."""
     conn = get_db_connection()
     cur = conn.cursor()
-    hashed_password = generate_password_hash(new_password)
-    cur.execute('UPDATE users SET password = ? WHERE id = ?', (hashed_password, user_id))
+    cur.execute('UPDATE goals SET completed = 1 - completed WHERE id = ?', (goal_id,))
     conn.commit()
+    return 'Goal completion toggled.'
 
 def reset_all_goals(user_id):
     """Resets all goals for a specific user."""
@@ -118,22 +137,34 @@ def reset_all_goals(user_id):
     cur = conn.cursor()
     cur.execute('DELETE FROM goals WHERE user_id = ?', (user_id,))
     conn.commit()
+    return "All goals reset successfully."
+
+# --- Notification functions ---
 
 def create_notification(user_id, message, time=None):
     """Creates a new notification for a user."""
     if time is None:
-        time = datetime.now().strftime("%H:%M")
+        time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     conn = get_db_connection()
     cur = conn.cursor()
     cur.execute("INSERT INTO notifications (user_id, message, time) VALUES (?, ?, ?)", (user_id, message, time))
     conn.commit()
+    return "Notification created."
 
 def get_notifications(user_id):
     """Gets all notifications for a user."""
     conn = get_db_connection()
     cur = conn.cursor()
     cur.execute("SELECT * FROM notifications WHERE user_id = ? ORDER BY id DESC", (user_id,))
-    return [{'id': row[0], 'message': row[2], 'time': row[3]} for row in cur.fetchall()]
+    return [{'id': row['id'], 'message': row['message'], 'time': row['time']} for row in cur.fetchall()]
+
+def delete_notification(notification_id, user_id):
+    """Deletes a single notification by ID for a user."""
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("DELETE FROM notifications WHERE id = ? AND user_id = ?", (notification_id, user_id))
+    conn.commit()
+    return "Notification deleted."
 
 def clear_notifications(user_id):
     """Clears all notifications for a user."""
@@ -141,3 +172,4 @@ def clear_notifications(user_id):
     cur = conn.cursor()
     cur.execute("DELETE FROM notifications WHERE user_id = ?", (user_id,))
     conn.commit()
+    return "All notifications cleared."

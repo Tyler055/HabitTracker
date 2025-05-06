@@ -15,28 +15,32 @@ function setupButtons() {
 
   // Reset button event listener
   if (resetBtn) {
-    resetBtn.addEventListener('click', async () => {
-      if (confirm('Are you sure you want to reset all your goals? This cannot be undone.')) {
-        try {
-          // Optimistically clear the charts
-          updateAllCharts();
-
-          await resetGoalsData();
-          alert('All goals have been reset.');
-        } catch (error) {
-          console.error('Reset failed:', error);
-          alert('Failed to reset goals. Please try again.');
-        }
-      }
-    });
+    resetBtn.addEventListener('click', handleResetClick);
   }
 
   // Logout button event listener
   if (logoutBtn) {
-    logoutBtn.addEventListener('click', () => {
-      window.location.href = '/logout';
-    });
+    logoutBtn.addEventListener('click', handleLogoutClick);
   }
+}
+
+async function handleResetClick() {
+  if (confirm('Are you sure you want to reset all your goals? This cannot be undone.')) {
+    try {
+      // Optimistically clear the charts
+      updateAllCharts();
+
+      await resetGoalsData();
+      alert('All goals have been reset.');
+    } catch (error) {
+      console.error('Reset failed:', error);
+      alert('Failed to reset goals. Please try again.');
+    }
+  }
+}
+
+function handleLogoutClick() {
+  window.location.href = '/logout';
 }
 
 // Function to fetch and update all charts
@@ -50,12 +54,18 @@ async function updateAllCharts() {
     ]);
 
     const allGoals = [...daily, ...weekly, ...monthly, ...yearly];
+    const goalsData = {
+      allGoals: { data: allGoals, color: '#673ab7' },
+      daily: { data: daily, color: '#28a745' },
+      weekly: { data: weekly, color: '#17a2b8' },
+      monthly: { data: monthly, color: '#ffc107' },
+      yearly: { data: yearly, color: '#dc3545' }
+    };
 
-    updateChartData('allGoalsChart', countCompleted(allGoals), allGoals.length, '#673ab7');
-    updateChartData('dailyChart', countCompleted(daily), daily.length, '#28a745');
-    updateChartData('weeklyChart', countCompleted(weekly), weekly.length, '#17a2b8');
-    updateChartData('monthlyChart', countCompleted(monthly), monthly.length, '#ffc107');
-    updateChartData('yearlyChart', countCompleted(yearly), yearly.length, '#dc3545');
+    Object.keys(goalsData).forEach(key => {
+      const { data, color } = goalsData[key];
+      updateChartData(`${key}Chart`, countCompleted(data), data.length, color);
+    });
     
   } catch (error) {
     console.error('Error updating charts:', error);
@@ -117,14 +127,6 @@ function createChartOptions(completed, total, color) {
       }
     }
   };
-}
-
-function showErrorMessage(message) {
-  const errorMessage = document.getElementById('reset-error');
-  if (errorMessage) {
-    errorMessage.textContent = message;
-    errorMessage.style.display = 'block';
-  }
 }
 
 // Register center text plugin for charts
