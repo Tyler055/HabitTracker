@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Goal Planner with Timers</title>
+    <style>
+      body {
+        font-family: "Segoe UI", sans-serif;
+        background: linear-gradient(to right, #f5f7fa, #c3cfe2);
+        margin: 0;
+        padding: 2rem;
+        color: #333;
+      }
+
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        margin-bottom: 2rem;
+      }
+
+      header h1 {
+        font-size: 2rem;
+        color: #2c3e50;
+      }
+
+      .home-button {
+        background: #28a745;
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 1rem;
+        text-decoration: none;
+        transition: background 0.2s ease;
+      }
+
+      .home-button:hover {
+        background: #218838;
+      }
+
+      #category-filter {
+        padding: 0.5rem;
+        font-size: 1rem;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        background-color: white;
+      }
+
+      form {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 16px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-bottom: 2rem;
+      }
+
+      input,
+      select,
+      button {
+        font-size: 1rem;
+        padding: 0.6rem;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        min-width: 160px;
+      }
+
+      button {
+        background-color: #007bff;
+        color: white;
+        border: none;
+        cursor: pointer;
+        transition: background 0.2s ease;
+      }
+
+      button:hover {
+        background-color: #0056b3;
+      }
+
+      .goal-time-group {
+        background: white;
+        margin: 1.5rem auto;
+        padding: 1rem;
+        max-width: 800px;
+        border-radius: 16px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+      }
+
+      .goal-time-group h3 {
+        text-align: center;
+        margin-bottom: 1rem;
+        color: #34495e;
+      }
+
+      .category-header {
+        text-align: center;
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #2c3e50;
+      }
+
+      ul.goal-sublist {
+        list-style: none;
+        padding: 0;
+      }
+
+      li {
+        background: #ecf0f1;
+        margin: 0.5rem 0;
+        padding: 0.8rem;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        transition: box-shadow 0.2s;
+      }
+
+      li:hover {
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      li span {
+        flex: 1;
+      }
+
+      .priority-high {
+        border-left: 6px solid #e74c3c;
+      }
+      .priority-medium {
+        border-left: 6px solid #f39c12;
+      }
+      .priority-low {
+        border-left: 6px solid #2ecc71;
+      }
+
+      li button {
+        background: none;
+        border: none;
+        font-size: 1.2rem;
+        cursor: pointer;
+        transition: transform 0.1s;
+      }
+
+      li button:hover {
+        color: #e74c3c;
+        transform: scale(1.1);
+      }
+
+      .visually-hidden {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+      }
+
+      @media (max-width: 600px) {
+        form {
+          flex-direction: column;
+        }
+
+        input,
+        select {
+          width: 100%;
+        }
+
+        header {
+          flex-direction: column;
+          gap: 1rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <ul id="navbar">
+        <li><a href="/" class="home-button">🏠 Home</a></li>
+      </ul>
+      <h1>Goal Planner with Timers</h1>
+      <label for="category-filter" class="visually-hidden">Filter by:</label>
+      <select id="category-filter">
+        <option value="daily">Daily Goals</option>
+        <option value="weekly">Weekly Goals</option>
+        <option value="monthly">Monthly Goals</option>
+        <option value="yearly">Yearly Goals</option>
+      </select>
+    </header>
+    <div id="goal-list"></div>
+
+    <form id="goal-form">
+      <input type="text" id="goal-input" placeholder="Goal name" required />
+
+      <label for="goal-category" class="visually-hidden"
+        >Select Category:</label
+      >
+      <select id="goal-category">
+        <option value="daily">Daily</option>
+        <option value="weekly">Weekly</option>
+        <option value="monthly">Monthly</option>
+        <option value="yearly">Yearly</option>
+      </select>
+
+      <label for="goal-priority" class="visually-hidden">Priority:</label>
+      <select id="goal-priority">
+        <option value="none">None</option>
+        <option value="low">Low</option>
+        <option value="medium" selected>Medium</option>
+        <option value="high">High</option>
+      </select>
+
+      <label for="goal-deadline" class="visually-hidden">Deadline*:</label>
+      <input type="date" id="goal-deadline" />
+
+      <label for="goal-time" class="visually-hidden">Time of Day*:</label>
+      <select id="goal-time">
+        <option value="none">None</option>
+        <option value="morning">Morning</option>
+        <option value="evening">Evening</option>
+        <option value="night">Night</option>
+      </select>
+
+      <label for="goal-repeat" class="visually-hidden">Repeat:</label>
+      <select id="goal-repeat">
+        <option value="none">No Repeat</option>
+        <option value="daily">Daily</option>
+        <option value="weekly">Weekly</option>
+        <option value="monthly">Monthly</option>
+        <option value="yearly">Yearly</option>
+      </select>
+
+      <button type="submit">Add Goal</button>
+    </form>
+
+    <div id="goal-timers">
+      <!-- Timers will be appended here dynamically for each goal -->
+    </div>
+
+    <script>
+      if ("Notification" in window && Notification.permission !== "granted") {
+        Notification.requestPermission();
+      }
+
+      function sendReminder(message) {
+        if (Notification.permission === "granted") {
+          new Notification(message);
+        }
+      }
+
+      setInterval(
+        () => sendReminder("🗓️ Daily Goal Reminder: Stay consistent!"),
+        1000 * 60 * 60 * 24
+      );
+      setInterval(
+        () => sendReminder("📅 Weekly Goal Reminder: Keep up the momentum!"),
+        1000 * 60 * 60 * 24 * 7
+      );
+      setInterval(
+        () =>
+          sendReminder("🗓️ Monthly Goal Reminder: Time to review progress!"),
+        1000 * 60 * 60 * 24 * 30
+      );
+      setInterval(
+        () => sendReminder("📆 Yearly Goal Reminder: Reflect and plan ahead!"),
+        1000 * 60 * 60 * 24 * 365
+      );
+
+      const goalForm = document.getElementById("goal-form");
+      const goalInput = document.getElementById("goal-input");
+      const goalCategory = document.getElementById("goal-category");
+      const goalPriority = document.getElementById("goal-priority");
+      const goalDeadline = document.getElementById("goal-deadline");
+      const goalTime = document.getElementById("goal-time");
+      const goalRepeat = document.getElementById("goal-repeat");
+      const goalTimers = document.getElementById("goal-timers");
+      const categoryFilter = document.getElementById("category-filter");
+
+      const goalCategories = ["daily", "weekly", "monthly", "yearly"];
+
+      const timers = {
+        daily: 0,
+        weekly: 0,
+        monthly: 0,
+        yearly: 0,
+      };
+
+      function updateTimerDisplay(category) {
+        const timerElement = document.getElementById(`${category}-timer`);
+        const hours = String(Math.floor(timers[category] / 3600)).padStart(
+          2,
+          "0"
+        );
+        const minutes = String(
+          Math.floor((timers[category] % 3600) / 60)
+        ).padStart(2, "0");
+        const seconds = String(timers[category] % 60).padStart(2, "0");
+        timerElement.textContent = `${hours}:${minutes}:${seconds}`;
+      }
+
+      function startTimer(category) {
+        if (!timers[category].interval) {
+          timers[category].interval = setInterval(() => {
+            timers[category]++;
+            updateTimerDisplay(category);
+          }, 1000);
+        }
+      }
+
+      function stopTimer(category) {
+        clearInterval(timers[category].interval);
+        timers[category].interval = null;
+      }
+
+      function resetTimer(category) {
+        timers[category] = 0;
+        updateTimerDisplay(category);
+      }
+
+      goalForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const goalName = goalInput.value;
+        const category = goalCategory.value;
+        const priority = goalPriority.value;
+        const deadline = goalDeadline.value;
+        const timeOfDay = goalTime.value;
+        const repeat = goalRepeat.value;
+
+        const goalItem = document.createElement("li");
+        goalItem.classList.add(priority, `${category}-goal`);
+        goalItem.innerHTML = `
+        <span><strong>${goalName}</strong><br>Priority: ${priority}<br>Deadline: ${deadline} ${
+          timeOfDay ? `at ${timeOfDay}` : ""
+        }</span>
+        <button onclick="removeGoal(this)">❌</button>
+      `;
+
+        const categoryGroup = document.querySelector(
+          `.goal-time-group[data-category="${category}"]`
+        );
+        if (!categoryGroup) {
+          const newCategoryGroup = document.createElement("div");
+          newCategoryGroup.classList.add("goal-time-group");
+          newCategoryGroup.setAttribute("data-category", category);
+          newCategoryGroup.innerHTML = `
+          <h3 class="category-header">${
+            category.charAt(0).toUpperCase() + category.slice(1)
+          } Goals</h3>
+          <ul class="goal-sublist"></ul>
+          <div id="${category}-timer" class="timer-display">00:00:00</div>
+        `;
+          goalTimers.appendChild(newCategoryGroup);
+        }
+
+        const categorySublist = document.querySelector(
+          `.goal-time-group[data-category="${category}"] .goal-sublist`
+        );
+        categorySublist.appendChild(goalItem);
+
+        resetTimer(category);
+        startTimer(category);
+
+        goalInput.value = "";
+        goalCategory.value = "daily";
+        goalPriority.value = "medium";
+        goalDeadline.value = "";
+        goalTime.value = "none";
+        goalRepeat.value = "none";
+      });
+
+      function removeGoal(button) {
+        const goalItem = button.closest("li");
+        const category = goalItem.classList[0].split("-")[0]; // 'daily', 'weekly', etc.
+
+        goalItem.remove();
+
+        const remainingGoals = document.querySelectorAll(`.${category}-goal`);
+        if (remainingGoals.length === 0) {
+          stopTimer(category);
+        }
+      }
+    </script>
+  </body>
+</html>

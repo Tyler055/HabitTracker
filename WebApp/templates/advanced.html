@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="description" content="A simple goal planner app to track daily, weekly, monthly, and yearly goals.">
+  
   <title>Goal Planner</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/advancedStyle.css') }}" />
   <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='img/favicon2.ico') }}" />
@@ -14,6 +16,7 @@
       <li><a href="/" class="home-button" aria-label="Go to home">🏠 Home</a></li>
     </ul>
     <h1>🗂️ My Goal Planner</h1>
+    <label for="category-filter" class="visually-hidden">Filter by category</label>
     <select id="category-filter" title="Filter by category">
       <option value="all">All Goals</option>
       <option value="daily">Daily Goals</option>
@@ -22,66 +25,90 @@
       <option value="yearly">Yearly Goals</option>
     </select>
   </header>
-  </header>
 
   <!-- Goal Sections -->
   <main>
-    <section id="daily" class="goal-section">
-      <h2>☀️ Daily Goals</h2>
+    <section id="daily" class="goal-section" aria-labelledby="daily-heading">
+      <h2 id="daily-heading">☀️ Daily Goals</h2>
       <div class="goal-dropzone" data-category="daily"></div>
     </section>
 
-    <section id="weekly" class="goal-section">
-      <h2>📆 Weekly Goals</h2>
+    <section id="weekly" class="goal-section" aria-labelledby="weekly-heading">
+      <h2 id="weekly-heading">📆 Weekly Goals</h2>
       <div class="goal-dropzone" data-category="weekly"></div>
     </section>
 
-    <section id="monthly" class="goal-section">
-      <h2>🗓️ Monthly Goals</h2>
+    <section id="monthly" class="goal-section" aria-labelledby="monthly-heading">
+      <h2 id="monthly-heading">🗓️ Monthly Goals</h2>
       <div class="goal-dropzone" data-category="monthly"></div>
     </section>
 
-    <section id="yearly" class="goal-section">
-      <h2>📈 Yearly Goals</h2>
+    <section id="yearly" class="goal-section" aria-labelledby="yearly-heading">
+      <h2 id="yearly-heading">📈 Yearly Goals</h2>
       <div class="goal-dropzone" data-category="yearly"></div>
     </section>
   </main>
 
   <!-- Goal Input Form -->
   <form id="goal-form" aria-label="Add a new goal">
-    <input id="goal-title" type="text" placeholder="📝 Title for Goals" required aria-label="Goal Title" />
-    
-    <textarea id="goal-description" placeholder="💬 Description (optional)" aria-label="Goal Description"></textarea>
-    
-    <label for="goal-priority">Priority</label>
-    <select id="goal-priority" required aria-label="Goal Priority">
-      <option>🔥 High</option>
-      <option>⚖️ Medium</option>
-      <option>🍃 Low</option>
-      <option> none</option>
-    </select>
-    
-    <label for="goal-category">Category</label>
-    <select id="goal-category" required aria-label="Goal Category">
-      <option value="daily">☀️ Daily</option>
-      <option value="weekly">📆 Weekly</option>
-      <option value="monthly">🗓️ Monthly</option>
-      <option value="yearly">📈 Yearly</option>
-    </select>
-    
-    <label for="goal-deadline">Deadline  (optional)</label>
-    <input type="date" id="goal-deadline" aria-label="Goal Deadline" />
-    
-    <label for="goal-time">Preferred Time (optional)</label>
-    <select id="goal-time" aria-label="Goal Time">
-      <option value="any">⏰ Any time</option>
-      <option value="morning">🌅 Morning</option>
-      <option value="afternoon">🏙️ Afternoon</option>
-      <option value="evening">🌙 Evening</option>
-    </select>
-    
-    <button type="submit" aria-label="Add Goal">➕ Add Goal</button>
+    <div class="form-group">
+      <label for="goal-title">Goal Title</label>
+      <input id="goal-title" type="text" placeholder="📝 Title for Goals" required aria-label="Goal Title" />
+    </div>
+
+    <div class="form-group">
+      <label for="goal-description">Description</label>
+      <textarea id="goal-description" placeholder="💬 Description (optional)" aria-label="Goal Description"></textarea>
+    </div>
+
+    <div class="form-group">
+      <label for="goal-priority">Priority</label>
+      <select id="goal-priority" required aria-label="Goal Priority">
+        <option value="high">🔥 High</option>
+        <option value="medium">⚖️ Medium</option>
+        <option value="low">🍃 Low</option>
+        <option value="none">None</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="goal-category">Category</label>
+      <select id="goal-category" required aria-label="Goal Category">
+        <option value="daily">☀️ Daily</option>
+        <option value="weekly">📆 Weekly</option>
+        <option value="monthly">🗓️ Monthly</option>
+        <option value="yearly">📈 Yearly</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="goal-deadline">Deadline (optional)</label>
+      <input type="date" id="goal-deadline" aria-label="Goal Deadline" />
+    </div>
+
+    <div class="form-group">
+      <label for="goal-time">Preferred Time (optional)</label>
+      <select id="goal-time" aria-label="Goal Time">
+        <option value="any">⏰ Any time</option>
+        <option value="morning">🌅 Morning</option>
+        <option value="afternoon">🏙️ Afternoon</option>
+        <option value="evening">🌙 Evening</option>
+      </select>
+    </div>
+
+    <div class="form-actions">
+      <button id="submit-button" type="submit" aria-label="Add Goal">➕ Add Goal</button>
+      <button type="reset" aria-label="Clear Form">🗑️ Clear</button>
+    </div>
   </form>
+
+  <!-- Live Region for Accessibility -->
+  <div id="live-region" class="visually-hidden" aria-live="polite"></div>
+
+  <!-- Fallback for No JS -->
+  <noscript>
+    <p class="noscript-warning">⚠️ This app requires JavaScript to function properly.</p>
+  </noscript>
 
   <!-- JS -->
   <script type="module" src="{{ url_for('static', filename='js/advanced.js') }}"></script>

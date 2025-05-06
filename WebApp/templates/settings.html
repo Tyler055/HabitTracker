@@ -15,14 +15,13 @@
     <!-- Theme Settings -->
     <div id="theme-settings">
       <h2>Theme</h2>
-      <form method="POST">
+      <form id="theme-form">
         <label for="theme-selector">Select Theme:</label>
-        <select id="theme-selector" name="theme" onchange="this.form.submit()">
+        <select id="theme-selector" name="theme">
           <option value="light" {% if current_theme == 'light' %}selected{% endif %}>Light</option>
           <option value="dark" {% if current_theme == 'dark' %}selected{% endif %}>Dark</option>
         </select>
       </form>
-      <p>Current Theme: {{ current_theme }}</p>
     </div>
 
     <!-- Notification Settings -->
@@ -59,13 +58,13 @@
     </div>
 
     <!-- Clear Notifications Button -->
-    <form action="{{ url_for('clear_all_notifications') }}" method="post">
+    <form action="{{ url_for('views.clear_all_notifications') }}" method="post">
       <button type="submit" id="clear-notifications">Clear All Notifications</button>
     </form>
 
     <!-- Create New Notification -->
     <h2>Create New Notification</h2>
-    <form method="POST" action="{{ url_for('settings') }}" id="create-notification-form">
+    <form method="POST" action="{{ url_for('views.settings') }}" id="create-notification-form">
       <label for="message">Message:</label>
       <input type="text" id="message" name="message" required>
       <button type="submit">Add Notification</button>

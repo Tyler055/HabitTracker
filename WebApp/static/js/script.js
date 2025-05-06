@@ -294,3 +294,19 @@ function showErrorMessage(message) {
   }, 5000);
 }
 
+// Setup page navigation links (new function)
+function setupPageLinks() {
+  const pageLinks = document.querySelectorAll('.page-link'); // Adjust the selector for your navigation links
+  pageLinks.forEach(link => {
+    link.addEventListener('click', function(event) {
+      event.preventDefault();
+      const targetUrl = link.getAttribute('href');
+      
+      // You can add your logic here, e.g., to load content for the target page
+      console.log('Navigating to:', targetUrl);
+      
+      // Example: navigating to the target page
+      window.location.href = targetUrl;
+    });
+  });
+}

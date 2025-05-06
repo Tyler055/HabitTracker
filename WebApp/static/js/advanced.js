@@ -84,3 +84,36 @@ form.addEventListener('submit', e => {
       alert('❌ Failed to save your goal. Try again.');
     });
 });
+
+// Remove a goal when the delete button is clicked
+function removeGoal(button) {
+  const goalItem = button.closest('.goal-card');
+  const category = goalItem.closest('.goal-section').id; // Get category from the section (e.g., 'daily', 'weekly')
+
+  // Remove goal from the UI
+  goalItem.remove();
+
+  // After removal, update saved goals in the category
+  const updatedGoals = collectGoals(category);
+  saveGoalsData(category, updatedGoals)
+    .catch(err => {
+      console.error('Failed to save goal removal:', err);
+      alert('❌ Failed to update your goals. Try again.');
+    });
+
+  // Stop the timer if there are no goals left in the category
+  const remainingGoals = document.querySelectorAll(`#${category} .goal-card`);
+  if (remainingGoals.length === 0) {
+    stopTimer(category);
+    const timerElement = document.getElementById(`${category}-timer`);
+    if (timerElement) {
+      timerElement.textContent = '00:00:00';
+    }
+  }
+}
+
+// Stop the timer for a category
+function stopTimer(category) {
+  console.log(`Stopping timer for category: ${category}`);
+  // Add logic to stop any timer associated with the category if applicable
+}

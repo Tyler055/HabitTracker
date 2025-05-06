@@ -16,10 +16,11 @@ body {
 	height: 500px;
 	overflow: hidden;
 	background: #1e1e2f; /* fallback color if image fails */
-	background: url("https://doc-08-2c-docs.googleusercontent.com/docs/securesc/your-image-link-here") no-repeat center/cover;
+	background: url("https://doc-08-2c-docs.googleusercontent.com/docs//securesc/...") no-repeat center/cover;
 	border-radius: 10px;
 	box-shadow: 5px 20px 50px #000;
   }
+
   
   /* Hide checkbox used for toggling */
   #chk {
