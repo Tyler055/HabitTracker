@@ -1,21 +1,25 @@
+// Import utility functions for data handling
 import { fetchContent, saveGoalsData, resetGoalsData } from './saveData.js';
 
-let draggedItem = null;
-let isDirty = false;
+let draggedItem = null;  // Item currently being dragged
+let isDirty = false;     // Tracks unsaved changes
 
+// Wait until page loads before initializing
 document.addEventListener("DOMContentLoaded", async () => {
-  await initializeApp();
-  setupPageLinks(); // Assuming it's defined elsewhere
+  await initializeApp();  // Main setup
+  setupPageLinks();       // Setup navigation buttons
 });
 
+// Main initialization logic
 async function initializeApp() {
-  await loadGoalsFromDB();
-  bindGoalForm();
-  setupButtons();
-  initializeDragAndDrop();
-  setupBeforeUnload();
+  await loadGoalsFromDB();   // Load stored goals
+  bindGoalForm();            // Handle new goal submissions
+  setupButtons();            // Handle UI buttons (logout)
+  initializeDragAndDrop();   // Enable drag-and-drop
+  setupBeforeUnload();       // Warn user about unsaved changes
 }
 
+// Warn user before they leave page if there are unsaved changes
 function setupBeforeUnload() {
   window.addEventListener('beforeunload', (e) => {
     if (isDirty) {
@@ -24,17 +28,19 @@ function setupBeforeUnload() {
   });
 }
 
+// Flag the page as having unsaved changes
 function markDirty() {
   isDirty = true;
 }
 
+// Clear the unsaved changes flag
 function clearDirty() {
   isDirty = false;
 }
 
+// Setup buttons like logout
 function setupButtons() {
   const logoutBtn = document.getElementById("logout-btn");
-
   if (logoutBtn) {
     logoutBtn.style.display = "block";
     logoutBtn.addEventListener("click", () => {
@@ -45,12 +51,14 @@ function setupButtons() {
   }
 }
 
+// Create a new list item for a goal
 function createGoalElement({ text, completed = false, color = '', dueDate = '' }) {
   const li = document.createElement("li");
   li.className = "goal-item";
   li.setAttribute("draggable", "true");
   li.setAttribute("role", "listitem");
 
+  // Optional color tag
   if (color) {
     const colorTag = document.createElement("span");
     colorTag.className = "color-tag";
@@ -58,23 +66,27 @@ function createGoalElement({ text, completed = false, color = '', dueDate = '' }
     li.appendChild(colorTag);
   }
 
+  // Checkbox for completion
   const checkbox = document.createElement("input");
   checkbox.type = "checkbox";
   checkbox.checked = completed;
 
+  // Goal text span
   const span = document.createElement("span");
   const spanId = `goal-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
   span.textContent = text;
   span.id = spanId;
   li.appendChild(span);
 
+  // Accessibility: label checkbox with span text
   checkbox.setAttribute("aria-labelledby", spanId);
   checkbox.addEventListener("change", () => {
     markDirty();
-    saveCurrentGoals();
+    saveCurrentGoals();  // Save when completed toggled
   });
   li.insertBefore(checkbox, span);
 
+  // Due date display
   if (dueDate) {
     const due = document.createElement("small");
     due.className = "due-date";
@@ -82,8 +94,9 @@ function createGoalElement({ text, completed = false, color = '', dueDate = '' }
     li.appendChild(due);
   }
 
+  // Delete button
   const deleteBtn = document.createElement("span");
-  deleteBtn.textContent = "×";
+  deleteBtn.textContent = "x";
   deleteBtn.className = "delete-btn";
   deleteBtn.setAttribute("role", "button");
   deleteBtn.setAttribute("tabindex", "0");
@@ -104,12 +117,14 @@ function createGoalElement({ text, completed = false, color = '', dueDate = '' }
 
   li.appendChild(deleteBtn);
 
+  // Enable dragging and keyboard reordering
   makeItemDraggable(li);
   addKeyboardDragSupport(li);
 
   return li;
 }
 
+// Enable mouse drag-and-drop for item
 function makeItemDraggable(item) {
   item.addEventListener('dragstart', (e) => {
     draggedItem = item;
@@ -127,9 +142,9 @@ function makeItemDraggable(item) {
   });
 }
 
+// Allow items to be dropped in categories
 function initializeDragAndDrop() {
   const uls = document.querySelectorAll('.goal-category ul');
-
   uls.forEach(ul => {
     ul.addEventListener("dragover", (e) => {
       e.preventDefault();
@@ -150,6 +165,7 @@ function initializeDragAndDrop() {
   });
 }
 
+// Helper to determine where to insert dragged item
 function getDragAfterElement(container, y) {
   const draggableElements = [...container.querySelectorAll('.goal-item:not(.dragging)')];
   return draggableElements.reduce((closest, child) => {
@@ -163,6 +179,7 @@ function getDragAfterElement(container, y) {
   }, { offset: Number.NEGATIVE_INFINITY }).element;
 }
 
+// Enable keyboard reordering with arrow keys
 function addKeyboardDragSupport(item) {
   item.setAttribute("tabindex", "0");
   item.addEventListener("keydown", (e) => {
@@ -183,6 +200,7 @@ function addKeyboardDragSupport(item) {
   });
 }
 
+// Load all goals for each category (daily, weekly, etc.)
 async function loadGoalsFromDB() {
   const lists = document.querySelectorAll('.goal-category ul');
   for (const ul of lists) {
@@ -201,6 +219,7 @@ async function loadGoalsFromDB() {
   }
 }
 
+// Save current goals in all categories
 async function saveCurrentGoals() {
   const lists = document.querySelectorAll('.goal-category ul');
   for (const ul of lists) {
@@ -222,6 +241,7 @@ async function saveCurrentGoals() {
   clearDirty();
 }
 
+// Handle goal form submission
 function bindGoalForm() {
   const goalForm = document.getElementById("goal-form");
   const goalInput = document.getElementById("goal-input");
@@ -231,10 +251,11 @@ function bindGoalForm() {
   goalForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     const goalText = goalInput.value.trim();
-    const currentCategory = detectCurrentCategory();
-    const goalList = document.querySelector(`.${currentCategory}-goals ul`);
+    const selectedCategory = document.getElementById("goal-category")?.value;
+    const goalList = document.querySelector(`.${selectedCategory}-goals ul`);
     if (!goalText || !goalList) return;
 
+    // Prevent duplicate goals
     const existingGoals = Array.from(goalList.children).map(li =>
       li.querySelector("span").textContent.toLowerCase()
     );
@@ -252,25 +273,24 @@ function bindGoalForm() {
   });
 }
 
+// Determine current category from heading (optional)
 function detectCurrentCategory() {
   const heading = document.querySelector("#content h1");
   const text = heading?.textContent.toLowerCase() || '';
   if (text.includes("daily")) return "daily";
   if (text.includes("weekly")) return "weekly";
   if (text.includes("monthly")) return "monthly";
-  if (text.includes("yearly")) return "yearly";
-  return "daily";
+  return "daily"; // Default category
 }
 
+// Display error message
 function showErrorMessage(message) {
-  let errorDiv = document.querySelector('.error-message');
-  if (!errorDiv) {
-    errorDiv = document.createElement('div');
-    errorDiv.className = 'error-message';
-    errorDiv.setAttribute('aria-live', 'polite');
-    document.body.appendChild(errorDiv);
-  }
+  const errorDiv = document.createElement("div");
+  errorDiv.className = "error-message";
   errorDiv.textContent = message;
-  clearTimeout(errorDiv.timeoutId);
-  errorDiv.timeoutId = setTimeout(() => errorDiv.remove(), 5000);
+  document.body.appendChild(errorDiv);
+  setTimeout(() => {
+    errorDiv.remove();
+  }, 5000);
 }
+
