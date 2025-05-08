@@ -1,11 +1,4 @@
-/* Reset and Base */
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-
+/* Reset basic layout */
 html, body {
   height: 100%;
   margin: 0;
@@ -13,10 +6,13 @@ html, body {
   font-family: Arial, sans-serif;
   overflow-x: hidden;
   overflow-y: auto; /* ✅ Allow vertical scrolling */
-  position: relative;
 }
 
-/* Background Image */
+body {
+  display: flex;
+}
+
+/* Fixed Background */
 .background {
   position: fixed;
   top: 0;
@@ -29,7 +25,6 @@ html, body {
   background-repeat: no-repeat;
   opacity: 0.5;
   z-index: -1;
-  filter: brightness(0.4);
 }
 
 /* Navbar */
@@ -96,7 +91,7 @@ html, body {
 }
 
 /* Main Content Area */
-#page-content,
+#page-content, 
 #goals-container {
   margin-left: 60px;
   padding: 30px;
@@ -104,7 +99,7 @@ html, body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  overflow: visible;
+  overflow: visible; 
 }
 
 body.nav-expanded #page-content,
@@ -308,7 +303,7 @@ button:hover {
 }
 
 .chart-container {
-  background: rgb(154, 215, 228);
+  background: rgb(60, 199, 245);
   border-radius: 12px;
   padding: 20px;
   width: auto;
@@ -336,10 +331,13 @@ canvas {
   color: #333;
 }
 
-.delete-btn{
+.delete-btn {
   background: none;
   color: red;
-  align-items: center;
+  margin-left: auto;
+  font-weight: bold;
+  font-size: 20px;
+  cursor: pointer;
 }
 
 /* Reset and Logout buttons */
