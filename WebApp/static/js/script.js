@@ -126,12 +126,13 @@ async function saveCurrentGoals() {
 function bindGoalForm() {
   const goalForm = document.getElementById("goal-form");
   const goalInput = document.getElementById("goal-input");
+  const categorySelect = document.getElementById("goal-category");
 
-  if (goalForm && goalInput) {
+  if (goalForm && goalInput && categorySelect) {
     goalForm.addEventListener("submit", async function (e) {
       e.preventDefault();
-      const currentCategory = detectCurrentCategory();
-      const goalList = document.querySelector(`.${currentCategory}-goals ul`);
+      const selectedCategory = categorySelect.value;
+      const goalList = document.querySelector(`#${selectedCategory}-goals-list`);
 
       if (goalInput.value.trim() && goalList) {
         const li = createGoalElement(goalInput.value.trim());
@@ -141,17 +142,4 @@ function bindGoalForm() {
       }
     });
   }
-}
-
-function detectCurrentCategory() {
-  const heading = document.querySelector("#content h1");
-  if (heading) {
-    const text = heading.textContent.toLowerCase();
-    if (text.includes("daily")) return "daily";
-    if (text.includes("weekly")) return "weekly";
-    if (text.includes("monthly")) return "monthly";
-    if (text.includes("yearly")) return "yearly";
-    if (text.includes("all")) return "daily"; 
-  }
-  return "daily"; 
 }

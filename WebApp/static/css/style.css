@@ -303,7 +303,7 @@ button:hover {
 }
 
 .chart-container {
-  background: white;
+  background: rgb(10, 185, 243);
   border-radius: 12px;
   padding: 20px;
   width: 220px;
@@ -331,12 +331,15 @@ canvas {
   color: #333;
 }
 
-.delete-btn{
+.delete-btn {
   background: none;
   color: red;
-  align-items: center;
-  
+  margin-left: auto;
+  font-weight: bold;
+  font-size: 20px;
+  cursor: pointer;
 }
+
 
 /* Reset and Logout buttons */
 .reset-btn, .logout-btn {

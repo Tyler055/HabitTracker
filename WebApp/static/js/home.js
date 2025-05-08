@@ -1,57 +1,58 @@
-
+// home.js
 
 import { fetchContent, resetGoalsData } from './saveData.js';
 
 let charts = {};
 
 document.addEventListener('DOMContentLoaded', () => {
-  console.log('Home.js loaded ');
+  console.log('Home.js loaded');
   setupButtons();
   updateAllCharts();
 });
 
 function setupButtons() {
-  const resetBtn = document.getElementById('reset-btn');
-  const logoutBtn = document.getElementById('logout-btn');
-
-  if (resetBtn) {
-    resetBtn.addEventListener('click', async () => {
-      if (confirm('Are you sure you want to reset all your goals? This cannot be undone.')) {
+  const actions = [
+    { id: 'reset-btn', handler: async () => {
+      if (confirm('Reset all goals? This cannot be undone.')) {
         try {
           await resetGoalsData();
           await updateAllCharts();
           alert('All goals have been reset.');
-        } catch (error) {
-          console.error('Reset failed:', error);
+        } catch (err) {
+          console.error('Reset failed:', err);
         }
       }
-    });
-  }
+    }},
+    { id: 'logout-btn', handler: () => window.location.href = '/logout' }
+  ];
 
-  if (logoutBtn) {
-    logoutBtn.addEventListener('click', () => {
-      window.location.href = '/logout';
-    });
-  }
+  actions.forEach(({ id, handler }) => {
+    const btn = document.getElementById(id);
+    if (btn) btn.addEventListener('click', handler);
+  });
 }
 
 async function updateAllCharts() {
   try {
-    const daily = await fetchContent('daily');
-    const weekly = await fetchContent('weekly');
-    const monthly = await fetchContent('monthly');
-    const yearly = await fetchContent('yearly');
+    const categories = [
+      { name: 'daily', color: '#28a745' },
+      { name: 'weekly', color: '#17a2b8' },
+      { name: 'monthly', color: '#ffc107' },
+      { name: 'yearly', color: '#dc3545' }
+    ];
 
-    const allGoals = [...daily, ...weekly, ...monthly, ...yearly];
+    let allGoals = [];
 
-    updateChart('allGoalsChart', countCompleted(allGoals), allGoals.length, '#673ab7');
-    updateChart('dailyChart', countCompleted(daily), daily.length, '#28a745');
-    updateChart('weeklyChart', countCompleted(weekly), weekly.length, '#17a2b8');
-    updateChart('monthlyChart', countCompleted(monthly), monthly.length, '#ffc107');
-    updateChart('yearlyChart', countCompleted(yearly), yearly.length, '#dc3545');
-    
-  } catch (error) {
-    console.error('Error updating charts:', error);
+    for (const { name, color } of categories) {
+      const goals = await fetchContent(name);
+      allGoals = [...allGoals, ...goals];
+      updateChart(`${name}Chart`, goals, color);
+    }
+
+    updateChart('allGoalsChart', allGoals, '#673ab7');
+
+  } catch (err) {
+    console.error('Error updating charts:', err);
   }
 }
 
@@ -59,12 +60,13 @@ function countCompleted(goals) {
   return goals.filter(g => g.completed).length;
 }
 
-function updateChart(canvasId, completed, total, color) {
+function updateChart(canvasId, goals, color) {
   const ctx = document.getElementById(canvasId).getContext('2d');
+  const completed = countCompleted(goals);
+  const total = goals.length;
+  const percent = total ? Math.round((completed / total) * 100) : 0;
 
-  if (charts[canvasId]) {
-    charts[canvasId].destroy();
-  }
+  if (charts[canvasId]) charts[canvasId].destroy();
 
   charts[canvasId] = new Chart(ctx, {
     type: 'doughnut',
@@ -78,20 +80,42 @@ function updateChart(canvasId, completed, total, color) {
     },
     options: {
       cutout: '70%',
-      animation: {
-        animateRotate: true,
-        animateScale: true
-      },
+      animation: { animateRotate: true, animateScale: true },
       plugins: {
         legend: { display: false },
         tooltip: {
           callbacks: {
-            label: function(context) {
-              return `${context.label}: ${context.parsed}`;
+            label: ({ label, parsed }) => {
+              const percentLabel = total ? Math.round((parsed / total) * 100) : 0;
+              return `${label}: ${parsed} (${percentLabel}%)`;
             }
           }
+        },
+        doughnutLabel: {
+          labels: [{ text: percent + '%', font: { size: '28', weight: 'bold' }, color }]
         }
       }
-    }
+    },
+    plugins: [doughnutCenterText]
   });
 }
+
+const doughnutCenterText = {
+  id: 'doughnutCenterText',
+  beforeDraw(chart) {
+    const { width, height } = chart;
+    const ctx = chart.ctx;
+    const text = chart.config.options.plugins.doughnutLabel.labels[0].text;
+
+    ctx.save();
+
+    ctx.font = `${(height / 8).toFixed(0)}px sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = chart.config.options.plugins.doughnutLabel.labels[0].color;
+
+    ctx.fillText(text, width / 2, height / 2);
+
+    ctx.restore();
+  }
+};
