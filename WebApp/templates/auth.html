@@ -31,10 +31,10 @@
     <div class="signup">
       <form method="POST" action="{{ url_for('auth.signup') }}">
         <label for="chk" aria-hidden="true">Sign up</label>
-        <input name="username" placeholder="User name" required value="{{ username if username else '' }}">
-        <input name="email" type="email" placeholder="Email" required autocomplete="email" value="{{ email if email else '' }}">
-        <input name="password" type="password" placeholder="Password" required>
-        <input type="password" name="password_confirm" placeholder="Confirm Password" required>
+        <input name="username" placeholder="User name" required value="{{ username if username else '' }}" aria-label="Username">
+        <input name="email" type="email" placeholder="Email" required autocomplete="email" value="{{ email if email else '' }}" aria-label="Email">
+        <input name="password" type="password" placeholder="Password" required aria-label="Password">
+        <input type="password" name="password_confirm" placeholder="Confirm Password" required aria-label="Confirm Password">
         <button type="submit">Sign up</button>
       </form>
     </div>
@@ -42,8 +42,8 @@
     <div class="login">
       <form method="POST" action="{{ url_for('auth.login') }}">
         <label for="chk" aria-hidden="true">Login</label>
-        <input name="identifier" placeholder="Username or Email" required value="{{ session.get('identifier', '') }}">
-        <input name="password" type="password" placeholder="Password" required>
+        <input name="identifier" placeholder="Username or Email" required value="{{ session.get('identifier', '') }}" aria-label="Username or Email">
+        <input name="password" type="password" placeholder="Password" required aria-label="Password">
         <button type="submit">Login</button>
       </form>
       <a href="{{ url_for('auth.recover') }}">Forgot Password?</a>

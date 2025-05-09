@@ -4,9 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Password Recovery</title>
+
+    <!-- External Styles and Fonts -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/authStyle.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Jost:wght@500&display=swap" rel="stylesheet">
+    <link rel="icon" href="{{ url_for('static', filename='img/favicon1.ico') }}" type="image/x-icon" />
+
+    <!-- Internal Styles -->
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Jost', sans-serif;
             max-width: 600px;
             margin: 0 auto;
             padding: 20px;
@@ -39,83 +46,92 @@
             background-color: #45a049;
         }
         .flash-message {
-            color: red;
             text-align: center;
         }
+        .flash-message ul {
+            list-style: none;
+            padding: 0;
+        }
+        .flash-message li {
+            margin: 5px 0;
+        }
+        .flash.success { color: green; }
+        .flash.error { color: red; }
+        .flash.info { color: blue; }
     </style>
 </head>
 <body>
 
     <h2>Password Recovery</h2>
 
+    <!-- Flash Messages Display -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-message">
+                <ul>
+                    {% for category, message in messages %}
+                        <li class="flash {{ category }}">{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- Step 1: Verify Username and Email -->
     {% if session['recovery_step'] == 1 %}
-    <h3>Step 1: Verify Identity</h3>
     <form method="POST">
-        <div class="flash-message">
-            {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                    <ul>
-                    {% for category, message in messages %}
-                        <li><strong>{{ message }}</strong></li>
-                    {% endfor %}
-                    </ul>
-                {% endif %}
-            {% endwith %}
+        {{ form.csrf_token }}
+        <div>
+            <label for="username">Username</label>
+            {{ form.username }}
         </div>
-
-        <label for="username">Username</label>
-        <input type="text" name="username" id="username" placeholder="Enter your username" title="Your username" required>
-
-        <label for="email">Email</label>
-        <input type="email" name="email" id="email" placeholder="Enter your email" title="Your registered email" required>
-
-        <button type="submit">Next</button>
+        <div>
+            <label for="email">Email</label>
+            {{ form.email }}
+        </div>
+        <div>
+            <button type="submit">Verify</button>
+        </div>
     </form>
+    {% endif %}
 
-    {% elif session['recovery_step'] == 2 %}
-    <h3>Step 2: Enter Verification Code</h3>
+    <!-- Step 2: Enter Verification Code -->
+    {% if session['recovery_step'] == 2 %}
     <form method="POST">
-        <div class="flash-message">
-            {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                    <ul>
-                    {% for category, message in messages %}
-                        <li><strong>{{ message }}</strong></li>
-                    {% endfor %}
-                    </ul>
-                {% endif %}
-            {% endwith %}
+        {{ form.csrf_token }}
+        <div>
+            <label for="verification_code">Verification Code</label>
+            {{ form.verification_code }}
         </div>
-
-        <label for="verification_code">Verification Code</label>
-        <input type="text" name="verification_code" id="verification_code" placeholder="Enter the verification code" title="The code sent to your email" required>
-
-        <button type="submit">Next</button>
+        <div>
+            <button type="submit">Submit Code</button>
+        </div>
     </form>
+    {% endif %}
 
-    {% elif session['recovery_step'] == 3 %}
-    <h3>Step 3: Reset Password</h3>
+    <!-- Step 3: Reset New Password -->
+    {% if session['recovery_step'] == 3 %}
     <form method="POST">
-        <div class="flash-message">
-            {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                    <ul>
-                    {% for category, message in messages %}
-                        <li><strong>{{ message }}</strong></li>
-                    {% endfor %}
-                    </ul>
-                {% endif %}
-            {% endwith %}
+        {{ form.csrf_token }}
+        <div>
+            <label for="new_password">New Password</label>
+            {{ form.new_password }}
         </div>
-
-        <label for="new_password">New Password</label>
-        <input type="password" name="new_password" id="new_password" placeholder="Enter a new password" title="Your new password" required>
-
-        <label for="confirm_password">Confirm Password</label>
-        <input type="password" name="confirm_password" id="confirm_password" placeholder="Confirm your new password" title="Confirm the new password" required>
-
-        <button type="submit">Reset Password</button>
+        <div>
+            <label for="confirm_password">Confirm New Password</label>
+            {{ form.confirm_password }}
+        </div>
+        <div>
+            <button type="submit">Reset Password</button>
+        </div>
     </form>
+    {% endif %}
+
+    <!-- Verification Code Debugging (Visible in Browser Console) -->
+    {% if verification_code %}
+    <script>
+        console.log("Verification Code (browser): {{ verification_code }}");
+    </script>
     {% endif %}
 
 </body>

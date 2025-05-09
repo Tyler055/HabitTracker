@@ -1,77 +1,53 @@
-{% extends 'base.html' %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Profile</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/authStyle.css') }}">
+</head>
+<body>
+    <div class="auth-container">
+        <h2>Profile</h2>
+        <p><strong>Username:</strong> {{ username }}</p>
+        <p><strong>Email:</strong> {{ email }}</p>
+        <p><strong>Login Count:</strong> {{ login_count }}</p>
 
-{% block title %}User Profile{% endblock %}
+        <h3>Change Password</h3>
+        <form method="POST">
+            {{ form.hidden_tag() }}
+            
+            <div class="form-group">
+                <label for="old-password">Old Password</label>
+                {{ form.old_password(class="form-control", id="old-password") }}
+            </div>
+            
+            <div class="form-group">
+                <label for="new-password">New Password</label>
+                {{ form.new_password(class="form-control", id="new-password") }}
+            </div>
+            
+            <div class="form-group">
+                <label for="confirm-password">Confirm New Password</label>
+                {{ form.confirm_password(class="form-control", id="confirm-password") }}
+            </div>
+            
+            <button type="submit" class="btn">Change Password</button>
+        </form>
 
-{% block content %}
-<div class="container mt-4">
-  <h1>User Profile</h1>
-
-  <p><strong>Username:</strong> {{ username }}</p>
-  <p><strong>Email:</strong> {{ email }}</p>
-  <p><strong>Login Count:</strong> {{ login_count }}</p>
-  
-  <!-- Flash messages -->
-   {% with messages = get_flashed_messages(with_categories=true) %}{% if messages %}
-    <ul class="flashes list-unstyled mt-3">
-    <template>
-      {% for category, message in messages %}
-        <li class="alert alert-{{ category|e }}">
-          {{ message|e }}
-        </li>
-      {% endfor %}
-    </ul>
-  {% endif %}
-{% endwith %}
-
-
-  <!-- Change Password Form -->
-  <h2 class="mt-4">Change Password</h2>
-  <form id="change-password-form" method="POST" action="{{ url_for('auth.profile') }}">
-    {% if form and form.hidden_tag %}
-      {{ form.hidden_tag() }}
-    {% endif %}
-
-    <div class="form-group mb-3">
-      <label for="old-password">Old Password:</label>
-      {{ form.old_password(class="form-control", id="old-password") }}
-      {% if form.old_password.errors %}
-        <div class="text-danger small">
-          {% for error in form.old_password.errors %}
-            <div>{{ error }}</div>
-          {% endfor %}
+        <div class="links mt-3">
+            <a href="{{ url_for('logout') }}">Logout</a>
         </div>
-      {% endif %}
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <ul class="messages">
+                    {% for category, message in messages %}
+                        <li class="flash {{ category }}">{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
     </div>
-
-    <div class="form-group mb-3">
-      <label for="new-password">New Password:</label>
-      {{ form.new_password(class="form-control", id="new-password") }}
-      {% if form.new_password.errors %}
-        <div class="text-danger small">
-          {% for error in form.new_password.errors %}
-            <div>{{ error }}</div>
-          {% endfor %}
-        </div>
-      {% endif %}
-    </div>
-
-    <div class="form-group mb-3">
-      <label for="confirm-password">Confirm New Password:</label>
-      {{ form.confirm_password(class="form-control", id="confirm-password") }}
-      {% if form.confirm_password.errors %}
-        <div class="text-danger small">
-          {% for error in form.confirm_password.errors %}
-            <div>{{ error }}</div>
-          {% endfor %}
-        </div>
-      {% endif %}
-    </div>
-
-    <button type="submit" class="btn btn-primary">Change Password</button>
-  </form>
-</div>
-{% endblock %}
-
-{% block scripts %}
-  <script type="module" src="{{ url_for('static', filename='js/script.js') }}"></script>
-{% endblock %}
+</body>
+</html>
