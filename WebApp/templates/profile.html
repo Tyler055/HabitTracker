@@ -1,12 +1,15 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Profile</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/authStyle.css') }}">
-</head>
-<body>
+{% extends "base.html" %}
+
+{% block title %}Settings & Notifications - Goal Tracker{% endblock %}
+
+{% block styles %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="icon" href="{{ url_for('static', filename='img/favicon.ico') }}" type="image/x-icon" />
+{% endblock %}
+
+{% block content %}
+<main>
+  <section id="content">
     <div class="auth-container">
         <h2>Profile</h2>
         <p><strong>Username:</strong> {{ username }}</p>
@@ -35,10 +38,6 @@
             <button type="submit" class="btn">Change Password</button>
         </form>
 
-        <div class="links mt-3">
-            <a href="{{ url_for('logout') }}">Logout</a>
-        </div>
-
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 <ul class="messages">
@@ -49,5 +48,11 @@
             {% endif %}
         {% endwith %}
     </div>
-</body>
-</html>
+  </section>
+</main>
+{% endblock %}
+
+{% block scripts %}
+  <script type="module" src="{{ url_for('static', filename='js/settings.js') }}"></script>
+  <script type="module" src="{{ url_for('static', filename='js/script.js') }}"></script>
+{% endblock %}

@@ -63,6 +63,7 @@ def signup():
         username = form.username.data.strip()
         email = form.email.data.strip()
         password = form.password.data
+        password_confirm = form.password_confirm.data
 
         if find_user_by_username(username):
             flash(f'Username "{username}" is already taken.', 'error')
@@ -74,7 +75,8 @@ def signup():
             flash('Registration successful! Please log in.', 'success')
             return redirect(url_for('auth.login'))
 
-    return render_template('auth.html', form=form, form_type='signup')
+    return render_template('auth.html', form=form, mode='signup')
+
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
@@ -82,6 +84,7 @@ def login():
     if form.validate_on_submit():
         identifier = form.identifier.data.strip()
         password = form.password.data
+
         user = find_user_by_username(identifier) or find_user_by_email(identifier)
 
         if not user or not check_password_hash(user['password'], password):
@@ -91,13 +94,35 @@ def login():
             flash('Login successful!', 'success')
             return redirect(url_for('views.habit_tracker'))
 
-    return render_template('auth.html', form=form, form_type='login')
+    return render_template('auth.html', form=form, mode='login')
+
 
 @auth_bp.route('/logout')
 def logout():
     session.clear()
     flash('You have been logged out.', 'info')
     return redirect(url_for('auth.login'))
+
+
+@auth_bp.route('/profile', methods=['GET', 'POST'])
+def profile():
+    if 'user_id' not in session:
+        flash('Please log in first.', 'warning')
+        return redirect(url_for('auth.login'))
+
+    form = ChangePasswordForm()
+    if form.validate_on_submit():
+        user = find_user_by_id(session['user_id'])
+        if not check_password_hash(user['password'], form.old_password.data):
+            flash('Old password is incorrect.', 'error')
+        else:
+            new_hashed = generate_password_hash(form.new_password.data)
+            update_user_password(user['id'], new_hashed)
+            flash('Password updated successfully.', 'success')
+            return redirect(url_for('auth.profile'))
+
+    return render_template('profile.html', form=form)
+
 
 @auth_bp.route('/recover', methods=['GET', 'POST'])
 def recover():
@@ -152,4 +177,3 @@ def recover():
                 return redirect(url_for('auth.login'))
 
     return render_template('recover.html', form=form)
-

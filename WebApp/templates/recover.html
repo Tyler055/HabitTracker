@@ -4,140 +4,147 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Password Recovery</title>
-
-    <!-- External Styles and Fonts -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/authStyle.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Jost:wght@500&display=swap" rel="stylesheet">
-    <link rel="icon" href="{{ url_for('static', filename='img/favicon1.ico') }}" type="image/x-icon" />
-
-    <!-- Internal Styles -->
+    <link rel="icon" href="{{ url_for('static', filename='img/favicon1.ico') }}" type="image/x-icon">
     <style>
         body {
             font-family: 'Jost', sans-serif;
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        h2 {
-            text-align: center;
-        }
-        form {
+            background-color: #1a1a40;
+            color: #ffffff;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            align-items: center;
+            padding: 40px;
+            min-height: 100vh;
+        }
+        .container {
+            background-color: #2c2c54;
+            padding: 30px 40px;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
         }
         label {
             font-weight: bold;
+            margin-bottom: 8px;
+            display: block;
         }
         input {
-            padding: 8px;
-            border-radius: 4px;
-            border: 1px solid #ccc;
+            width: 100%;
+            padding: 10px;
+            border-radius: 6px;
+            border: none;
+            font-size: 1rem;
+            background-color: #333366;
+            color: #ffffff;
         }
         button {
-            padding: 10px;
-            border-radius: 4px;
-            background-color: #4CAF50;
-            color: white;
+            width: 100%;
+            padding: 12px;
+            background-color: #4caf50;
+            color: #ffffff;
             border: none;
+            border-radius: 6px;
             cursor: pointer;
+            font-size: 1rem;
+            margin-bottom: 15px;
         }
         button:hover {
             background-color: #45a049;
         }
+        .back-button {
+            background-color: #444;
+        }
+        .back-button:hover {
+            background-color: #555;
+        }
         .flash-message {
-            text-align: center;
+            margin-bottom: 20px;
         }
-        .flash-message ul {
-            list-style: none;
-            padding: 0;
+        .flash-message p {
+            margin: 8px 0;
+            padding: 10px;
+            border-radius: 4px;
+            font-weight: 500;
         }
-        .flash-message li {
-            margin: 5px 0;
+        .flash.success { background-color: #2e7d32; color: white; }
+        .flash.error { background-color: #c62828; color: white; }
+        .flash.info { background-color: #0288d1; color: white; }
+        a {
+            color: #81d4fa;
         }
-        .flash.success { color: green; }
-        .flash.error { color: red; }
-        .flash.info { color: blue; }
+        a:hover {
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
-
+<div class="container">
     <h2>Password Recovery</h2>
 
-    <!-- Flash Messages Display -->
+    <!-- Flash Messages -->
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
             <div class="flash-message">
-                <ul>
-                    {% for category, message in messages %}
-                        <li class="flash {{ category }}">{{ message }}</li>
-                    {% endfor %}
-                </ul>
+                {% for category, message in messages %}
+                    <p class="flash {{ category }}">{{ message }}</p>
+                {% endfor %}
             </div>
         {% endif %}
     {% endwith %}
 
-    <!-- Step 1: Verify Username and Email -->
-    {% if session['recovery_step'] == 1 %}
-    <form method="POST">
-        {{ form.csrf_token }}
-        <div>
-            <label for="username">Username</label>
-            {{ form.username }}
-        </div>
-        <div>
+    <!-- Step 1: Email Verification -->
+    {% if recovery_step == 1 %}
+    <form method="POST" action="{{ url_for('auth.recover') }}">
+        {{ form.hidden_tag() }}
+        <div class="form-group">
             <label for="email">Email</label>
-            {{ form.email }}
+            {{ form.email(class="form-control", placeholder="Enter your email") }}
         </div>
-        <div>
-            <button type="submit">Verify</button>
-        </div>
+        <button type="submit">Verify Identity</button>
     </form>
     {% endif %}
 
-    <!-- Step 2: Enter Verification Code -->
-    {% if session['recovery_step'] == 2 %}
-    <form method="POST">
-        {{ form.csrf_token }}
-        <div>
+    <!-- Step 2: Verification Code -->
+    {% if recovery_step == 2 %}
+    <form method="POST" action="{{ url_for('auth.recover') }}">
+        {{ form.hidden_tag() }}
+        <div class="form-group">
             <label for="verification_code">Verification Code</label>
-            {{ form.verification_code }}
+            {{ form.verification_code(class="form-control", placeholder="Enter the code sent to your email") }}
         </div>
-        <div>
-            <button type="submit">Submit Code</button>
-        </div>
+        <button type="submit">Submit Code</button>
     </form>
     {% endif %}
 
-    <!-- Step 3: Reset New Password -->
-    {% if session['recovery_step'] == 3 %}
-    <form method="POST">
-        {{ form.csrf_token }}
-        <div>
+    <!-- Step 3: Password Reset -->
+    {% if recovery_step == 3 %}
+    <form method="POST" action="{{ url_for('auth.recover') }}">
+        {{ form.hidden_tag() }}
+        <div class="form-group">
             <label for="new_password">New Password</label>
-            {{ form.new_password }}
+            {{ form.new_password(class="form-control", placeholder="Enter new password") }}
         </div>
-        <div>
+        <div class="form-group">
             <label for="confirm_password">Confirm New Password</label>
-            {{ form.confirm_password }}
+            {{ form.confirm_password(class="form-control", placeholder="Confirm new password") }}
         </div>
-        <div>
-            <button type="submit">Reset Password</button>
-        </div>
+        <button type="submit">Reset Password</button>
     </form>
     {% endif %}
 
-    <!-- Verification Code Debugging (Visible in Browser Console) -->
+    <button class="back-button" onclick="window.location.href='{{ url_for('auth.login') }}'">Back to Login</button>
+
     {% if verification_code %}
-    <script>
-        console.log("Verification Code (browser): {{ verification_code }}");
-    </script>
+    <script>console.log("Verification Code (for testing): {{ verification_code }}");</script>
     {% endif %}
-
-    <!-- Back to Login Button -->
-    <form method="GET" action="{{ url_for('auth.login') }}">
-        <button type="submit">Back to Login</button>
-    </form>
-
+</div>
 </body>
 </html>
