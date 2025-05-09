@@ -24,7 +24,8 @@
     </div>
   </div>
 
-  
+  <div id="motivational-quote" class="quote-box"></div>
+
 
   <!-- Reset Goals Button -->
   <button class="reset-btn" id="reset-btn">Reset Goals</button>
@@ -34,4 +35,5 @@
 
 {% block scripts %}
   <script type="module" src="{{ url_for('static', filename='js/home.js') }}"></script>
+  <script type="module" src="{{ url_for('static', filename='js/quotes.js') }}"></script>
 {% endblock %}
