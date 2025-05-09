@@ -13,8 +13,8 @@ document.addEventListener('DOMContentLoaded', () => {
 // Setup the reset and logout buttons
 function setupButtons() {
   const actions = [
-    { 
-      id: 'reset-btn', 
+    {
+      id: 'reset-btn',
       handler: async () => {
         if (confirm('Reset all goals? This cannot be undone.')) {
           try {
@@ -28,8 +28,8 @@ function setupButtons() {
         }
       }
     },
-    { 
-      id: 'logout-btn', 
+    {
+      id: 'logout-btn',
       handler: () => window.location.href = '/logout'
     }
   ];
@@ -113,10 +113,10 @@ function updateChart(canvasId, goals, color) {
           }
         },
         doughnutLabel: {
-          labels: [{ 
-            text: percent + '%', 
-            font: { size: '28', weight: 'bold' }, 
-            color 
+          labels: [{
+            text: percent + '%',
+            font: { size: '28', weight: 'bold' },
+            color
           }]
         }
       }
