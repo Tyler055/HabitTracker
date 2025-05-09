@@ -3,13 +3,16 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from flask_wtf import FlaskForm
 from wtforms import PasswordField, StringField
 from wtforms.validators import DataRequired, EqualTo, Email
-from flask_mail import Message
+from flask_mail import Message, Mail
 from datetime import datetime, timedelta
 from dataservice import (
     create_user, find_user_by_username, find_user_by_email,
     update_user_password, find_user_by_id, update_user_reset_token
 )
 import secrets
+
+# Initialize the Flask-Mail extension
+mail = Mail()
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -48,7 +51,7 @@ def generate_reset_token():
     return secrets.token_urlsafe(16)
 
 def save_reset_token(user_id, token):
-    expiration = datetime.utcnow() + timedelta(hours=1)
+    expiration = datetime.utcnow() + timedelta(hours=1)  # Set token expiry time (e.g., 1 hour)
     update_user_reset_token(user_id, token, expiration)
 
 # ------------------- Routes -------------------
@@ -98,6 +101,7 @@ def logout():
 
 @auth_bp.route('/recover', methods=['GET', 'POST'])
 def recover():
+    # Step 1: Username/Email validation (forgot password)
     if 'recovery_step' not in session:
         session['recovery_step'] = 1
 
@@ -120,6 +124,7 @@ def recover():
                 flash('Reset link has been sent to your email.', 'info')
                 return redirect(url_for('auth.recover'))
 
+        # Step 2: Verification code validation (reset password)
         elif session['recovery_step'] == 2:
             verification_code = form.verification_code.data.strip()
             user = find_user_by_id(session['user_id'])
@@ -131,6 +136,7 @@ def recover():
                 flash('Verification code is valid. Please enter a new password.', 'info')
                 return redirect(url_for('auth.recover'))
 
+        # Step 3: Password reset (change password)
         elif session['recovery_step'] == 3:
             new_password = form.new_password.data
             confirm_password = form.confirm_password.data
@@ -146,3 +152,4 @@ def recover():
                 return redirect(url_for('auth.login'))
 
     return render_template('recover.html', form=form)
+

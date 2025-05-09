@@ -2,18 +2,22 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1.0">
-  <title>{{ 'Sign Up' if mode=='signup' else 'Login' }}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ 'Sign Up' if mode == 'signup' else 'Login' }}</title>
 
-  <!-- Correct Auth CSS -->
+  <!-- External CSS for styling -->
   <link rel="stylesheet" href="{{ url_for('static', filename='css/authStyle.css') }}">
+  
+  <!-- Google Fonts (Jost) -->
   <link href="https://fonts.googleapis.com/css2?family=Jost:wght@500&display=swap" rel="stylesheet">
-  <!-- Favicon for Browser Tabs -->
-  <link rel="icon" href="{{ url_for('static', filename='img/favicon1.ico') }}" type="image/x-icon" />
+  
+  <!-- Favicon for browser tabs -->
+  <link rel="icon" href="{{ url_for('static', filename='img/favicon1.ico') }}" type="image/x-icon">
 </head>
 
 <body>
   <div class="main">
+    
     <!-- Display flash messages if they exist -->
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
@@ -24,28 +28,48 @@
         </div>
       {% endif %}
     {% endwith %}
+    
+    <!-- Toggle between sign-up and login forms with checkbox -->
+    <input type="checkbox" id="chk" aria-hidden="true" {{ 'checked' if mode == 'signup' else '' }}>
 
-    <!-- checkbox toggles between login/signup -->
-    <input type="checkbox" id="chk" aria-hidden="true" {{ 'checked' if mode=='signup' else '' }}>
-
+    <!-- Sign-up Form -->
     <div class="signup">
       <form method="POST" action="{{ url_for('auth.signup') }}">
         <label for="chk" aria-hidden="true">Sign up</label>
+        
+        <!-- Username Input -->
         <input name="username" placeholder="User name" required value="{{ username if username else '' }}" aria-label="Username">
+        
+        <!-- Email Input -->
         <input name="email" type="email" placeholder="Email" required autocomplete="email" value="{{ email if email else '' }}" aria-label="Email">
+        
+        <!-- Password Input -->
         <input name="password" type="password" placeholder="Password" required aria-label="Password">
+        
+        <!-- Confirm Password Input -->
         <input type="password" name="password_confirm" placeholder="Confirm Password" required aria-label="Confirm Password">
+        
+        <!-- Sign Up Button -->
         <button type="submit">Sign up</button>
       </form>
     </div>
 
+    <!-- Login Form -->
     <div class="login">
       <form method="POST" action="{{ url_for('auth.login') }}">
         <label for="chk" aria-hidden="true">Login</label>
+        
+        <!-- Identifier Input (Username or Email) -->
         <input name="identifier" placeholder="Username or Email" required value="{{ session.get('identifier', '') }}" aria-label="Username or Email">
+        
+        <!-- Password Input -->
         <input name="password" type="password" placeholder="Password" required aria-label="Password">
+        
+        <!-- Login Button -->
         <button type="submit">Login</button>
       </form>
+      
+      <!-- Link to Forgot Password Page -->
       <a href="{{ url_for('auth.recover') }}">Forgot Password?</a>
     </div>
   </div>

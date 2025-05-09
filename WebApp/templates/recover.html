@@ -134,5 +134,10 @@
     </script>
     {% endif %}
 
+    <!-- Back to Login Button -->
+    <form method="GET" action="{{ url_for('auth.login') }}">
+        <button type="submit">Back to Login</button>
+    </form>
+
 </body>
 </html>
