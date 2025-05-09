@@ -3,6 +3,8 @@ import os
 from flask import g
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
+import random
+import string
 
 # Define path to SQLite database file
 DATABASE_PATH = os.path.join(os.path.dirname(__file__), 'habitDatabase.sqlite')
@@ -132,7 +134,7 @@ def update_user_reset_token(user_id, token, expiration):
     cur = conn.cursor()
 
     # Update the user with the new reset token and its expiration time
-    cur.execute('''
+    cur.execute(''' 
         UPDATE users
         SET reset_token = ?, reset_token_expiry = ?
         WHERE id = ?
@@ -289,22 +291,3 @@ def clear_notifications(user_id):
     cur.execute('DELETE FROM notifications WHERE user_id = ?', (user_id,))
     conn.commit()
     return "All notifications cleared."
-
-
-# --- Email Credential Access (Optional) ---
-
-def get_email_credentials():
-    """
-    Retrieve email credentials from environment variables.
-    This is used for sending emails securely via Flask-Mail or smtplib.
-    """
-    email = os.environ.get("EMAIL_USERNAME")
-    password = os.environ.get("EMAIL_PASSWORD")
-
-    if not email or not password:
-        raise ValueError("Email credentials not found in environment variables.")
-
-    return {
-        'email': email,
-        'password': password
-    }

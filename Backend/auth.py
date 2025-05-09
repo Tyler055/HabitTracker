@@ -3,7 +3,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from flask_wtf import FlaskForm
 from wtforms import PasswordField, StringField
 from wtforms.validators import DataRequired, EqualTo
-from dataservice import create_user, find_user_by_username, find_user_by_email, update_user_password, find_user_by_id, update_user_reset_token, find_user_by_reset_token
+from dataservice import create_user, find_user_by_username, find_user_by_email, update_user_password, find_user_by_id, update_user_reset_token
 from flask_mail import Message, Mail
 import random
 import string
@@ -108,8 +108,6 @@ def profile():
 
     return render_template('profile.html', form=form)
 
-
-
 @auth_bp.route('/recover', methods=['GET', 'POST'])
 def recover():
     # If the session doesn't exist or the recovery flow is not started, start from Step 1
@@ -125,8 +123,10 @@ def recover():
             username = request.form['username']
             email = request.form['email']
 
-            # Example logic to verify the username/email
-            if username == "test_user" and email == "test@example.com":
+            # Query the database to verify the username and email
+            user = find_user_by_username(username)
+
+            if user and user['email'] == email:
                 session['username'] = username
                 session['email'] = email
 
@@ -134,13 +134,15 @@ def recover():
                 verification_code = ''.join(random.choices(string.ascii_letters + string.digits + string.punctuation, k=8))
                 session['verification_code'] = verification_code
 
-                # Simulate sending email
-                send_verification_code(verification_code)
+                # Print the verification code to the terminal (not the browser)
+                print(f"Generated verification code: {verification_code}")  # This will show in the terminal
+
+                # Simulate sending the verification code via email
+                flash(f'A verification code has been sent to {email}.', 'info')
 
                 # Move to Step 2
                 session['recovery_step'] = 2
-
-                return redirect(url_for('auth_bp.recover'))
+                return redirect(url_for('auth.recover'))
 
             else:
                 flash('Invalid username or email.', 'danger')
@@ -155,7 +157,7 @@ def recover():
             if entered_code == session['verification_code']:
                 # Code is correct, move to Step 3 (password reset)
                 session['recovery_step'] = 3
-                return redirect(url_for('auth_bp.recover'))
+                return redirect(url_for('auth.recover'))
             else:
                 flash('Invalid verification code.', 'danger')
 
@@ -168,15 +170,16 @@ def recover():
             confirm_password = request.form['confirm_password']
 
             if new_password == confirm_password:
-                # Hash the new password (you can use bcrypt or another method for security)
-                hashed_password = hashlib.sha256(new_password.encode()).hexdigest()
+                # Hash the new password and update the user in the database
+                hashed_password = generate_password_hash(new_password)
 
-                # Example: Update the password in the database
-                # update_user_password(session['username'], hashed_password)
+                # Update the user's password in the database
+                user = find_user_by_username(session['username'])
+                update_user_password(user['id'], hashed_password)
 
                 flash('Password reset successfully!', 'success')
                 session.clear()  # Clear the session
-                return redirect(url_for('auth_bp.login'))
+                return redirect(url_for('auth.login'))
 
             else:
                 flash('Passwords do not match.', 'danger')
