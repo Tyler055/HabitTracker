@@ -91,7 +91,7 @@ body {
 }
 
 /* Main Content Area */
-#page-content, 
+#page-content,
 #goals-container {
   margin-left: 60px;
   padding: 30px;
@@ -303,7 +303,7 @@ button:hover {
 }
 
 .chart-container {
-  background: rgb(60, 199, 245);
+  background: rgb(0, 0, 0);
   border-radius: 12px;
   padding: 20px;
   width: auto;
@@ -328,7 +328,7 @@ canvas {
   font-weight: bold;
   font-size: 1.2rem;
   letter-spacing: 0.5px;
-  color: #333;
+  color: #b7b7b7;
 }
 
 .delete-btn {

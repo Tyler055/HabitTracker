@@ -201,11 +201,19 @@ function bindGoalForm() {
   const goalInput = document.getElementById("goal-input");
   const categorySelect = document.getElementById("goal-category");
 
-  if (goalForm && goalInput && categorySelect) {
+  if (goalForm && goalInput) {
     goalForm.addEventListener("submit", async function (e) {
       e.preventDefault();
       const newGoalText = goalInput.value.trim();
-      const selectedCategory = categorySelect.value;
+      let selectedCategory = categorySelect ? categorySelect.value : null;
+
+      // Check if no category is selected in the dropdown
+      if (!selectedCategory) {
+        // Get the current page category (e.g., "yearly")
+        const pageCategory = getPageCategory();
+        selectedCategory = pageCategory;  // Use the page category as default
+      }
+
       const goalList = document.querySelector(`#${selectedCategory}-goals-list`);
 
       if (newGoalText && goalList) {
@@ -239,4 +247,22 @@ function checkForDuplicateGoal(newText, currentListId = "") {
     }
   }
   return null;
+}
+
+function getPageCategory() {
+  // This function detects the page category based on the current page
+  // For example, if you're on the "yearly" page, it returns "yearly".
+  if (window.location.pathname.includes("yearly")) {
+    return "yearly";
+  }
+  if (window.location.pathname.includes("monthly")) {
+    return "monthly";
+  }
+  if (window.location.pathname.includes("weekly")) {
+    return "weekly";
+  }
+  if (window.location.pathname.includes("daily")) {
+    return "daily";
+  }
+  return "daily"; // Default to "daily" if no category found
 }
