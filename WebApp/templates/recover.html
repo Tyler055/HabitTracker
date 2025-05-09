@@ -146,7 +146,9 @@
 
     {% if verification_code %}
     <script>
-        console.log("Verification Code (for testing): {{ verification_code }}");
+    const verificationCode = "{{ verification_code }}";if (verificationCode) {
+        console.log("Verification Code (for testing):", verificationCode);
+        }
     </script>
     {% endif %}
 </div>

@@ -218,4 +218,11 @@ def get_email_credentials():
         'email': email,
         'password': password
     }
+if __name__ == "__main__":
+    from flask import Flask
+    app = Flask(__name__)
+    init_app(app)
+    with app.app_context():
+        init_db()
+        print("Database initialized.")
 
