@@ -29,6 +29,13 @@ class SignupForm(FlaskForm):
     password_confirm = PasswordField('Confirm Password', validators=[DataRequired(), EqualTo('password')])
     submit = SubmitField('Sign Up')
 
+# ChangePasswordForm defined here outside of any route functions
+class ChangePasswordForm(FlaskForm):
+    old_password = PasswordField('Old Password', validators=[DataRequired()])
+    new_password = PasswordField('New Password', validators=[DataRequired()])
+    confirm_password = PasswordField('Confirm New Password', validators=[DataRequired(), EqualTo('new_password')])
+    submit = SubmitField('Change Password')
+
 # Step 1 Form: Identity Entry
 class IdentityForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired()])
@@ -65,7 +72,7 @@ def login():
         if user and check_password_hash(user['password'], password):
             session['user_id'] = user['id']
             flash('Login successful.', 'success')
-            return redirect(url_for('main.dashboard'))  # Replace with actual dashboard
+            return redirect(url_for('views.habit_tracker'))
         else:
             flash('Invalid username/email or password.', 'error')
 
@@ -96,6 +103,35 @@ def logout():
     session.pop('user_id', None)
     flash('You have been logged out.', 'info')
     return redirect(url_for('auth.login'))
+
+
+@auth_bp.route('/profile', methods=['GET', 'POST'])
+def profile():
+    user_id = session.get('user_id')
+    if not user_id:
+        flash('You must be logged in to view your profile.', 'error')
+        return redirect(url_for('auth.login'))
+    
+    user = find_user_by_id(user_id)
+    if not user:
+        flash('User not found.', 'error')
+        return redirect(url_for('auth.login'))
+
+    form = ChangePasswordForm()
+
+    if form.validate_on_submit():
+        old_password = form.old_password.data
+        new_password = form.new_password.data
+
+        if check_password_hash(user['password'], old_password):
+            # Update password if old password is correct
+            hashed_password = generate_password_hash(new_password)
+            update_user_password(user['id'], hashed_password)
+            flash('Password successfully updated.', 'success')
+        else:
+            flash('Incorrect old password.', 'error')
+
+    return render_template('profile.html', user=user, form=form)
 
 @auth_bp.route('/recover', methods=['GET', 'POST'])
 def recover():
