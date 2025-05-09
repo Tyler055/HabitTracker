@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Password Recovery</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h2 {
+            text-align: center;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        label {
+            font-weight: bold;
+        }
+        input {
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+        button {
+            padding: 10px;
+            border-radius: 4px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .flash-message {
+            color: red;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Password Recovery</h2>
+
+    {% if session['recovery_step'] == 1 %}
+    <h3>Step 1: Verify Identity</h3>
+    <form method="POST">
+        <div class="flash-message">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <ul>
+                    {% for category, message in messages %}
+                        <li><strong>{{ message }}</strong></li>
+                    {% endfor %}
+                    </ul>
+                {% endif %}
+            {% endwith %}
+        </div>
+
+        <label for="username">Username</label>
+        <input type="text" name="username" id="username" placeholder="Enter your username" title="Your username" required>
+
+        <label for="email">Email</label>
+        <input type="email" name="email" id="email" placeholder="Enter your email" title="Your registered email" required>
+
+        <button type="submit">Next</button>
+    </form>
+
+    {% elif session['recovery_step'] == 2 %}
+    <h3>Step 2: Enter Verification Code</h3>
+    <form method="POST">
+        <div class="flash-message">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <ul>
+                    {% for category, message in messages %}
+                        <li><strong>{{ message }}</strong></li>
+                    {% endfor %}
+                    </ul>
+                {% endif %}
+            {% endwith %}
+        </div>
+
+        <label for="verification_code">Verification Code</label>
+        <input type="text" name="verification_code" id="verification_code" placeholder="Enter the verification code" title="The code sent to your email" required>
+
+        <button type="submit">Next</button>
+    </form>
+
+    {% elif session['recovery_step'] == 3 %}
+    <h3>Step 3: Reset Password</h3>
+    <form method="POST">
+        <div class="flash-message">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <ul>
+                    {% for category, message in messages %}
+                        <li><strong>{{ message }}</strong></li>
+                    {% endfor %}
+                    </ul>
+                {% endif %}
+            {% endwith %}
+        </div>
+
+        <label for="new_password">New Password</label>
+        <input type="password" name="new_password" id="new_password" placeholder="Enter a new password" title="Your new password" required>
+
+        <label for="confirm_password">Confirm Password</label>
+        <input type="password" name="confirm_password" id="confirm_password" placeholder="Confirm your new password" title="Confirm the new password" required>
+
+        <button type="submit">Reset Password</button>
+    </form>
+    {% endif %}
+
+</body>
+</html>

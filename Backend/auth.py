@@ -108,43 +108,77 @@ def profile():
 
     return render_template('profile.html', form=form)
 
-@auth_bp.route('/forgot-password', methods=['GET', 'POST'])
-def forgot_password():
-    if request.method == 'POST':
-        email = request.form['email']
-        user = find_user_by_email(email)
-        
-        if not user:
-            flash('Email not found in our records.', 'error')
-            return redirect(url_for('auth.forgot_password'))
-        
-        # Generate a reset token, save it, and send the reset email
-        token = generate_reset_token()
-        save_reset_token(user['id'], token)  # Save the token in the database
-        send_reset_email(email, token)
-        flash('Password reset instructions have been sent to your email.', 'info')
-        return redirect(url_for('auth.login'))  # Redirect to login after success
 
-    return render_template('forgot_password.html')  # Render the forgot-password form
 
-@auth_bp.route('/reset-password/<token>', methods=['GET', 'POST'])
-def reset_password(token):
-    user = find_user_by_reset_token(token)
-    
-    if not user or datetime.utcnow() > user['reset_token_expiry']:
-        flash('Invalid or expired token.', 'error')
-        return redirect(url_for('auth.forgot_password'))  # Redirect back to forgot password if invalid token
+@auth_bp.route('/recover', methods=['GET', 'POST'])
+def recover():
+    # If the session doesn't exist or the recovery flow is not started, start from Step 1
+    if 'recovery_step' not in session:
+        session['recovery_step'] = 1
+        session['email'] = None
+        session['username'] = None
+        session['verification_code'] = None
 
-    if request.method == 'POST':
-        new_password = request.form['new_password']
-        confirm_password = request.form['confirm_password']
-        
-        if new_password != confirm_password:
-            flash('Passwords must match.', 'error')
-        else:
-            hashed_password = generate_password_hash(new_password)
-            update_user_password(user['id'], hashed_password)
-            flash('Password has been reset successfully.', 'success')
-            return redirect(url_for('auth.login'))  # Redirect to login after password reset
+    # Step 1: Verify Identity (Username and Email)
+    if session['recovery_step'] == 1:
+        if request.method == 'POST':
+            username = request.form['username']
+            email = request.form['email']
 
-    return render_template('reset_password.html', token=token)  # Render reset password form
+            # Example logic to verify the username/email
+            if username == "test_user" and email == "test@example.com":
+                session['username'] = username
+                session['email'] = email
+
+                # Generate a secure verification code
+                verification_code = ''.join(random.choices(string.ascii_letters + string.digits + string.punctuation, k=8))
+                session['verification_code'] = verification_code
+
+                # Simulate sending email
+                send_verification_code(verification_code)
+
+                # Move to Step 2
+                session['recovery_step'] = 2
+
+                return redirect(url_for('auth_bp.recover'))
+
+            else:
+                flash('Invalid username or email.', 'danger')
+
+        return render_template('recover.html', step=1)
+
+    # Step 2: Enter Verification Code
+    elif session['recovery_step'] == 2:
+        if request.method == 'POST':
+            entered_code = request.form['verification_code']
+
+            if entered_code == session['verification_code']:
+                # Code is correct, move to Step 3 (password reset)
+                session['recovery_step'] = 3
+                return redirect(url_for('auth_bp.recover'))
+            else:
+                flash('Invalid verification code.', 'danger')
+
+        return render_template('recover.html', step=2)
+
+    # Step 3: Reset Password
+    elif session['recovery_step'] == 3:
+        if request.method == 'POST':
+            new_password = request.form['new_password']
+            confirm_password = request.form['confirm_password']
+
+            if new_password == confirm_password:
+                # Hash the new password (you can use bcrypt or another method for security)
+                hashed_password = hashlib.sha256(new_password.encode()).hexdigest()
+
+                # Example: Update the password in the database
+                # update_user_password(session['username'], hashed_password)
+
+                flash('Password reset successfully!', 'success')
+                session.clear()  # Clear the session
+                return redirect(url_for('auth_bp.login'))
+
+            else:
+                flash('Passwords do not match.', 'danger')
+
+        return render_template('recover.html', step=3)
