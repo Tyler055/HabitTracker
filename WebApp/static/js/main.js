@@ -3,7 +3,6 @@ import { fetchContent, saveGoalsData, resetGoalsData } from './saveData.js';
 document.addEventListener("DOMContentLoaded", async function () {
   const logoutBtn = document.getElementById("logout-btn");
 
-  // Load goals and initialize interactions
   await loadGoalsFromDB();
   initializeDragAndDrop();
   bindGoalForm();
@@ -17,6 +16,14 @@ document.addEventListener("DOMContentLoaded", async function () {
 });
 
 let draggedItem = null;
+
+function debounce(func, delay) {
+  let timeout;
+  return function (...args) {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func.apply(this, args), delay);
+  };
+}
 
 async function loadGoalsFromDB() {
   const lists = document.querySelectorAll('.goal-category ul');
@@ -35,7 +42,7 @@ async function loadGoalsFromDB() {
       console.error(`Failed loading goals for ${category}:`, error.message);
     }
   }
-  initializeDragAndDrop(); // ensure drag handlers after loading
+  initializeDragAndDrop();
 }
 
 function addCategoryEditToggle(ul, category) {
@@ -45,11 +52,17 @@ function addCategoryEditToggle(ul, category) {
   toggleBtn.dataset.category = category;
 
   toggleBtn.addEventListener("click", () => {
-    document.querySelectorAll('.goal-category ul').forEach(list => {
-      list.querySelectorAll('.edit-btn').forEach(btn => btn.style.display = "none");
-    });
+    const currentCategory = toggleBtn.dataset.category;
+    const editButtons = ul.querySelectorAll('.edit-btn');
+    const isVisible = editButtons[0]?.style.display === "inline-block";
 
-    ul.querySelectorAll('.edit-btn').forEach(btn => btn.style.display = "inline-block");
+    if (isVisible) {
+      editButtons.forEach(btn => btn.style.display = "none");
+      toggleBtn.textContent = "Show Edit Buttons";
+    } else {
+      editButtons.forEach(btn => btn.style.display = "inline-block");
+      toggleBtn.textContent = "Hide Edit Buttons";
+    }
   });
 
   const li = document.createElement("li");
@@ -76,6 +89,7 @@ function createGoalElement(text, completed = false) {
 
   const span = document.createElement("span");
   span.textContent = text;
+  span.className = "goal-text";
   li.appendChild(span);
 
   const deleteBtn = document.createElement("span");
@@ -87,22 +101,17 @@ function createGoalElement(text, completed = false) {
   });
   li.appendChild(deleteBtn);
 
-  let isEdited = false; // Track if the goal was edited
-
   editBtn.addEventListener("click", () => {
     const newText = prompt("Edit goal:", span.textContent);
     if (newText && newText.trim()) {
       const trimmedNewText = newText.trim();
-      // Check if the new text is a duplicate across all categories
-      if (!isDuplicateGoal(trimmedNewText, li.closest('ul').id)) {
+      const duplicateCategory = checkForDuplicateGoal(trimmedNewText, li.closest('ul').id);
+      if (!duplicateCategory) {
         span.textContent = trimmedNewText;
-        isEdited = true; // Mark as edited
         saveCurrentGoals();
-        
-        // Only alert when the goal was actually edited (text changed)
         alert("Goal has been edited successfully!");
       } else {
-        alert("The goal already exists in another category."); // This alert is for editing
+        alert(`The goal "${trimmedNewText}" already exists in the "${duplicateCategory}" category.`);
       }
     }
   });
@@ -170,10 +179,14 @@ async function saveCurrentGoals() {
     const category = ul.id.replace('-goals-list', '');
     const goals = Array.from(ul.children)
       .filter(li => !li.classList.contains('edit-toggle-li'))
-      .map(li => ({
-        text: li.querySelector('span').textContent,
-        completed: li.querySelector('input').checked
-      }));
+      .map(li => {
+        const span = li.querySelector('span');
+        return {
+          text: span.textContent.trim(),
+          completed: li.querySelector('input').checked
+        };
+      })
+      .filter(goal => goal.text.length > 0); // Ignore empty goals
 
     try {
       await saveGoalsData(category, goals);
@@ -196,7 +209,6 @@ function bindGoalForm() {
       const goalList = document.querySelector(`#${selectedCategory}-goals-list`);
 
       if (newGoalText && goalList) {
-        // Check for duplicate goals across all categories
         const duplicateCategory = checkForDuplicateGoal(newGoalText);
         if (duplicateCategory) {
           alert(`The goal "${newGoalText}" already exists in the "${duplicateCategory}" category.`);
@@ -205,27 +217,26 @@ function bindGoalForm() {
           goalList.appendChild(li);
           goalInput.value = "";
           await saveCurrentGoals();
-          
-          alert(`Goal "${newGoalText}" added successfully!`); // Show add goal success alert
+          alert(`Goal "${newGoalText}" added successfully!`);
         }
       }
     });
   }
 }
 
-// Function to check for duplicates across all categories
-function checkForDuplicateGoal(newText) {
+function checkForDuplicateGoal(newText, currentListId = "") {
   const allGoalLists = document.querySelectorAll('.goal-category ul');
-  const categories = ['daily', 'weekly', 'monthly', 'yearly'];
 
   for (const list of allGoalLists) {
     const category = list.id.replace('-goals-list', '');
-    const existingGoals = list.querySelectorAll('li span');
-    for (const goal of existingGoals) {
-      if (goal.textContent === newText) {
-        return category; // Return the category if the goal is a duplicate
+    if (list.id !== currentListId) {
+      const goals = list.querySelectorAll('li .goal-text');
+      for (const goal of goals) {
+        if (goal.textContent.trim() === newText) {
+          return category;
+        }
       }
     }
   }
-  return null; // No duplicate found
+  return null;
 }
