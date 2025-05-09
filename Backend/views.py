@@ -84,3 +84,33 @@ def all_goals_page():
         monthly_goals=get_goals_by_category(user_id, 'monthly'),
         yearly_goals=get_goals_by_category(user_id, 'yearly')
     )
+
+# Route to save goals for a specific category (e.g., daily, weekly)
+@views_bp.route('/goals/save', methods=['POST'])
+def save_goals():
+    if 'user_id' not in session:
+        flash("Please log in first", "warning")
+        return redirect(url_for('auth.login'))
+
+    user_id = session['user_id']
+    category = request.form.get('category')
+    goals = request.form.getlist('goals')  # List of goals to be saved
+
+    try:
+        save_goals_for_category(user_id, category, goals)
+        flash(f"Goals for {category} saved successfully!", 'success')
+        return redirect(url_for('views.goals_page', category=category))
+    except Exception as e:
+        flash(f"Error saving goals: {str(e)}", 'error')
+        return redirect(url_for('views.goals_page', category=category))
+
+# Route to reset all goals for the user
+@views_bp.route('/goals/reset', methods=['POST'])
+def reset_goals():
+    if 'user_id' not in session:
+        flash("Please log in first", "warning")
+        return redirect(url_for('auth.login'))
+
+    reset_all_goals(session['user_id'])
+    flash("All goals have been reset.", 'info')
+    return redirect(url_for('views.habit_tracker'))

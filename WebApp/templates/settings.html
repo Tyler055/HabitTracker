@@ -3,8 +3,8 @@
 {% block title %}Settings & Notifications - Goal Tracker{% endblock %}
 
 {% block styles %}
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-  <link rel="icon" href="{{ url_for('static', filename='img/favicon.ico') }}" type="image/x-icon" />
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<link rel="icon" href="{{ url_for('static', filename='img/favicon.ico') }}" type="image/x-icon" />
 {% endblock %}
 
 {% block content %}
@@ -64,9 +64,13 @@
 
     <!-- Create New Notification -->
     <h2>Create New Notification</h2>
-    <form method="POST" action="{{ url_for('views.settings') }}" id="create-notification-form">
+    <form method="POST" id="create-notification-form">
       <label for="message">Message:</label>
       <input type="text" id="message" name="message" required>
+
+      <label for="notification-time">Notification Time:</label>
+      <input type="datetime-local" id="notification-time" name="notification-time" required>
+
       <button type="submit">Add Notification</button>
     </form>
 
@@ -79,6 +83,5 @@
 {% endblock %}
 
 {% block scripts %}
-  <script type="module" src="{{ url_for('static', filename='js/settings.js') }}"></script>
-  <script type="module" src="{{ url_for('static', filename='js/script.js') }}"></script>
+<script type="module" src="{{ url_for('static', filename='js/settings.js') }}"></script>
 {% endblock %}

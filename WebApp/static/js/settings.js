@@ -5,11 +5,13 @@ const themeSelector = document.getElementById('theme-selector');
 const emailToggle = document.getElementById('email-notifications');
 const pushToggle = document.getElementById('push-notifications');
 const saveNotificationsBtn = document.getElementById('save-notifications');
-const clearNotificationsBtn = document.getElementById('clear-notifications'); 
+const clearNotificationsBtn = document.getElementById('clear-notifications');
 const notificationList = document.getElementById('notification-list');
 
 // Notification Creation Form
 const createNotificationForm = document.getElementById('create-notification-form');
+const messageInput = document.getElementById('message');
+const notificationTimeInput = document.getElementById('notification-time');
 
 // Load settings from localStorage on page load
 window.addEventListener('DOMContentLoaded', () => {
@@ -33,10 +35,26 @@ window.addEventListener('DOMContentLoaded', () => {
     savedNotifications.forEach((notification) => {
       addNotificationToDOM(notification.message, notification.time);
     });
+
+    // Load scheduled notifications
+    const scheduledNotifications = JSON.parse(localStorage.getItem('scheduledNotifications')) || [];
+    scheduledNotifications.forEach(schedule => {
+      scheduleNotification(schedule.message, schedule.time);
+    });
+
   } catch (err) {
     console.error('Error loading settings from localStorage:', err);
   }
 });
+
+// Save theme preference
+if (themeSelector) {
+  themeSelector.addEventListener('change', (event) => {
+    const selectedTheme = event.target.value;
+    localStorage.setItem('theme', selectedTheme);
+    document.body.setAttribute('data-theme', selectedTheme);
+  });
+}
 
 // Save notification preferences (email and push)
 if (saveNotificationsBtn) {
@@ -55,17 +73,8 @@ if (saveNotificationsBtn) {
 // Clear notifications
 if (clearNotificationsBtn) {
   clearNotificationsBtn.addEventListener('click', () => {
-    const items = document.querySelectorAll('.notification-item');
-    if (items.length === 0) {
-      alert('No notifications to clear.');
-      return;
-    }
-
-    // Remove all notification items from the DOM
-    items.forEach(item => item.remove());
-
-    // Clear notifications from localStorage
     localStorage.removeItem('notifications');
+    notificationList.innerHTML = '';
     alert('All notifications cleared.');
   });
 }
@@ -75,11 +84,11 @@ if (createNotificationForm) {
   createNotificationForm.addEventListener('submit', (event) => {
     event.preventDefault();
 
-    const messageInput = document.getElementById('message');
     const message = messageInput.value.trim();
+    const time = notificationTimeInput.value;
 
-    if (message && message.length > 0) {
-      const notificationTime = new Date().toLocaleTimeString();
+    if (message && time) {
+      const notificationTime = new Date(time).toLocaleTimeString();
 
       // Add notification to DOM
       addNotificationToDOM(message, notificationTime);
@@ -89,18 +98,21 @@ if (createNotificationForm) {
       notifications.push({ message, time: notificationTime });
       localStorage.setItem('notifications', JSON.stringify(notifications));
 
+      // Schedule the notification
+      scheduleNotification(message, time);
+
       // Clear input after adding notification
       messageInput.value = '';
+      notificationTimeInput.value = '';
       alert('New notification added!');
     } else {
-      alert('❌ Please enter a valid message.');
+      alert('❌ Please enter a valid message and time.');
     }
   });
 }
 
 // Function to add notification to the DOM
 function addNotificationToDOM(message, time) {
-  if (!notificationList) return;
   const newNotification = document.createElement('div');
   newNotification.classList.add('notification-item');
   newNotification.innerHTML = `
@@ -108,4 +120,18 @@ function addNotificationToDOM(message, time) {
     <span class="notification-time">${time}</span>
   `;
   notificationList.appendChild(newNotification);
+}
+
+// Function to schedule a notification
+function scheduleNotification(message, time) {
+  const notificationTime = new Date(time).getTime();
+  const now = Date.now();
+  const delay = notificationTime - now;
+
+  if (delay > 0) {
+    setTimeout(() => {
+      alert(`🔔 Notification: ${message}`);
+      addNotificationToDOM(message, new Date().toLocaleTimeString());
+    }, delay);
+  }
 }
