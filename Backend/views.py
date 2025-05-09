@@ -16,17 +16,8 @@ def habit_tracker():
 # Route for the advanced goals page
 @views_bp.route('/advanced')
 def get_advanced_data():
-    if 'user_id' not in session:
-        flash("Please log in first", "warning")
-        return redirect(url_for('auth.login'))
-
     user_id = session['user_id']
     category = request.args.get('category')
-    
-    if not category:
-        flash("Category is required", "error")
-        return redirect(url_for('views.habit_tracker'))
-    
     try:
         goals = get_goals_by_category(user_id, category)
         return render_template('advanced.html', category=category, goals=goals)
@@ -76,10 +67,7 @@ def goals_page(category):
         goals = get_goals_by_category(session['user_id'], category)
         return render_template(f'{category}.html', goals=goals)
     except TemplateNotFound:
-        flash(f"Category '{category}' template not found.", 'error')
-        return redirect(url_for('views.habit_tracker'))
-    except Exception as e:
-        flash(f"Error retrieving goals for category '{category}': {str(e)}", 'error')
+        flash(f"Category '{category}' not found", 'error')
         return redirect(url_for('views.habit_tracker'))
 
 # Route to display all goals across all categories
@@ -90,13 +78,9 @@ def all_goals_page():
         return redirect(url_for('auth.login'))
 
     user_id = session['user_id']
-    try:
-        return render_template('all-goals.html',
-            daily_goals=get_goals_by_category(user_id, 'daily'),
-            weekly_goals=get_goals_by_category(user_id, 'weekly'),
-            monthly_goals=get_goals_by_category(user_id, 'monthly'),
-            yearly_goals=get_goals_by_category(user_id, 'yearly')
-        )
-    except Exception as e:
-        flash(f"Error retrieving goals: {str(e)}", 'error')
-        return redirect(url_for('views.habit_tracker'))
+    return render_template('all-goals.html',
+        daily_goals=get_goals_by_category(user_id, 'daily'),
+        weekly_goals=get_goals_by_category(user_id, 'weekly'),
+        monthly_goals=get_goals_by_category(user_id, 'monthly'),
+        yearly_goals=get_goals_by_category(user_id, 'yearly')
+    )
