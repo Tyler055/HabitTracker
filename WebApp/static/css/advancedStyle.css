@@ -120,7 +120,7 @@ select,
 button {
   padding: 0.6rem;
   border-radius: 8px;
-  border: 1px solid #cecaca;;
+  border: 1px solid #cecaca;
   font-size: 1rem;
   background-color: #cecaca;
 }
@@ -240,12 +240,20 @@ button:hover {
   background-color: var(--message-error-bg-color);
 }
 
-/* Optional Manual Dark Mode */
-body.dark-mode {
-  background-color: #484646;
-  color: #e0e0e0;
+/* Toggle Link Style (Small, Thin, Non-Button Look) */
+.toggle-link {
+  font-size: 12px;           /* Smaller font size for minimal appearance */
+  font-weight: normal;       /* Lighter font weight for subtlety */
+  text-decoration: none;     /* No underline */
+  color: #4A90E2;            /* Blue color (good contrast with purple background) */
+  padding: 2px 8px;          /* Minimal padding for clickability */
+  margin-top: 10px;          /* Some space between the form and the link */
+  display: inline-block;     /* Inline-block for flexible placement */
+  border-radius: 5px;        /* Optional rounded corners */
+  transition: all 0.3s ease; /* Smooth transition for hover effect */
 }
 
-.dark-mode .goal-card {
-  background-color: #2c2c2c;
+.toggle-link:hover {
+  background-color: #f0f0f0; /* Subtle background on hover */
+  color: #007bff;             /* Darker blue for hover */
 }

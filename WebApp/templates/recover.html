@@ -100,33 +100,35 @@
         {% endif %}
     {% endwith %}
 
-    <!-- Step 1: Email Verification -->
-    {% if recovery_step == 1 %}
-    <form method="POST" action="{{ url_for('auth.recover') }}">
+    <!-- Step 1: Username and Email Verification -->
+    {% if recovery_step == '1' %}
+    <form method="POST" action="{{ url_for('auth.recover', step='1') }}">
         {{ form.hidden_tag() }}
+        <div class="form-group">
+            <label for="username">Username</label>
+            {{ form.username(class="form-control", placeholder="Enter your username") }}
+        </div>
         <div class="form-group">
             <label for="email">Email</label>
             {{ form.email(class="form-control", placeholder="Enter your email") }}
         </div>
         <button type="submit">Verify Identity</button>
     </form>
-    {% endif %}
 
+    {% elif recovery_step == '2' %}
     <!-- Step 2: Verification Code -->
-    {% if recovery_step == 2 %}
-    <form method="POST" action="{{ url_for('auth.recover') }}">
+    <form method="POST" action="{{ url_for('auth.recover', step='2') }}">
         {{ form.hidden_tag() }}
         <div class="form-group">
-            <label for="verification_code">Verification Code</label>
-            {{ form.verification_code(class="form-control", placeholder="Enter the code sent to your email") }}
+            <label for="code">Verification Code</label>
+            {{ form.code(class="form-control", placeholder="Enter the code sent to your email") }}
         </div>
         <button type="submit">Submit Code</button>
     </form>
-    {% endif %}
 
+    {% elif recovery_step == '3' %}
     <!-- Step 3: Password Reset -->
-    {% if recovery_step == 3 %}
-    <form method="POST" action="{{ url_for('auth.recover') }}">
+    <form method="POST" action="{{ url_for('auth.recover', step='3') }}">
         {{ form.hidden_tag() }}
         <div class="form-group">
             <label for="new_password">New Password</label>
@@ -143,7 +145,9 @@
     <button class="back-button" onclick="window.location.href='{{ url_for('auth.login') }}'">Back to Login</button>
 
     {% if verification_code %}
-    <script>console.log("Verification Code (for testing): {{ verification_code }}");</script>
+    <script>
+        console.log("Verification Code (for testing): {{ verification_code }}");
+    </script>
     {% endif %}
 </div>
 </body>
