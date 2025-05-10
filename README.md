@@ -21,6 +21,7 @@ The user interface supports intuitive navigation, allowing users to switch betwe
 *(Optional: Add screenshots of the UI, code snippets showing how goals are saved or loaded, or a step-by-step user interaction flow.)*
 
 !img-RDME/Sign-up.png
+![Sign-up Image](/img-RDME/Sign-up.png)
 
 ## Current Status (Final Developer Notes)
 
