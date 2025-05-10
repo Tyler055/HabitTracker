@@ -68,6 +68,7 @@ My full codebase is available on GitHub, to the best of my knowledge.”
 ### Notifications
 
 ![Notifications](/img-RDME/notifications.png)
+![Motivational Quote](/img-RDME/Motiv-quote.png)
 
 ### Profile
 
