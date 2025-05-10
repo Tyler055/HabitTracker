@@ -2,7 +2,7 @@ import { fetchContent, saveGoalsData, resetGoalsData } from './saveData.js';
 
 document.addEventListener("DOMContentLoaded", async function () {
   const logoutBtn = document.getElementById("logout-btn");
-
+  
   await loadGoalsFromDB();
   initializeDragAndDrop();
   bindGoalForm();
@@ -93,7 +93,7 @@ function createGoalElement(text, completed = false) {
   li.appendChild(span);
 
   const deleteBtn = document.createElement("span");
-  deleteBtn.textContent = "×";
+  deleteBtn.textContent = "X"; // Changed to "X"
   deleteBtn.className = "delete-btn";
   deleteBtn.addEventListener("click", () => {
     li.remove();
@@ -211,7 +211,7 @@ function bindGoalForm() {
       if (!selectedCategory) {
         // Get the current page category (e.g., "yearly")
         const pageCategory = getPageCategory();
-        selectedCategory = pageCategory;  // Use the page category as default
+        selectedCategory = pageCategory; // Use the page category as default
       }
 
       const goalList = document.querySelector(`#${selectedCategory}-goals-list`);
@@ -250,8 +250,6 @@ function checkForDuplicateGoal(newText, currentListId = "") {
 }
 
 function getPageCategory() {
-  // This function detects the page category based on the current page
-  // For example, if you're on the "yearly" page, it returns "yearly".
   if (window.location.pathname.includes("yearly")) {
     return "yearly";
   }
@@ -264,5 +262,5 @@ function getPageCategory() {
   if (window.location.pathname.includes("daily")) {
     return "daily";
   }
-  return "daily"; // Default to "daily" if no category found
+  return "daily";
 }
