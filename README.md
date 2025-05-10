@@ -18,10 +18,20 @@ The user interface supports intuitive navigation, allowing users to switch betwe
 
 ## Examples
 
+### Sign-up
+
 ![Sign-up Image](/img-RDME/Sign-up.png)
+
+### login
+
 ![Login Page](/img-RDME/login.png)
 
+### Duplicate Detection
+
 ![Duplicate Detection](/img-RDME/Dupe-detect.png)
+
+### Edit
+
 ![Edit Feature](/img-RDME/Edit.png)
 
 ## Current Status (Final Developer Notes)
@@ -47,23 +57,23 @@ My full codebase is available on GitHub, to the best of my knowledge.”
 
 ![Navigation Bar](/img-RDME/navigation-bar.png)
 
-## Motivational Quote
+### Motivational Quote
 
 ![Motivational Quote](/img-RDME/Motiv-quote.png)
 
-## Categories
+### Categories
 
 ![Categories](/img-RDME/categotes.png)
 
-## Notifications
+### Notifications
 
 ![Notifications](/img-RDME/notifications.png)
 
-## Profile
+### Profile
 
 ![Profile Page](/img-RDME/profile.png)
 
-## Filter
+### Filter
 
 ![Advanced Filter](/img-RDME/Advancde-filter.png)
 
