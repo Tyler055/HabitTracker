@@ -18,10 +18,11 @@ The user interface supports intuitive navigation, allowing users to switch betwe
 
 ## Examples
 
-*(Optional: Add screenshots of the UI, code snippets showing how goals are saved or loaded, or a step-by-step user interaction flow.)*
-
-!img-RDME/Sign-up.png
 ![Sign-up Image](/img-RDME/Sign-up.png)
+![Login Page](/img-RDME/login.png)
+
+![Duplicate Detection](/img-RDME/Dupe-detect.png)
+![Edit Feature](/img-RDME/Edit.png)
 
 ## Current Status (Final Developer Notes)
 
@@ -39,3 +40,13 @@ The “Advanced” page is the one area that still needs real attention. I didn�
 
 My full codebase is available on GitHub, to the best of my knowledge.”
 — *Tyler*
+
+## More Examples
+
+![Advanced Filter](/img-RDME/Advancde-filter.png)
+![Advanced Options](/img-RDME/Advancde-options.png)
+![Categories](/img-RDME/categotes.png)
+![Motivational Quote](/img-RDME/Motiv-quote.png)
+![Navigation Bar](/img-RDME/navigation-bar.png)
+![Notifications](/img-RDME/notifications.png)
+![Profile Page](/img-RDME/profile.png)
