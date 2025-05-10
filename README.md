@@ -20,6 +20,7 @@ The user interface supports intuitive navigation, allowing users to switch betwe
 
 *(Optional: Add screenshots of the UI, code snippets showing how goals are saved or loaded, or a step-by-step user interaction flow.)*
 
+
 ## Current Status (Final Developer Notes)
 
 “I’ve fixed all the major implementation bugs—habits can now be added to any category on any page, and they save correctly in their respective categories. Everything appears to be working as intended, with no obvious issues remaining.
