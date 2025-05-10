@@ -43,17 +43,30 @@ My full codebase is available on GitHub, to the best of my knowledge.”
 
 ## More Examples
 
-Navbar
+### Navbar
+
 ![Navigation Bar](/img-RDME/navigation-bar.png)
-Motivational Quote
+
+## Motivational Quote
+
 ![Motivational Quote](/img-RDME/Motiv-quote.png)
-Categories
+
+## Categories
+
 ![Categories](/img-RDME/categotes.png)
-Notifications
+
+## Notifications
+
 ![Notifications](/img-RDME/notifications.png)
-Profile
+
+## Profile
+
 ![Profile Page](/img-RDME/profile.png)
-Filter
+
+## Filter
+
 ![Advanced Filter](/img-RDME/Advancde-filter.png)
-Options
+
+### Options
+
 ![Advanced Options](/img-RDME/Advancde-options.png)
