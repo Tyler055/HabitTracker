@@ -43,10 +43,17 @@ My full codebase is available on GitHub, to the best of my knowledge.”
 
 ## More Examples
 
-![Advanced Filter](/img-RDME/Advancde-filter.png)
-![Advanced Options](/img-RDME/Advancde-options.png)
-![Categories](/img-RDME/categotes.png)
-![Motivational Quote](/img-RDME/Motiv-quote.png)
+Navbar
 ![Navigation Bar](/img-RDME/navigation-bar.png)
+Motivational Quote
+![Motivational Quote](/img-RDME/Motiv-quote.png)
+Categories
+![Categories](/img-RDME/categotes.png)
+Notifications
 ![Notifications](/img-RDME/notifications.png)
+Profile
 ![Profile Page](/img-RDME/profile.png)
+Filter
+![Advanced Filter](/img-RDME/Advancde-filter.png)
+Options
+![Advanced Options](/img-RDME/Advancde-options.png)
