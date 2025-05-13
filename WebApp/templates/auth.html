@@ -24,19 +24,19 @@
       {% endif %}
     {% endwith %}
 
-    <!-- Toggle checkbox -->
-    <input type="checkbox" id="chk" aria-hidden="true" {{ 'checked' if mode == 'signup' else '' }}>
+    <!-- Toggle checkbox (used for tabbed form animation) -->
+    <input type="checkbox" id="chk" tabindex="-1" class="hidden-checkbox" title="Toggle Sign-up/Login" {{ 'checked' if mode == 'signup' else '' }}>
 
     <!-- Sign-up Form -->
     <div class="signup">
       <form method="POST" action="{{ url_for('auth.signup') }}" autocomplete="on">
-        {{ signup_form.hidden_tag() }}
-        <label for="chk" aria-hidden="true">Sign up</label>
+        {{ signup_form.csrf_token(id="signup_csrf_token") }}
+        <label for="chk">Sign up</label>
 
         {{ signup_form.username(placeholder="User name", required=True, aria_label="Username", autocomplete="username") }}
         {{ signup_form.email(placeholder="Email", required=True, aria_label="Email", autocomplete="email") }}
         {{ signup_form.password(id="signup_password", placeholder="Password", required=True, aria_label="Password", autocomplete="new-password") }}
-        {{ signup_form.confirm_password(placeholder="Confirm Password", required=True, aria_label="Confirm Password", autocomplete="new-password") }}
+        {{ signup_form.confirm_password(id="signup_confirm_password", placeholder="Confirm Password", required=True, aria_label="Confirm Password", autocomplete="new-password") }}
 
         <button type="submit">Sign up</button>
       </form>
@@ -45,16 +45,15 @@
     <!-- Login Form -->
     <div class="login">
       <form method="POST" action="{{ url_for('auth.login') }}" autocomplete="on">
-        {{ login_form.hidden_tag() }}
-        <label for="chk" aria-hidden="true">Login</label>
+        {{ login_form.csrf_token(id="login_csrf_token") }}
+        <label for="chk">Login</label>
         
         {{ login_form.identity(placeholder="Username or Email", required=True, aria_label="Username or Email", autocomplete="username") }}
         {{ login_form.password(id="login_password", placeholder="Password", required=True, aria_label="Password", autocomplete="current-password") }}
         
         <button type="submit">Login</button>
-      
-      <!-- Password recovery link -->
-      <a href="{{ url_for('auth.recover') }}">Forgot Password?</a>
+        <a href="{{ url_for('auth.recover') }}">Forgot Password?</a>
+      </form>
     </div>
   </div>
 </body>

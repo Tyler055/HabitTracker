@@ -1,7 +1,7 @@
 import sqlite3
 import os
 from flask import Flask, g
-from datetime import datetime, timedelta
+from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 
 DATABASE_PATH = os.path.join(os.path.dirname(__file__), 'habitDatabase.sqlite')
@@ -26,7 +26,6 @@ def init_db():
     conn = get_db_connection()
     cur = conn.cursor()
 
-    # Create users table with soft-delete
     cur.execute('''
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -38,8 +37,6 @@ def init_db():
             deleted_at TEXT
         )
     ''')
-
-    # Create goals table
     cur.execute('''
         CREATE TABLE IF NOT EXISTS goals (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -51,8 +48,6 @@ def init_db():
             FOREIGN KEY (user_id) REFERENCES users(id)
         )
     ''')
-
-    # Create user settings table
     cur.execute('''
         CREATE TABLE IF NOT EXISTS user_settings (
             user_id INTEGER PRIMARY KEY,
@@ -62,8 +57,6 @@ def init_db():
             FOREIGN KEY (user_id) REFERENCES users(id)
         )
     ''')
-
-    # Create notifications table
     cur.execute('''
         CREATE TABLE IF NOT EXISTS notifications (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -73,8 +66,6 @@ def init_db():
             FOREIGN KEY (user_id) REFERENCES users(id)
         )
     ''')
-
-    # Create tokens table for various tokens
     cur.execute('''
         CREATE TABLE IF NOT EXISTS tokens (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -85,8 +76,6 @@ def init_db():
             FOREIGN KEY (user_id) REFERENCES users(id)
         )
     ''')
-
-    # Create feature flags table
     cur.execute('''
         CREATE TABLE IF NOT EXISTS feature_flags (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -95,11 +84,9 @@ def init_db():
         )
     ''')
 
-    # Add indexes to optimize queries
     cur.execute('CREATE INDEX IF NOT EXISTS idx_users_username ON users (username)')
     cur.execute('CREATE INDEX IF NOT EXISTS idx_users_email ON users (email)')
     cur.execute('CREATE INDEX IF NOT EXISTS idx_goals_user_id ON goals (user_id)')
-
     conn.commit()
 
 # --- Feature Flag Management ---
@@ -113,8 +100,7 @@ def is_feature_enabled(feature_name):
 def insert_feature_flag(feature_name, is_enabled=1):
     conn = get_db_connection()
     cur = conn.cursor()
-    cur.execute('INSERT INTO feature_flags (feature_name, is_enabled) VALUES (?, ?)', 
-                (feature_name, is_enabled))
+    cur.execute('INSERT INTO feature_flags (feature_name, is_enabled) VALUES (?, ?)', (feature_name, is_enabled))
     conn.commit()
 
 # --- Token Management ---
@@ -122,7 +108,7 @@ def insert_token(user_id, token_name, token_value):
     conn = get_db_connection()
     cur = conn.cursor()
     created_at = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    cur.execute('INSERT INTO tokens (user_id, token_name, token_value, created_at) VALUES (?, ?, ?, ?)', 
+    cur.execute('INSERT INTO tokens (user_id, token_name, token_value, created_at) VALUES (?, ?, ?, ?)',
                 (user_id, token_name, token_value, created_at))
     conn.commit()
 
@@ -158,16 +144,13 @@ def find_all_users():
     return [dict(row) for row in cur.fetchall()]
 
 def create_user(username, password, email=None):
-    try:
-        if find_user_by_username(username) or (email and find_user_by_email(email)):
-            raise ValueError("User with this identifier already exists.")
-        conn = get_db_connection()
-        hashed_password = generate_password_hash(password)
-        conn.execute('INSERT INTO users (username, password, email) VALUES (?, ?, ?)', 
-                     (username, hashed_password, email))
-        conn.commit()
-    except sqlite3.IntegrityError as e:
-        raise ValueError("Database Integrity Error: " + str(e))
+    if find_user_by_username(username) or (email and find_user_by_email(email)):
+        raise ValueError("User with this identifier already exists.")
+    conn = get_db_connection()
+    hashed_password = generate_password_hash(password)
+    conn.execute('INSERT INTO users (username, password, email) VALUES (?, ?, ?)',
+                 (username, hashed_password, email))
+    conn.commit()
 
 def delete_user(user_id):
     conn = get_db_connection()
@@ -192,12 +175,12 @@ def update_user_password(user_id, new_password):
     conn = get_db_connection()
     hashed_password = generate_password_hash(new_password)
     conn.execute('UPDATE users SET password = ? WHERE id = ?', (hashed_password, user_id))
-    insert_token(user_id, 'last_password_reset', datetime.now().strftime('%Y-%m-%d %H:%M:%S'))  # Store password reset time
+    insert_token(user_id, 'last_password_reset', datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
     conn.commit()
 
 def update_user_reset_token(user_id, reset_token, expiry):
     conn = get_db_connection()
-    conn.execute('UPDATE users SET reset_token = ?, reset_token_expiry = ? WHERE id = ?', 
+    conn.execute('UPDATE users SET reset_token = ?, reset_token_expiry = ? WHERE id = ?',
                  (reset_token, expiry, user_id))
     conn.commit()
 
@@ -227,7 +210,7 @@ def save_goals_for_category(user_id, category, goals):
     conn = get_db_connection()
     cur = conn.cursor()
     for goal in goals:
-        cur.execute('INSERT INTO goals (user_id, category, text, completed) VALUES (?, ?, ?, ?)', 
+        cur.execute('INSERT INTO goals (user_id, category, text, completed) VALUES (?, ?, ?, ?)',
                     (user_id, category, goal['text'], goal.get('completed', 0)))
     conn.commit()
 
@@ -252,7 +235,7 @@ def get_notifications(user_id):
 def create_notification(user_id, message, time=None):
     conn = get_db_connection()
     time = time or datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    conn.execute('INSERT INTO notifications (user_id, message, time) VALUES (?, ?, ?)', 
+    conn.execute('INSERT INTO notifications (user_id, message, time) VALUES (?, ?, ?)',
                  (user_id, message, time))
     conn.commit()
 
