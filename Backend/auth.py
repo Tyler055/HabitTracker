@@ -31,9 +31,7 @@ class SignupForm(FlaskForm):
 class ChangePasswordForm(FlaskForm):
     old_password = PasswordField('Old Password', validators=[DataRequired()])
     new_password = PasswordField('New Password', validators=[DataRequired()])
-    confirm_password = PasswordField('Confirm New Password', validators=[
-        DataRequired(), EqualTo('new_password', message="Passwords must match.")
-    ])
+    confirm_password = PasswordField('Confirm New Password', validators=[DataRequired(), EqualTo('new_password', message="Passwords must match.")])
     submit = SubmitField('Change Password')
 
 class IdentityForm(FlaskForm):
@@ -47,9 +45,7 @@ class CodeForm(FlaskForm):
 
 class PasswordResetForm(FlaskForm):
     new_password = PasswordField('New Password', validators=[DataRequired()])
-    confirm_password = PasswordField('Confirm Password', validators=[
-        DataRequired(), EqualTo('new_password', message="Passwords must match.")
-    ])
+    confirm_password = PasswordField('Confirm Password', validators=[DataRequired(), EqualTo('new_password', message="Passwords must match.")])
     submit = SubmitField('Reset Password')
 
 # ======================= Helper =======================
@@ -66,11 +62,25 @@ def login():
         identity = login_form.identity.data.strip().lower()
         password = login_form.password.data
 
-        user = find_user_by_username(identity) or find_user_by_email(identity)
-        if user and check_password_hash(user['password'], password):
-            session['user_id'] = user['id']
-            flash('Login successful.', 'success')
-            return redirect(url_for('views.habit_tracker'))  # Replace with your dashboard
+        # Debugging: print entered identity and password
+        print(f"Entered username/email: {identity}")
+        print(f"Entered password: {password}")
+
+        # Try finding the user by username first
+        user = find_user_by_username(identity)
+        if not user:
+            # If no user found by username, try email
+            user = find_user_by_email(identity)
+
+        if user:
+            print(f"Found user: {user['username']} / {user['email']}")
+            print(f"Stored password hash: {user['password']}")
+            if check_password_hash(user['password'], password):
+                session['user_id'] = user['id']
+                flash('Login successful.', 'success')
+                return redirect(url_for('views.habit_tracker'))  # Redirect to the desired page
+            else:
+                flash('Invalid password.', 'error')
         else:
             flash('Invalid username/email or password.', 'error')
 
@@ -91,12 +101,23 @@ def signup():
         email = signup_form.email.data.strip().lower()
         password = signup_form.password.data
 
+        # Debugging: print entered username, email, and password
+        print(f"Entered username: {username}")
+        print(f"Entered email: {email}")
+        print(f"Entered password: {password}")
+
         if find_user_by_username(username):
             flash('Username already exists.', 'error')
+            print(f"Username {username} already exists in the database.")
         elif find_user_by_email(email):
             flash('Email already in use.', 'error')
+            print(f"Email {email} already exists in the database.")
         else:
             hashed_password = generate_password_hash(password)
+            print(f"Hashed password: {hashed_password}")
+
+            # Debugging: print the user data being registered to the database
+            print(f"Registering new user: Username: {username}, Email: {email}, Password Hash: {hashed_password}")
             create_user(username, email, hashed_password)
             flash('Account created successfully. You can now log in.', 'success')
             return redirect(url_for('auth.login'))
@@ -153,6 +174,11 @@ def recover():
         if form.validate_on_submit():
             username = form.username.data.strip().lower()
             email = form.email.data.strip().lower()
+
+            # Debugging: print entered username and email
+            print(f"Entered username for recovery: {username}")
+            print(f"Entered email for recovery: {email}")
+
             user = find_user_by_username(username)
 
             if user and user['email'].lower() == email:

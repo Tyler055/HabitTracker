@@ -35,7 +35,7 @@
 
         {{ signup_form.username(placeholder="User name", required=True, aria_label="Username", autocomplete="username") }}
         {{ signup_form.email(placeholder="Email", required=True, aria_label="Email", autocomplete="email") }}
-        {{ signup_form.password(placeholder="Password", required=True, aria_label="Password", autocomplete="new-password") }}
+        {{ signup_form.password(id="signup_password", placeholder="Password", required=True, aria_label="Password", autocomplete="new-password") }}
         {{ signup_form.confirm_password(placeholder="Confirm Password", required=True, aria_label="Confirm Password", autocomplete="new-password") }}
 
         <button type="submit">Sign up</button>
@@ -49,10 +49,9 @@
         <label for="chk" aria-hidden="true">Login</label>
         
         {{ login_form.identity(placeholder="Username or Email", required=True, aria_label="Username or Email", autocomplete="username") }}
-        {{ login_form.password(placeholder="Password", required=True, aria_label="Password", autocomplete="current-password") }}
+        {{ login_form.password(id="login_password", placeholder="Password", required=True, aria_label="Password", autocomplete="current-password") }}
         
         <button type="submit">Login</button>
-      </form>
       
       <!-- Password recovery link -->
       <a href="{{ url_for('auth.recover') }}">Forgot Password?</a>
