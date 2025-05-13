@@ -142,7 +142,8 @@
     </form>
     {% endif %}
 
-    <button class="back-button" onclick="window.location.href='{{ url_for('auth.login') }}'">Back to Login</button>
+    <button class="back-button" onclick="window.location.href='{{ url_for(\'auth.login\') }}'">Back to Login</button>
+    
 
     {% if verification_code %}
     <script>
