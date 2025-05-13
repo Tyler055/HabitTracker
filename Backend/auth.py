@@ -10,7 +10,7 @@ import string
 from dataservice import (
     create_user, find_user_by_username, find_user_by_email,
     find_user_by_id, update_user_password, update_user_reset_token,
-    delete_user_by_id,
+    delete_user,
 )
 
 auth_bp = Blueprint('auth', __name__)
@@ -25,11 +25,8 @@ class SignupForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired()])
     email = StringField('Email', validators=[Email()])
     password = PasswordField('Password', validators=[DataRequired()])
-    password_confirm = PasswordField('Confirm Password', validators=[
-        DataRequired(), EqualTo('password', message="Passwords must match.")
-    ])
+    confirm_password = PasswordField('Confirm Password', validators=[DataRequired(), EqualTo('password', message='Passwords must match')])
     submit = SubmitField('Sign Up')
-
 
 class ChangePasswordForm(FlaskForm):
     old_password = PasswordField('Old Password', validators=[DataRequired()])
@@ -64,14 +61,14 @@ def generate_verification_code(length=6):
 def login():
     form = LoginForm()
     if form.validate_on_submit():
-        identity = form.identity.data.strip().lower()  # Use 'identity' field
+        identity = form.identity.data.strip().lower()
         password = form.password.data
 
-        user = find_user_by_username(identity) or find_user_by_email(identity)  # Check by username or email
+        user = find_user_by_username(identity) or find_user_by_email(identity)
         if user and check_password_hash(user['password'], password):
             session['user_id'] = user['id']
             flash('Login successful.', 'success')
-            return redirect(url_for('views.habit_tracker'))  # Update to your actual home/dashboard route
+            return redirect(url_for('views.habit_tracker'))  # Replace with your dashboard
         else:
             flash('Invalid username/email or password.', 'error')
     return render_template('auth.html', form=form, form_type='login')
@@ -104,10 +101,13 @@ def logout():
 @auth_bp.route('/change_password', methods=['GET', 'POST'])
 def change_password():
     form = ChangePasswordForm()
-    if form.validate_on_submit():
-        user_id = session.get('user_id')
-        user = find_user_by_id(user_id)
+    user_id = session.get('user_id')
+    if not user_id:
+        flash('You must be logged in to change your password.', 'error')
+        return redirect(url_for('auth.login'))
 
+    if form.validate_on_submit():
+        user = find_user_by_id(user_id)
         if user and check_password_hash(user['password'], form.old_password.data):
             new_hashed = generate_password_hash(form.new_password.data)
             update_user_password(user_id, new_hashed)
@@ -121,7 +121,7 @@ def change_password():
 def delete_account():
     user_id = session.get('user_id')
     if user_id:
-        delete_user_by_id(user_id)
+        delete_user(user_id)
         session.pop('user_id', None)
         flash('Account deleted successfully.', 'success')
     else:
@@ -143,9 +143,11 @@ def recover():
                 code = generate_verification_code()
                 expiration = datetime.now(timezone.utc) + timedelta(minutes=10)
                 update_user_reset_token(user['id'], code, expiration)
+
                 session['reset_code'] = code
                 session['reset_email'] = email
                 session['verified_username'] = username
+
                 flash(f'Verification code sent to {email}. (Simulated)', 'info')
                 print(f"Verification Code for {username} ({email}): {code}")
                 return redirect(url_for('auth.recover', step='2'))
@@ -154,6 +156,10 @@ def recover():
         return render_template('recover.html', form=form, recovery_step='1')
 
     elif step == '2':
+        if 'reset_code' not in session:
+            flash('Start the recovery process again.', 'error')
+            return redirect(url_for('auth.recover', step='1'))
+
         form = CodeForm()
         if form.validate_on_submit():
             if form.code.data == session.get('reset_code'):
@@ -163,23 +169,29 @@ def recover():
         return render_template('recover.html', form=form, recovery_step='2')
 
     elif step == '3':
+        if 'verified_username' not in session:
+            flash('Recovery session expired. Start over.', 'error')
+            return redirect(url_for('auth.recover', step='1'))
+
         form = PasswordResetForm()
         if form.validate_on_submit():
-            username = session.get('verified_username')
-            user = find_user_by_username(username)
+            user = find_user_by_username(session['verified_username'])
             if user:
                 new_hashed = generate_password_hash(form.new_password.data)
                 update_user_password(user['id'], new_hashed)
-                flash('Password successfully reset. You can now log in.', 'success')
+
+                # Clean up recovery session
                 session.pop('verified_username', None)
                 session.pop('reset_code', None)
                 session.pop('reset_email', None)
+
+                flash('Password successfully reset. You can now log in.', 'success')
                 return redirect(url_for('auth.login'))
             else:
                 flash('User not found for password reset.', 'error')
                 return redirect(url_for('auth.recover', step='1'))
         return render_template('recover.html', form=form, recovery_step='3')
 
-    # Invalid fallback
+    # Fallback for invalid step
     flash('Invalid recovery step.', 'error')
     return redirect(url_for('auth.recover', step='1'))

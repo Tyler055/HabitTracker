@@ -1,67 +1,79 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ 'Log In' if form_type == 'login' else 'Sign Up' }}</title>
-    <style>
-        body { font-family: Arial, sans-serif; padding: 2em; max-width: 400px; margin: auto; }
-        form div { margin-bottom: 1em; }
-        .input { width: 100%; padding: 0.5em; border: 1px solid #ccc; border-radius: 4px; }
-        .btn { padding: 0.5em 1em; background-color: #007BFF; color: white; border: none; border-radius: 4px; cursor: pointer; }
-        .btn:hover { background-color: #0056b3; }
-        label { font-weight: bold; }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{{ 'Sign Up' if mode == 'signup' else 'Login' }}</title>
+
+  <!-- External CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/authStyle.css') }}">
+  <link href="https://fonts.googleapis.com/css2?family=Jost:wght@500&display=swap" rel="stylesheet">
+  <link rel="icon" href="{{ url_for('static', filename='img/favicon1.ico') }}" type="image/x-icon">
 </head>
+
 <body>
-    <h2>{{ 'Log In' if form_type == 'login' else 'Sign Up' }}</h2>
-
-    <form method="POST">
-        {{ form.hidden_tag() }}
-        
-        {% if form_type == 'login' %}
-            <div>
-                <label for="identity">{{ form.identity.label }}</label><br>
-                {{ form.identity(class_='input', placeholder='Username or Email', autocomplete='username') }}
-            </div>
-
-            <div>
-                <label for="password">{{ form.password.label }}</label><br>
-                {{ form.password(class_='input', placeholder='Password', autocomplete='current-password') }}
-            </div>
-
-        {% elif form_type == 'signup' %}
-            <div>
-                <label for="username">{{ form.username.label }}</label><br>
-                {{ form.username(class_='input', placeholder='Username', autocomplete='username') }}
-            </div>
-
-            <div>
-                <label for="email">{{ form.email.label }}</label><br>
-                {{ form.email(class_='input', placeholder='Email', autocomplete='email') }}
-            </div>
-
-            <div>
-                <label for="password">{{ form.password.label }}</label><br>
-                {{ form.password(class_='input', placeholder='Password', autocomplete='new-password') }}
-            </div>
-
-            <div>
-                <label for="password_confirm">{{ form.password_confirm.label }}</label><br>
-                {{ form.password_confirm(class_='input', placeholder='Confirm Password', autocomplete='new-password') }}
-            </div>
-        {% endif %}
-
-        <div>
-            {{ form.submit(class_='btn') }}
+  <div class="auth-container">
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash-messages">
+          {% for category, message in messages %}
+            <div class="flash {{ category }}">{{ message }}</div>
+          {% endfor %}
         </div>
-    </form>
+      {% endif %}
+    {% endwith %}
 
-    {% if form_type == 'login' %}
-        <p>Forgot your password? <a href="{{ url_for('auth.recover') }}">Recover it</a></p>
-        <p>Need an account? <a href="{{ url_for('auth.signup') }}">Sign up</a></p>
-    {% elif form_type == 'signup' %}
-        <p>Already have an account? <a href="{{ url_for('auth.login') }}">Log in</a></p>
-    {% endif %}
+    <!-- Form Card -->
+    <div class="form-card">
+      
+      <!-- Sign-Up Form -->
+      <div class="form-container signup-form" id="signup-form">
+        <form method="POST" action="{{ url_for('auth.signup') }}" autocomplete="on">
+          <label for="chk" aria-hidden="true">Sign up</label>
+          <input name="username" placeholder="Username" required value="{{ username or '' }}" aria-label="Username" autocomplete="username" class="input-field">
+          <input name="email" type="email" placeholder="Email" required value="{{ email or '' }}" aria-label="Email" autocomplete="email" class="input-field">
+          <input name="password" type="password" placeholder="Password" required aria-label="Password" autocomplete="new-password" class="input-field">
+          <input name="password_confirm" type="password" placeholder="Confirm Password" required aria-label="Confirm Password" autocomplete="new-password" class="input-field">
+          <button type="submit" class="submit-btn">Sign up</button>
+        </form>
+      </div>
+
+      <!-- Tab to toggle between forms -->
+      <div class="form-toggle-tab">
+        <span class="tab" onclick="toggleForm()">Login</span>
+      </div>
+
+      <!-- Login Form (Initially hidden) -->
+      <div class="form-container login-form" id="login-form" style="display: none;">
+        <form method="POST" action="{{ url_for('auth.login') }}" autocomplete="on">
+          {{ form.csrf_token }}
+          <label for="chk" aria-hidden="true">Login</label>
+          <input name="identifier" placeholder="Username or Email" required value="{{ session.get('identifier', '') }}" aria-label="Username or Email" autocomplete="username" class="input-field">
+          <input name="password" type="password" placeholder="Password" required aria-label="Password" autocomplete="current-password" class="input-field">
+          <button type="submit" class="submit-btn">Login</button>
+        </form>
+        <div class="forgot-password">
+          <a href="{{ url_for('auth.recover') }}" class="link">Forgot Password?</a>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+    function toggleForm() {
+      var signupForm = document.getElementById('signup-form');
+      var loginForm = document.getElementById('login-form');
+      if (signupForm.style.display === 'none') {
+        signupForm.style.display = 'block';
+        loginForm.style.display = 'none';
+      } else {
+        signupForm.style.display = 'none';
+        loginForm.style.display = 'block';
+      }
+    }
+  </script>
 </body>
 </html>

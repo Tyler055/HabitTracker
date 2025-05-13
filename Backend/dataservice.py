@@ -107,30 +107,29 @@ def create_user(username, password, email=None):
         raise ValueError("Database Integrity Error: " + str(e))
 
 def delete_user(user_id):
+    """
+    Permanently delete a user by their ID from the database.
+    """
     conn = get_db_connection()
     conn.execute('DELETE FROM users WHERE id = ?', (user_id,))
     conn.execute('DELETE FROM goals WHERE user_id = ?', (user_id,))
     conn.execute('DELETE FROM notifications WHERE user_id = ?', (user_id,))
     conn.execute('DELETE FROM user_settings WHERE user_id = ?', (user_id,))
     conn.commit()
-
-def delete_user_by_id(user_id):
-    conn = get_db_connection()
-    # Deleting user-related data from multiple tables to maintain integrity
-    conn.execute('DELETE FROM users WHERE id = ?', (user_id,))
-    conn.execute('DELETE FROM goals WHERE user_id = ?', (user_id,))
-    conn.execute('DELETE FROM notifications WHERE user_id = ?', (user_id,))
-    conn.execute('DELETE FROM user_settings WHERE user_id = ?', (user_id,))
-    conn.commit()
-
 
 def soft_delete_user(user_id):
+    """
+    Soft delete a user by setting 'deleted_at' field to the current timestamp.
+    """
     conn = get_db_connection()
     conn.execute('UPDATE users SET deleted_at = ? WHERE id = ?',
                  (datetime.now().strftime('%Y-%m-%d %H:%M:%S'), user_id))
     conn.commit()
 
 def restore_user(user_id):
+    """
+    Restore a soft-deleted user by setting 'deleted_at' field to NULL.
+    """
     conn = get_db_connection()
     conn.execute('UPDATE users SET deleted_at = NULL WHERE id = ?', (user_id,))
     conn.commit()
@@ -157,9 +156,9 @@ def update_user_reset_token(user_id, reset_token, expiry):
 def get_goals_by_category(user_id, category):
     conn = get_db_connection()
     cur = conn.cursor()
-    cur.execute('SELECT * FROM goals WHERE user_id = ? AND category = ? ORDER BY sort_order', 
+    cur.execute('SELECT * FROM goals WHERE user_id = ? AND category = ? ORDER BY sort_order',
                 (user_id, category))
-    return [{'id': row['id'], 'category': row['category'], 'text': row['text'], 'completed': row['completed']} 
+    return [{'id': row['id'], 'category': row['category'], 'text': row['text'], 'completed': row['completed']}
             for row in cur.fetchall()]
 
 def save_goals_for_category(user_id, category, goals):
