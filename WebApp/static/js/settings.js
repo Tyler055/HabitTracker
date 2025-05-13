@@ -65,7 +65,7 @@ if (saveNotificationsBtn) {
       alert('Notification preferences saved!');
     } catch (err) {
       console.error('Error saving notification preferences:', err);
-      alert('❌ Failed to save your notification preferences.');
+      alert('Failed to save your notification preferences.');
     }
   });
 }
@@ -106,19 +106,28 @@ if (createNotificationForm) {
       notificationTimeInput.value = '';
       alert('New notification added!');
     } else {
-      alert('❌ Please enter a valid message and time.');
+      alert('Please enter a valid message and time.');
     }
   });
 }
 
-// Function to add notification to the DOM
+// Secure Function to Add Notification to the DOM
 function addNotificationToDOM(message, time) {
   const newNotification = document.createElement('div');
   newNotification.classList.add('notification-item');
-  newNotification.innerHTML = `
-    <p><strong>${message}</strong></p>
-    <span class="notification-time">${time}</span>
-  `;
+
+  const messagePara = document.createElement('p');
+  const strongText = document.createElement('strong');
+  strongText.textContent = message; // Securely set text content
+  messagePara.appendChild(strongText);
+
+  const timeSpan = document.createElement('span');
+  timeSpan.classList.add('notification-time');
+  timeSpan.textContent = time; // Securely set text content
+
+  newNotification.appendChild(messagePara);
+  newNotification.appendChild(timeSpan);
+
   notificationList.appendChild(newNotification);
 }
 
@@ -130,7 +139,7 @@ function scheduleNotification(message, time) {
 
   if (delay > 0) {
     setTimeout(() => {
-      alert(`🔔 Notification: ${message}`);
+      alert(`Notification: ${message}`);
       addNotificationToDOM(message, new Date().toLocaleTimeString());
     }, delay);
   }

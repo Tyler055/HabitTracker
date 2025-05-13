@@ -1,8 +1,15 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from jinja2 import TemplateNotFound
 from dataservice import get_goals_by_category, save_goals_for_category, reset_all_goals, create_notification, get_notifications, clear_notifications, find_user_by_id
+from urllib.parse import urlparse
+
 # Create a new blueprint for views
 views_bp = Blueprint('views', __name__)
+
+# Function to validate safe URLs (internal redirects only)
+def is_safe_url(target):
+    parsed_url = urlparse(target)
+    return parsed_url.netloc == '' or parsed_url.netloc == 'localhost'  # Ensure that the domain is local (change this to your domain)
 
 # Route for the habit tracker page (index)
 @views_bp.route('/')

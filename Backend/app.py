@@ -1,7 +1,6 @@
-# app.py
 import os
 from flask import Flask
-from flask_mail import Mail 
+from flask_mail import Mail
 from dotenv import load_dotenv
 
 # ─── Load Environment Variables ─────────────────────────────
@@ -43,6 +42,12 @@ app.register_blueprint(auth_bp)
 app.register_blueprint(views_bp)
 app.register_blueprint(api_bp, url_prefix='/api')
 
+# ─── Set Debug Mode Based on Environment ────────────────────
+if os.environ.get('FLASK_ENV') == 'development':
+    app.config['DEBUG'] = True
+else:
+    app.config['DEBUG'] = False
+
 # ─── Run the App ───────────────────────────────────────────
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=app.config['DEBUG'])

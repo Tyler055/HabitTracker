@@ -10,6 +10,13 @@ document.addEventListener('DOMContentLoaded', () => {
   updateAllCharts();
 });
 
+// Escape function to sanitize href assignments
+function escapeHref(url) {
+  const a = document.createElement('a');
+  a.href = url;
+  return a.href;
+}
+
 // Setup the reset and logout buttons
 function setupButtons() {
   const actions = [
@@ -30,7 +37,7 @@ function setupButtons() {
     },
     {
       id: 'logout-btn',
-      handler: () => window.location.href = '/logout'
+      handler: () => window.location.href = escapeHref('/logout')
     }
   ];
 
