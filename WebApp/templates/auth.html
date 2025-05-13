@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>{{ 'Sign Up' if mode == 'signup' else 'Login' }}</title>
+  <title>{{ 'Sign Up' if form_type == 'signup' else 'Login' }}</title>
 
   <!-- External CSS -->
   <link rel="stylesheet" href="{{ url_for('static', filename='css/authStyle.css') }}">
@@ -24,15 +24,16 @@
       {% endif %}
     {% endwith %}
 
-    <!-- Toggle checkbox -->
-    <input type="checkbox" id="chk" aria-hidden="true" {{ 'checked' if mode == 'signup' else '' }}>
+    <!-- Toggle checkbox to switch between forms -->
+    <input type="checkbox" id="chk" aria-hidden="true" {{ 'checked' if form_type == 'signup' else '' }}>
 
     <!-- Sign-up Form -->
     <div class="signup">
       <form method="POST" action="{{ url_for('auth.signup') }}" autocomplete="on">
+        {{ form.csrf_token if form_type == 'signup' }}
         <label for="chk" aria-hidden="true">Sign up</label>
-        <input name="username" placeholder="User name" required value="{{ username or '' }}" aria-label="Username" autocomplete="username">
-        <input name="email" type="email" placeholder="Email" required value="{{ email or '' }}" aria-label="Email" autocomplete="email">
+        <input name="username" placeholder="User name" required value="{{ form.username.data if form_type == 'signup' else '' }}" aria-label="Username" autocomplete="username">
+        <input name="email" type="email" placeholder="Email" required value="{{ form.email.data if form_type == 'signup' else '' }}" aria-label="Email" autocomplete="email">
         <input name="password" type="password" placeholder="Password" required aria-label="Password" autocomplete="new-password">
         <input name="password_confirm" type="password" placeholder="Confirm Password" required aria-label="Confirm Password" autocomplete="new-password">
         <button type="submit">Sign up</button>
@@ -42,9 +43,10 @@
     <!-- Login Form -->
     <div class="login">
       <form method="POST" action="{{ url_for('auth.login') }}" autocomplete="on">
-        {{ form.csrf_token }}
+        {{ form.csrf_token if form_type == 'login' }}
         <label for="chk" aria-hidden="true">Login</label>
-        <input name="identifier" placeholder="Username or Email" required value="{{ session.get('identifier', '') }}" aria-label="Username or Email" autocomplete="username">
+        <input name="identifier" placeholder="Username or Email" required
+        value="{{ form.identifier.data or '' }}" aria-label="Username or Email" autocomplete="username">
         <input name="password" type="password" placeholder="Password" required aria-label="Password" autocomplete="current-password">
         <button type="submit">Login</button>
       </form>

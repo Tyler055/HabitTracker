@@ -2,7 +2,6 @@ import { fetchContent, saveGoalsData, resetGoalsData } from './saveData.js';
 
 document.addEventListener("DOMContentLoaded", async function () {
   const logoutBtn = document.getElementById("logout-btn");
-
   await loadGoalsFromDB();
   initializeDragAndDrop();
   bindGoalForm();
@@ -93,7 +92,7 @@ function createGoalElement(text, completed = false) {
   li.appendChild(span);
 
   const deleteBtn = document.createElement("span");
-  deleteBtn.textContent = "×";
+  deleteBtn.textContent = "X"; // Changed to "X"
   deleteBtn.className = "delete-btn";
   deleteBtn.addEventListener("click", () => {
     li.remove();
@@ -211,7 +210,7 @@ function bindGoalForm() {
       if (!selectedCategory) {
         // Get the current page category (e.g., "yearly")
         const pageCategory = getPageCategory();
-        selectedCategory = pageCategory;  // Use the page category as default
+        selectedCategory = pageCategory; // Use the page category as default
       }
 
       const goalList = document.querySelector(`#${selectedCategory}-goals-list`);
