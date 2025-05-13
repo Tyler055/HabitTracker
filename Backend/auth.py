@@ -59,10 +59,12 @@ def generate_verification_code(length=6):
 # ======================= Routes =======================
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
-    form = LoginForm()
-    if form.validate_on_submit():
-        identity = form.identity.data.strip().lower()
-        password = form.password.data
+    login_form = LoginForm()
+    signup_form = SignupForm()  # Pass signup form to template
+
+    if login_form.validate_on_submit():
+        identity = login_form.identity.data.strip().lower()
+        password = login_form.password.data
 
         user = find_user_by_username(identity) or find_user_by_email(identity)
         if user and check_password_hash(user['password'], password):
@@ -71,15 +73,23 @@ def login():
             return redirect(url_for('views.habit_tracker'))  # Replace with your dashboard
         else:
             flash('Invalid username/email or password.', 'error')
-    return render_template('auth.html', form=form, form_type='login')
+
+    return render_template(
+        'auth.html',
+        login_form=login_form,  # Pass login form
+        signup_form=signup_form,  # Pass signup form
+        form_type='login'
+    )
 
 @auth_bp.route('/signup', methods=['GET', 'POST'])
 def signup():
-    form = SignupForm()
-    if form.validate_on_submit():
-        username = form.username.data.strip().lower()
-        email = form.email.data.strip().lower()
-        password = form.password.data
+    signup_form = SignupForm()
+    login_form = LoginForm()  # Pass login form to template
+
+    if signup_form.validate_on_submit():
+        username = signup_form.username.data.strip().lower()
+        email = signup_form.email.data.strip().lower()
+        password = signup_form.password.data
 
         if find_user_by_username(username):
             flash('Username already exists.', 'error')
@@ -90,7 +100,13 @@ def signup():
             create_user(username, email, hashed_password)
             flash('Account created successfully. You can now log in.', 'success')
             return redirect(url_for('auth.login'))
-    return render_template('auth.html', form=form, form_type='signup')
+
+    return render_template(
+        'auth.html',
+        signup_form=signup_form,  # Pass signup form
+        login_form=login_form,  # Pass login form
+        form_type='signup'
+    )
 
 @auth_bp.route('/logout')
 def logout():
