@@ -1,7 +1,7 @@
 # app.py
 import os
 from flask import Flask
-from flask_mail import Mail 
+from flask_mail import Mail
 from dotenv import load_dotenv
 
 # ─── Load Environment Variables ─────────────────────────────

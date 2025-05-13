@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from jinja2 import TemplateNotFound
-from dataservice import get_goals_by_category, save_goals_for_category, reset_all_goals, create_notification, get_notifications, clear_notifications, find_user_by_id
+from dataservice import get_goals_by_category, save_goals_for_category, reset_all_goals, create_notification, get_notifications, clear_notifications
 # Create a new blueprint for views
 views_bp = Blueprint('views', __name__)
 

@@ -1,69 +1,67 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>{{ 'Sign Up' if form_type == 'signup' else 'Login' }}</title>
-
-  <!-- External CSS -->
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/authStyle.css') }}">
-  <link href="https://fonts.googleapis.com/css2?family=Jost:wght@500&display=swap" rel="stylesheet">
-  <link rel="icon" href="{{ url_for('static', filename='img/favicon1.ico') }}" type="image/x-icon">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ 'Log In' if form_type == 'login' else 'Sign Up' }}</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 2em; max-width: 400px; margin: auto; }
+        form div { margin-bottom: 1em; }
+        .input { width: 100%; padding: 0.5em; border: 1px solid #ccc; border-radius: 4px; }
+        .btn { padding: 0.5em 1em; background-color: #007BFF; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        .btn:hover { background-color: #0056b3; }
+        label { font-weight: bold; }
+    </style>
 </head>
-
 <body>
-  <div class="main">
-    <!-- Flash messages -->
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        <div class="flash-messages">
-          {% for category, message in messages %}
-            <div class="flash {{ category }}">{{ message }}</div>
-          {% endfor %}
-        </div>
-      {% endif %}
-    {% endwith %}
+    <h2>{{ 'Log In' if form_type == 'login' else 'Sign Up' }}</h2>
 
-    <!-- Form Errors -->
-    {% if form.errors %}
-      <div class="form-errors">
-        {% for field, errors in form.errors.items() %}
-          {% for error in errors %}
-            <div class="error">{{ field.capitalize() }}: {{ error }}</div>
-          {% endfor %}
-        {% endfor %}
-      </div>
-    {% endif %}
-
-    <!-- Toggle checkbox to switch between forms -->
-    <input type="checkbox" id="chk" aria-hidden="true" {{ 'checked' if form_type == 'signup' else '' }}>
-
-    <!-- Sign-up Form -->
-    <div class="signup">
-      <form method="POST" action="{{ url_for('auth.signup') }}" autocomplete="on">
-        {{ form.csrf_token }}
-        <label for="chk" aria-hidden="true">Sign up</label>
-        <input name="username" placeholder="User name" required value="{{ form.username.data or '' }}" aria-label="Username" autocomplete="username">
-        <input name="email" type="email" placeholder="Email" required value="{{ form.email.data or '' }}" aria-label="Email" autocomplete="email">
-        <input name="password" type="password" placeholder="Password" required aria-label="Password" autocomplete="new-password">
-        <input name="password_confirm" type="password" placeholder="Confirm Password" required aria-label="Confirm Password" autocomplete="new-password">
-        <button type="submit">Sign up</button>
-      </form>
-    </div>
-
-    <!-- Login Form -->
-    <div class="login">
-      <form method="POST" action="{{ url_for('auth.login') }}" autocomplete="on">
-        {{ form.csrf_token }}
-        <label for="chk" aria-hidden="true">Login</label>
-        <input name="identifier" placeholder="Username or Email" required value="{{ form.identifier.data or '' }}" aria-label="Username or Email" autocomplete="username">
-        <input name="password" type="password" placeholder="Password" required aria-label="Password" autocomplete="current-password">
-        <button type="submit">Login</button>
+    <form method="POST">
+        {{ form.hidden_tag() }}
         
-      </form>
-      <a href="{{ url_for('auth.recover') }}">Forgot Password?</a>
-    </div>
-    
-  </div>
+        {% if form_type == 'login' %}
+            <div>
+                <label for="identity">{{ form.identity.label }}</label><br>
+                {{ form.identity(class_='input', placeholder='Username or Email', autocomplete='username') }}
+            </div>
+
+            <div>
+                <label for="password">{{ form.password.label }}</label><br>
+                {{ form.password(class_='input', placeholder='Password', autocomplete='current-password') }}
+            </div>
+
+        {% elif form_type == 'signup' %}
+            <div>
+                <label for="username">{{ form.username.label }}</label><br>
+                {{ form.username(class_='input', placeholder='Username', autocomplete='username') }}
+            </div>
+
+            <div>
+                <label for="email">{{ form.email.label }}</label><br>
+                {{ form.email(class_='input', placeholder='Email', autocomplete='email') }}
+            </div>
+
+            <div>
+                <label for="password">{{ form.password.label }}</label><br>
+                {{ form.password(class_='input', placeholder='Password', autocomplete='new-password') }}
+            </div>
+
+            <div>
+                <label for="password_confirm">{{ form.password_confirm.label }}</label><br>
+                {{ form.password_confirm(class_='input', placeholder='Confirm Password', autocomplete='new-password') }}
+            </div>
+        {% endif %}
+
+        <div>
+            {{ form.submit(class_='btn') }}
+        </div>
+    </form>
+
+    {% if form_type == 'login' %}
+        <p>Forgot your password? <a href="{{ url_for('auth.recover') }}">Recover it</a></p>
+        <p>Need an account? <a href="{{ url_for('auth.signup') }}">Sign up</a></p>
+    {% elif form_type == 'signup' %}
+        <p>Already have an account? <a href="{{ url_for('auth.login') }}">Log in</a></p>
+    {% endif %}
 </body>
 </html>

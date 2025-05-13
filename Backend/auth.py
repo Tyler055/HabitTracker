@@ -9,85 +9,79 @@ import string
 
 from dataservice import (
     create_user, find_user_by_username, find_user_by_email,
-    update_user_password, find_user_by_id, update_user_reset_token, delete_user_by_id
+    find_user_by_id, update_user_password, update_user_reset_token,
+    delete_user_by_id,
 )
 
-# ======================= Blueprint =======================
 auth_bp = Blueprint('auth', __name__)
 
 # ======================= Forms =======================
 class LoginForm(FlaskForm):
-    identifier = StringField('Username or Email', validators=[DataRequired()])
+    identity = StringField('Username or Email', validators=[DataRequired()])
     password = PasswordField('Password', validators=[DataRequired()])
-    submit = SubmitField('Login')
-
+    submit = SubmitField('Log In')
 
 class SignupForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired()])
     email = StringField('Email', validators=[Email()])
     password = PasswordField('Password', validators=[DataRequired()])
-    password_confirm = PasswordField('Confirm Password', validators=[DataRequired(), EqualTo('password')])
+    password_confirm = PasswordField('Confirm Password', validators=[
+        DataRequired(), EqualTo('password', message="Passwords must match.")
+    ])
     submit = SubmitField('Sign Up')
 
 
 class ChangePasswordForm(FlaskForm):
     old_password = PasswordField('Old Password', validators=[DataRequired()])
     new_password = PasswordField('New Password', validators=[DataRequired()])
-    confirm_password = PasswordField('Confirm New Password', validators=[DataRequired(), EqualTo('new_password')])
+    confirm_password = PasswordField('Confirm New Password', validators=[
+        DataRequired(), EqualTo('new_password', message="Passwords must match.")
+    ])
     submit = SubmitField('Change Password')
-
 
 class IdentityForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired()])
     email = StringField('Email', validators=[DataRequired(), Email()])
     submit = SubmitField('Send Code')
 
-
-
 class CodeForm(FlaskForm):
     code = StringField('Verification Code', validators=[DataRequired()])
     submit = SubmitField('Verify Code')
 
-
 class PasswordResetForm(FlaskForm):
     new_password = PasswordField('New Password', validators=[DataRequired()])
-    confirm_password = PasswordField('Confirm Password', validators=[DataRequired(), EqualTo('new_password')])
+    confirm_password = PasswordField('Confirm Password', validators=[
+        DataRequired(), EqualTo('new_password', message="Passwords must match.")
+    ])
     submit = SubmitField('Reset Password')
 
-
-# ======================= Helper Function =======================
+# ======================= Helper =======================
 def generate_verification_code(length=6):
-    """Generate a random verification code consisting of digits."""
-    characters = string.digits
-    return ''.join(random.choice(characters) for _ in range(length))
-
+    return ''.join(random.choices(string.digits, k=length))
 
 # ======================= Routes =======================
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
     form = LoginForm()
     if form.validate_on_submit():
-        identifier = form.identifier.data.strip()
+        identity = form.identity.data.strip().lower()  # Use 'identity' field
         password = form.password.data
 
-        user = find_user_by_username(identifier) or find_user_by_email(identifier)
-
+        user = find_user_by_username(identity) or find_user_by_email(identity)  # Check by username or email
         if user and check_password_hash(user['password'], password):
             session['user_id'] = user['id']
             flash('Login successful.', 'success')
-            return redirect(url_for('views.habit_tracker'))
+            return redirect(url_for('views.habit_tracker'))  # Update to your actual home/dashboard route
         else:
             flash('Invalid username/email or password.', 'error')
-
     return render_template('auth.html', form=form, form_type='login')
-
 
 @auth_bp.route('/signup', methods=['GET', 'POST'])
 def signup():
     form = SignupForm()
     if form.validate_on_submit():
-        username = form.username.data.strip()
-        email = form.email.data.strip()
+        username = form.username.data.strip().lower()
+        email = form.email.data.strip().lower()
         password = form.password.data
 
         if find_user_by_username(username):
@@ -99,66 +93,14 @@ def signup():
             create_user(username, email, hashed_password)
             flash('Account created successfully. You can now log in.', 'success')
             return redirect(url_for('auth.login'))
-
     return render_template('auth.html', form=form, form_type='signup')
-
-
-@auth_bp.route('/recover', methods=['GET', 'POST'])
-def recover():
-    step = request.args.get('step', '1')
-
-    if step == '1':
-        form = IdentityForm()
-        if form.validate_on_submit():
-            username = form.username.data.strip()
-            email = form.email.data.strip()
-            user = find_user_by_username(username)
-
-            if user and user['email'] == email:
-                code = generate_verification_code()
-                expiration = datetime.now(timezone.utc) + timedelta(minutes=10)
-                update_user_reset_token(user['id'], code, expiration)
-                session['reset_code'] = code
-                session['reset_email'] = email
-                session['verified_username'] = username
-                flash(f'Verification code sent to {email}. (Simulated)', 'info')
-                print(f"Verification Code for {username} ({email}): {code}")  # Debug log for testing
-                return redirect(url_for('auth.recover', step='2'))
-            else:
-                flash('Username and email do not match.', 'error')
-        return render_template('recover.html', form=form, recovery_step='1')
-
-    elif step == '2':
-        form = CodeForm()
-        if form.validate_on_submit():
-            username = session.get('verified_username')
-            if form.code.data == session.get('reset_code'):
-                return redirect(url_for('auth.recover', step='3'))
-            else:
-                flash('Invalid verification code.', 'error')
-        return render_template('recover.html', form=form, recovery_step='2')
-
-    elif step == '3':
-        form = PasswordResetForm()
-        if form.validate_on_submit():
-            user_id = find_user_by_username(session.get('verified_username'))['id']
-            new_hashed = generate_password_hash(form.new_password.data)
-            update_user_password(user_id, new_hashed)
-            flash('Password successfully reset. You can now log in.', 'success')
-            session.pop('verified_username', None)
-            session.pop('reset_code', None)
-            session.pop('reset_email', None)
-            return redirect(url_for('auth.login'))
-        return render_template('recover.html', form=form, recovery_step='3')
-
-    flash('Invalid recovery step.', 'error')
-    return redirect(url_for('auth.recover', step='1'))
 
 @auth_bp.route('/logout')
 def logout():
     session.pop('user_id', None)
     flash('Logged out successfully.', 'success')
     return redirect(url_for('auth.login'))
+
 @auth_bp.route('/change_password', methods=['GET', 'POST'])
 def change_password():
     form = ChangePasswordForm()
@@ -173,17 +115,71 @@ def change_password():
             return redirect(url_for('auth.login'))
         else:
             flash('Old password is incorrect.', 'error')
-
     return render_template('change_password.html', form=form)
+
 @auth_bp.route('/delete_account', methods=['POST'])
 def delete_account():
     user_id = session.get('user_id')
     if user_id:
-        # Assuming you have a function to delete a user by ID
         delete_user_by_id(user_id)
         session.pop('user_id', None)
         flash('Account deleted successfully.', 'success')
     else:
         flash('No user logged in.', 'error')
-
     return redirect(url_for('auth.login'))
+
+@auth_bp.route('/recover', methods=['GET', 'POST'])
+def recover():
+    step = request.args.get('step', '1')
+
+    if step == '1':
+        form = IdentityForm()
+        if form.validate_on_submit():
+            username = form.username.data.strip().lower()
+            email = form.email.data.strip().lower()
+            user = find_user_by_username(username)
+
+            if user and user['email'].lower() == email:
+                code = generate_verification_code()
+                expiration = datetime.now(timezone.utc) + timedelta(minutes=10)
+                update_user_reset_token(user['id'], code, expiration)
+                session['reset_code'] = code
+                session['reset_email'] = email
+                session['verified_username'] = username
+                flash(f'Verification code sent to {email}. (Simulated)', 'info')
+                print(f"Verification Code for {username} ({email}): {code}")
+                return redirect(url_for('auth.recover', step='2'))
+            else:
+                flash('Username and email do not match.', 'error')
+        return render_template('recover.html', form=form, recovery_step='1')
+
+    elif step == '2':
+        form = CodeForm()
+        if form.validate_on_submit():
+            if form.code.data == session.get('reset_code'):
+                return redirect(url_for('auth.recover', step='3'))
+            else:
+                flash('Invalid verification code.', 'error')
+        return render_template('recover.html', form=form, recovery_step='2')
+
+    elif step == '3':
+        form = PasswordResetForm()
+        if form.validate_on_submit():
+            username = session.get('verified_username')
+            user = find_user_by_username(username)
+            if user:
+                new_hashed = generate_password_hash(form.new_password.data)
+                update_user_password(user['id'], new_hashed)
+                flash('Password successfully reset. You can now log in.', 'success')
+                session.pop('verified_username', None)
+                session.pop('reset_code', None)
+                session.pop('reset_email', None)
+                return redirect(url_for('auth.login'))
+            else:
+                flash('User not found for password reset.', 'error')
+                return redirect(url_for('auth.recover', step='1'))
+        return render_template('recover.html', form=form, recovery_step='3')
+
+    # Invalid fallback
+    flash('Invalid recovery step.', 'error')
+    return redirect(url_for('auth.recover', step='1'))
