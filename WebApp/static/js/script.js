@@ -250,8 +250,6 @@ function checkForDuplicateGoal(newText, currentListId = "") {
 }
 
 function getPageCategory() {
-  // This function detects the page category based on the current page
-  // For example, if you're on the "yearly" page, it returns "yearly".
   if (window.location.pathname.includes("yearly")) {
     return "yearly";
   }
@@ -264,5 +262,5 @@ function getPageCategory() {
   if (window.location.pathname.includes("daily")) {
     return "daily";
   }
-  return "daily"; // Default to "daily" if no category found
+  return "daily";
 }
