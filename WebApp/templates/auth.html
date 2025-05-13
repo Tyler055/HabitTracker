@@ -24,16 +24,27 @@
       {% endif %}
     {% endwith %}
 
+    <!-- Form Errors -->
+    {% if form.errors %}
+      <div class="form-errors">
+        {% for field, errors in form.errors.items() %}
+          {% for error in errors %}
+            <div class="error">{{ field.capitalize() }}: {{ error }}</div>
+          {% endfor %}
+        {% endfor %}
+      </div>
+    {% endif %}
+
     <!-- Toggle checkbox to switch between forms -->
     <input type="checkbox" id="chk" aria-hidden="true" {{ 'checked' if form_type == 'signup' else '' }}>
 
     <!-- Sign-up Form -->
     <div class="signup">
       <form method="POST" action="{{ url_for('auth.signup') }}" autocomplete="on">
-        {{ form.csrf_token if form_type == 'signup' }}
+        {{ form.csrf_token }}
         <label for="chk" aria-hidden="true">Sign up</label>
-        <input name="username" placeholder="User name" required value="{{ form.username.data if form_type == 'signup' else '' }}" aria-label="Username" autocomplete="username">
-        <input name="email" type="email" placeholder="Email" required value="{{ form.email.data if form_type == 'signup' else '' }}" aria-label="Email" autocomplete="email">
+        <input name="username" placeholder="User name" required value="{{ form.username.data or '' }}" aria-label="Username" autocomplete="username">
+        <input name="email" type="email" placeholder="Email" required value="{{ form.email.data or '' }}" aria-label="Email" autocomplete="email">
         <input name="password" type="password" placeholder="Password" required aria-label="Password" autocomplete="new-password">
         <input name="password_confirm" type="password" placeholder="Confirm Password" required aria-label="Confirm Password" autocomplete="new-password">
         <button type="submit">Sign up</button>
@@ -43,17 +54,16 @@
     <!-- Login Form -->
     <div class="login">
       <form method="POST" action="{{ url_for('auth.login') }}" autocomplete="on">
-        {{ form.csrf_token if form_type == 'login' }}
+        {{ form.csrf_token }}
         <label for="chk" aria-hidden="true">Login</label>
-        <input name="identifier" placeholder="Username or Email" required
-        value="{{ form.identifier.data or '' }}" aria-label="Username or Email" autocomplete="username">
+        <input name="identifier" placeholder="Username or Email" required value="{{ form.identifier.data or '' }}" aria-label="Username or Email" autocomplete="username">
         <input name="password" type="password" placeholder="Password" required aria-label="Password" autocomplete="current-password">
         <button type="submit">Login</button>
+        
       </form>
-
-      <!-- Password recovery link -->
       <a href="{{ url_for('auth.recover') }}">Forgot Password?</a>
     </div>
+    
   </div>
 </body>
 </html>

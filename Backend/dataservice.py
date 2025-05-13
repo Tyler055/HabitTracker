@@ -24,10 +24,13 @@ def close_db_connection(e=None):
 def init_app(app):
     app.teardown_appcontext(close_db_connection)
 
+# --- Initialize Database and Tables ---
+
 def init_db():
     conn = get_db_connection()
     cur = conn.cursor()
 
+    # Create users table with soft-delete (deleted_at)
     cur.execute('''
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -35,10 +38,12 @@ def init_db():
             password TEXT NOT NULL,
             email TEXT UNIQUE,
             reset_token TEXT,
-            reset_token_expiry TEXT
+            reset_token_expiry TEXT,
+            deleted_at TEXT  -- Added for soft deletion
         )
     ''')
 
+    # Create goals table
     cur.execute('''
         CREATE TABLE IF NOT EXISTS goals (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -51,6 +56,7 @@ def init_db():
         )
     ''')
 
+    # Create user settings table
     cur.execute('''
         CREATE TABLE IF NOT EXISTS user_settings (
             user_id INTEGER PRIMARY KEY,
@@ -61,6 +67,7 @@ def init_db():
         )
     ''')
 
+    # Create notifications table
     cur.execute('''
         CREATE TABLE IF NOT EXISTS notifications (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -108,19 +115,62 @@ def update_user_reset_token(user_id, token, expiration):
 
 def find_user_by_username(username):
     conn = get_db_connection()
-    return conn.execute('SELECT * FROM users WHERE username = ?', (username,)).fetchone()
+    return conn.execute('SELECT * FROM users WHERE username = ? AND deleted_at IS NULL', (username,)).fetchone()
 
 def find_user_by_email(email):
     conn = get_db_connection()
-    return conn.execute('SELECT * FROM users WHERE email = ?', (email,)).fetchone()
+    return conn.execute('SELECT * FROM users WHERE email = ? AND deleted_at IS NULL', (email,)).fetchone()
 
 def find_user_by_id(user_id):
     conn = get_db_connection()
-    return conn.execute('SELECT * FROM users WHERE id = ?', (user_id,)).fetchone()
+    return conn.execute('SELECT * FROM users WHERE id = ? AND deleted_at IS NULL', (user_id,)).fetchone()
 
 def find_user_by_reset_token(reset_token):
     conn = get_db_connection()
-    return conn.execute('SELECT * FROM users WHERE reset_token = ?', (reset_token,)).fetchone()
+    return conn.execute('SELECT * FROM users WHERE reset_token = ? AND deleted_at IS NULL', (reset_token,)).fetchone()
+
+# Soft Delete User
+def soft_delete_user_by_id(user_id):
+    conn = get_db_connection()
+    cur = conn.cursor()
+    
+    # Mark the user as deleted by setting the deleted_at timestamp
+    cur.execute('UPDATE users SET deleted_at = ? WHERE id = ?', 
+                (datetime.now().strftime('%Y-%m-%d %H:%M:%S'), user_id))
+    
+    conn.commit()
+    return "User soft-deleted successfully."
+
+# Fully Delete User
+def delete_user_by_id(user_id):
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    # Delete goals associated with the user
+    cur.execute('DELETE FROM goals WHERE user_id = ?', (user_id,))
+    
+    # Delete notifications associated with the user
+    cur.execute('DELETE FROM notifications WHERE user_id = ?', (user_id,))
+    
+    # Delete user settings associated with the user
+    cur.execute('DELETE FROM user_settings WHERE user_id = ?', (user_id,))
+    
+    # Finally, delete the user from the users table
+    cur.execute('DELETE FROM users WHERE id = ?', (user_id,))
+    
+    conn.commit()
+    return "User and associated data permanently deleted."
+
+# Restore Soft-Deleted User
+def restore_user_by_id(user_id):
+    conn = get_db_connection()
+    cur = conn.cursor()
+    
+    # Restore the user by setting deleted_at to NULL
+    cur.execute('UPDATE users SET deleted_at = NULL WHERE id = ?', (user_id,))
+    
+    conn.commit()
+    return "User restored successfully."
 
 # --- Goal Management ---
 
@@ -138,7 +188,7 @@ def save_goals_for_category(user_id, category, goals):
     cur.execute('DELETE FROM goals WHERE user_id = ? AND category = ?', (user_id, category))
 
     for index, goal in enumerate(goals):
-        cur.execute('''
+        cur.execute(''' 
             INSERT INTO goals (user_id, category, text, completed, sort_order)
             VALUES (?, ?, ?, ?, ?)
         ''', (user_id, category, goal['text'], int(goal.get('completed', False)), index))
@@ -218,6 +268,8 @@ def get_email_credentials():
         'email': email,
         'password': password
     }
+
+# If running standalone
 if __name__ == "__main__":
     from flask import Flask
     app = Flask(__name__)
@@ -225,4 +277,3 @@ if __name__ == "__main__":
     with app.app_context():
         init_db()
         print("Database initialized.")
-
