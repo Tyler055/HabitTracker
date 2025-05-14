@@ -1,20 +1,43 @@
 import { fetchContent, saveGoalsData, resetGoalsData } from './saveData.js';
 
+// Utility function to sanitize input to prevent XSS attacks
+function sanitizeInput(input) {
+  const div = document.createElement('div');
+  div.textContent = input; // Text content automatically escapes HTML tags
+  return div.innerHTML;
+}
+
+// Function to securely encode URLs
+function escapeHref(url) {
+  try {
+    // Only accept relative URLs to prevent open redirect vulnerabilities
+    if (url && url.startsWith('/')) {
+      return encodeURI(url);
+    } else {
+      console.error('Invalid URL: must be a relative path');
+      return '/'; // Default to safe location
+    }
+  } catch (error) {
+    console.error('Error encoding URL:', error);
+    return '/';
+  }
+}
+
 document.addEventListener("DOMContentLoaded", async function () {
   const logoutBtn = document.getElementById("logout-btn");
-  
+
   try {
     await loadGoalsFromDB();
     initializeDragAndDrop();
     bindGoalForm();
-    
-    if (logoutBtn) {
-    logoutBtn.style.display = "block";
-    logoutBtn.addEventListener("click", () => {
-        window.location.href = encodeURI("/logout"); // Securely encode the URL
-    });
-}
 
+    if (logoutBtn) {
+      logoutBtn.style.display = "block";
+      logoutBtn.addEventListener("click", () => {
+        const logoutUrl = escapeHref('/logout');
+        window.location.href = logoutUrl; // Securely encode the URL
+      });
+    }
   } catch (err) {
     console.error("Error during DOMContentLoaded tasks:", err.message);
   }
@@ -26,13 +49,14 @@ async function loadGoalsFromDB() {
   const lists = document.querySelectorAll('.goal-category ul');
   for (const ul of lists) {
     const category = ul.id.replace('-goals-list', '');
-    ul.innerHTML = "";
+    ul.innerHTML = ""; // Clear existing list before loading new goals
     addCategoryEditToggle(ul, category);
 
     try {
       const goals = await fetchContent(category);
       goals.forEach(goal => {
-        const li = createGoalElement(goal.text, goal.completed);
+        const sanitizedText = sanitizeInput(goal.text); // Sanitize goal text
+        const li = createGoalElement(sanitizedText, goal.completed);
         ul.appendChild(li);
       });
     } catch (error) {
@@ -97,7 +121,7 @@ function createGoalElement(text, completed = false) {
     const currentText = span.textContent;
     const newText = prompt("Edit goal:", currentText);
     if (newText && newText.trim()) {
-      const trimmedNewText = newText.trim();
+      const trimmedNewText = sanitizeInput(newText.trim()); // Sanitize the new text input
       if (trimmedNewText !== currentText) {
         const duplicateCategory = checkForDuplicateGoal(trimmedNewText, li.closest('ul').id);
         if (!duplicateCategory) {
@@ -198,16 +222,17 @@ function bindGoalForm() {
       const goalList = document.querySelector(`#${selectedCategory}-goals-list`);
 
       if (newGoalText && goalList) {
-        const duplicateCategory = checkForDuplicateGoal(newGoalText);
+        const sanitizedText = sanitizeInput(newGoalText); // Sanitize new goal text
+        const duplicateCategory = checkForDuplicateGoal(sanitizedText);
         if (duplicateCategory) {
-          alert(`The goal "${newGoalText}" already exists in the "${duplicateCategory}" category.`);
+          alert(`The goal "${sanitizedText}" already exists in the "${duplicateCategory}" category.`);
         } else {
-          const li = createGoalElement(newGoalText);
+          const li = createGoalElement(sanitizedText); // Use sanitized text
           goalList.appendChild(li);
           goalInput.value = "";
           try {
             await saveCurrentGoals();
-            alert(`Goal "${newGoalText}" added successfully!`);
+            alert(`Goal "${sanitizedText}" added successfully!`);
           } catch (err) {
             console.error("Error saving new goal:", err.message);
           }
