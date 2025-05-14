@@ -1,101 +1,93 @@
 import sqlite3
 import os
 from flask import Flask, g
-from datetime import datetime
+from datetime import datetime, timedelta
 from werkzeug.security import generate_password_hash, check_password_hash
 
 DATABASE_PATH = os.path.join(os.path.dirname(__file__), 'habitDatabase.sqlite')
 
 # --- Database Connection Management ---
 def get_db_connection():
-    """Get the current database connection."""
     if 'db' not in g:
         g.db = sqlite3.connect(DATABASE_PATH, timeout=10, check_same_thread=False)
         g.db.row_factory = sqlite3.Row
     return g.db
 
 def close_db_connection(e=None):
-    """Close the database connection."""
     db = g.pop('db', None)
     if db is not None:
         db.close()
 
 def init_app(app):
-    """Initialize the app with teardown."""
     app.teardown_appcontext(close_db_connection)
 
 # --- Database Initialization ---
 def init_db():
-    """Initialize the database schema."""
     conn = get_db_connection()
     cur = conn.cursor()
 
-    cur.execute('''
-        CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT NOT NULL UNIQUE,
-            password TEXT NOT NULL,
-            email TEXT UNIQUE,
-            reset_token TEXT,
-            reset_token_expiry TEXT
-            -- deleted_at TEXT DEFAULT NULL
-        )
-    ''')
+    # --- Users Table ---
+    cur.execute('''CREATE TABLE IF NOT EXISTS users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT NOT NULL UNIQUE,
+        password TEXT NOT NULL,
+        email TEXT UNIQUE,
+        reset_token TEXT,
+        reset_token_expiry TEXT,
+        deleted_at TEXT
+    )''')
 
-    cur.execute('''
-        CREATE TABLE IF NOT EXISTS goals (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER NOT NULL,
-            category TEXT NOT NULL,
-            text TEXT NOT NULL,
-            completed INTEGER DEFAULT 0,
-            sort_order INTEGER,
-            FOREIGN KEY (user_id) REFERENCES users(id)
-        )
-    ''')
+    # --- Goals Table ---
+    cur.execute('''CREATE TABLE IF NOT EXISTS goals (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        category TEXT NOT NULL,
+        text TEXT NOT NULL,
+        completed INTEGER DEFAULT 0,
+        sort_order INTEGER,
+        FOREIGN KEY (user_id) REFERENCES users(id)
+    )''')
 
-    cur.execute('''
-        CREATE TABLE IF NOT EXISTS user_settings (
-            user_id INTEGER PRIMARY KEY,
-            theme TEXT DEFAULT 'light',
-            email_notifications INTEGER DEFAULT 1,
-            push_notifications INTEGER DEFAULT 0,
-            FOREIGN KEY (user_id) REFERENCES users(id)
-        )
-    ''')
+    # --- User Settings Table ---
+    cur.execute('''CREATE TABLE IF NOT EXISTS user_settings (
+        user_id INTEGER PRIMARY KEY,
+        theme TEXT DEFAULT 'light',
+        email_notifications INTEGER DEFAULT 1,
+        push_notifications INTEGER DEFAULT 0,
+        FOREIGN KEY (user_id) REFERENCES users(id)
+    )''')
 
-    cur.execute('''
-        CREATE TABLE IF NOT EXISTS notifications (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER NOT NULL,
-            message TEXT NOT NULL,
-            time TEXT NOT NULL,
-            FOREIGN KEY (user_id) REFERENCES users(id)
-        )
-    ''')
+    # --- Notifications Table ---
+    cur.execute('''CREATE TABLE IF NOT EXISTS notifications (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        message TEXT NOT NULL,
+        time TEXT NOT NULL,
+        FOREIGN KEY (user_id) REFERENCES users(id)
+    )''')
 
-    cur.execute('''
-        CREATE TABLE IF NOT EXISTS tokens (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER NOT NULL,
-            token_name TEXT NOT NULL,
-            token_value TEXT,
-            created_at TEXT NOT NULL,
-            FOREIGN KEY (user_id) REFERENCES users(id)
-        )
-    ''')
+    # --- Tokens Table ---
+    cur.execute('''CREATE TABLE IF NOT EXISTS tokens (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        token_name TEXT NOT NULL,
+        token_value TEXT,
+        created_at TEXT NOT NULL,
+        FOREIGN KEY (user_id) REFERENCES users(id)
+    )''')
 
-    cur.execute('''
-        CREATE TABLE IF NOT EXISTS feature_flags (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            feature_name TEXT NOT NULL,
-            is_enabled INTEGER NOT NULL DEFAULT 1
-        )
-    ''')
+    # --- Feature Flags Table ---
+    cur.execute('''CREATE TABLE IF NOT EXISTS feature_flags (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        feature_name TEXT NOT NULL,
+        is_enabled INTEGER NOT NULL DEFAULT 1
+    )''')
 
+    # --- Indexes ---
     cur.execute('CREATE INDEX IF NOT EXISTS idx_users_username ON users (username)')
     cur.execute('CREATE INDEX IF NOT EXISTS idx_users_email ON users (email)')
     cur.execute('CREATE INDEX IF NOT EXISTS idx_goals_user_id ON goals (user_id)')
+
     conn.commit()
 
 # --- Feature Flag Management ---
@@ -131,22 +123,19 @@ def get_user_token(user_id, token_name):
 def find_user_by_id(user_id):
     conn = get_db_connection()
     cur = conn.cursor()
-    # cur.execute('SELECT * FROM users WHERE id = ? AND deleted_at IS NULL', (user_id,))
-    cur.execute('SELECT * FROM users WHERE id = ?', (user_id,))
+    cur.execute('SELECT * FROM users WHERE id = ? AND deleted_at IS NULL', (user_id,))
     return cur.fetchone()
 
 def find_user_by_username(username):
     conn = get_db_connection()
     cur = conn.cursor()
-    # cur.execute('SELECT * FROM users WHERE username = ? AND deleted_at IS NULL', (username,))
-    cur.execute('SELECT * FROM users WHERE username = ?', (username,))
+    cur.execute('SELECT * FROM users WHERE username = ? AND deleted_at IS NULL', (username,))
     return cur.fetchone()
 
 def find_user_by_email(email):
     conn = get_db_connection()
     cur = conn.cursor()
-    # cur.execute('SELECT * FROM users WHERE email = ? AND deleted_at IS NULL', (email,))
-    cur.execute('SELECT * FROM users WHERE email = ?', (email,))
+    cur.execute('SELECT * FROM users WHERE email = ? AND deleted_at IS NULL', (email,))
     return cur.fetchone()
 
 def create_user(username, password, email=None):
@@ -158,16 +147,16 @@ def create_user(username, password, email=None):
                  (username, hashed_password, email))
     conn.commit()
 
-# def soft_delete_user(user_id):
-#     conn = get_db_connection()
-#     conn.execute('UPDATE users SET deleted_at = ? WHERE id = ?',
-#                  (datetime.now().strftime('%Y-%m-%d %H:%M:%S'), user_id))
-#     conn.commit()
+def soft_delete_user(user_id):
+    conn = get_db_connection()
+    conn.execute('UPDATE users SET deleted_at = ? WHERE id = ?',
+                 (datetime.now().strftime('%Y-%m-%d %H:%M:%S'), user_id))
+    conn.commit()
 
-# def restore_user(user_id):
-#     conn = get_db_connection()
-#     conn.execute('UPDATE users SET deleted_at = NULL WHERE id = ?', (user_id,))
-#     conn.commit()
+def restore_user(user_id):
+    conn = get_db_connection()
+    conn.execute('UPDATE users SET deleted_at = NULL WHERE id = ?', (user_id,))
+    conn.commit()
 
 def update_user_password(user_id, new_password):
     conn = get_db_connection()
@@ -205,18 +194,24 @@ def reset_all_goals(user_id):
     conn.commit()
 
 # --- Notification Management ---
-def create_notification(user_id, message, time=None):
+def find_notification_by_id(notification_id):
     conn = get_db_connection()
-    time = time or datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    conn.execute('INSERT INTO notifications (user_id, message, time) VALUES (?, ?, ?)',
-                 (user_id, message, time))
-    conn.commit()
+    cur = conn.cursor()
+    cur.execute('SELECT * FROM notifications WHERE id = ?', (notification_id,))
+    return cur.fetchone()
 
 def get_notifications(user_id):
     conn = get_db_connection()
     cur = conn.cursor()
     cur.execute('SELECT * FROM notifications WHERE user_id = ? ORDER BY id DESC', (user_id,))
     return [{'id': row['id'], 'message': row['message'], 'time': row['time']} for row in cur.fetchall()]
+
+def create_notification(user_id, message, time=None):
+    conn = get_db_connection()
+    time = time or datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    conn.execute('INSERT INTO notifications (user_id, message, time) VALUES (?, ?, ?)',
+                 (user_id, message, time))
+    conn.commit()
 
 def delete_notification(notification_id, user_id):
     conn = get_db_connection()
@@ -226,6 +221,29 @@ def delete_notification(notification_id, user_id):
 def clear_notifications(user_id):
     conn = get_db_connection()
     conn.execute('DELETE FROM notifications WHERE user_id = ?', (user_id,))
+    conn.commit()
+
+# --- Password Reset Token Management ---
+def get_user_reset_token(user_id):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('SELECT reset_token, reset_token_expiry FROM users WHERE id = ?', (user_id,))
+    result = cursor.fetchone()
+    
+    if result:
+        reset_token, reset_token_expiry = result
+        if reset_token_expiry and datetime.strptime(reset_token_expiry, '%Y-%m-%d %H:%M:%S') > datetime.now():
+            return reset_token
+    return None
+
+def update_user_reset_token(user_id, reset_token, expiry_duration_hours=24):
+    reset_token_expiry = (datetime.now() + timedelta(hours=expiry_duration_hours)).strftime('%Y-%m-%d %H:%M:%S')
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('''UPDATE users
+                      SET reset_token = ?, reset_token_expiry = ?
+                      WHERE id = ?''',
+                   (reset_token, reset_token_expiry, user_id))
     conn.commit()
 
 # --- Standalone Execution ---
