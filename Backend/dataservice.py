@@ -26,7 +26,6 @@ def init_db():
     conn = get_db_connection()
     cur = conn.cursor()
 
-    # --- Users Table ---
     cur.execute('''CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         username TEXT NOT NULL UNIQUE,
@@ -37,7 +36,6 @@ def init_db():
         deleted_at TEXT
     )''')
 
-    # --- Goals Table ---
     cur.execute('''CREATE TABLE IF NOT EXISTS goals (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id INTEGER NOT NULL,
@@ -48,7 +46,6 @@ def init_db():
         FOREIGN KEY (user_id) REFERENCES users(id)
     )''')
 
-    # --- User Settings Table ---
     cur.execute('''CREATE TABLE IF NOT EXISTS user_settings (
         user_id INTEGER PRIMARY KEY,
         theme TEXT DEFAULT 'light',
@@ -57,7 +54,6 @@ def init_db():
         FOREIGN KEY (user_id) REFERENCES users(id)
     )''')
 
-    # --- Notifications Table ---
     cur.execute('''CREATE TABLE IF NOT EXISTS notifications (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id INTEGER NOT NULL,
@@ -66,7 +62,6 @@ def init_db():
         FOREIGN KEY (user_id) REFERENCES users(id)
     )''')
 
-    # --- Tokens Table ---
     cur.execute('''CREATE TABLE IF NOT EXISTS tokens (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id INTEGER NOT NULL,
@@ -76,14 +71,12 @@ def init_db():
         FOREIGN KEY (user_id) REFERENCES users(id)
     )''')
 
-    # --- Feature Flags Table ---
     cur.execute('''CREATE TABLE IF NOT EXISTS feature_flags (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         feature_name TEXT NOT NULL,
         is_enabled INTEGER NOT NULL DEFAULT 1
     )''')
 
-    # --- Indexes ---
     cur.execute('CREATE INDEX IF NOT EXISTS idx_users_username ON users (username)')
     cur.execute('CREATE INDEX IF NOT EXISTS idx_users_email ON users (email)')
     cur.execute('CREATE INDEX IF NOT EXISTS idx_goals_user_id ON goals (user_id)')
@@ -165,28 +158,53 @@ def update_user_password(user_id, new_password):
     insert_token(user_id, 'last_password_reset', datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
     conn.commit()
 
-def update_user_reset_token(user_id, reset_token, expiry):
+def update_user_reset_token(user_id, reset_token, expiry_duration_hours=24):
+    reset_token_expiry = (datetime.now() + timedelta(hours=expiry_duration_hours)).strftime('%Y-%m-%d %H:%M:%S')
     conn = get_db_connection()
     conn.execute('UPDATE users SET reset_token = ?, reset_token_expiry = ? WHERE id = ?',
-                 (reset_token, expiry, user_id))
+                 (reset_token, reset_token_expiry, user_id))
     conn.commit()
+
+def get_user_reset_token(user_id):
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute('SELECT reset_token, reset_token_expiry FROM users WHERE id = ?', (user_id,))
+    result = cur.fetchone()
+    if result:
+        reset_token, reset_token_expiry = result
+        if reset_token_expiry and datetime.strptime(reset_token_expiry, '%Y-%m-%d %H:%M:%S') > datetime.now():
+            return reset_token
+    return None
 
 # --- Goal Management ---
 def get_goals_by_category(user_id, category):
     conn = get_db_connection()
-    cur = conn.cursor()
-    cur.execute('SELECT * FROM goals WHERE user_id = ? AND category = ? ORDER BY sort_order',
-                (user_id, category))
-    return [{'id': row['id'], 'category': row['category'], 'text': row['text'], 'completed': row['completed']}
-            for row in cur.fetchall()]
+    return conn.execute(
+        'SELECT id, text, completed FROM goals WHERE user_id = ? AND category = ? ORDER BY sort_order',
+        (user_id, category)
+    ).fetchall()
 
 def save_goals_for_category(user_id, category, goals):
     conn = get_db_connection()
     cur = conn.cursor()
-    for goal in goals:
-        cur.execute('INSERT INTO goals (user_id, category, text, completed) VALUES (?, ?, ?, ?)',
-                    (user_id, category, goal['text'], goal.get('completed', 0)))
+    cur.execute('DELETE FROM goals WHERE user_id = ? AND category = ?', (user_id, category))
+    for index, goal in enumerate(goals):
+        cur.execute('''INSERT INTO goals (user_id, category, text, completed, sort_order) VALUES (?, ?, ?, ?, ?)''',
+                    (user_id, category, goal['text'], int(goal.get('completed', False)), index))
     conn.commit()
+    return 'Goals saved successfully.'
+
+def update_goal(goal_id, new_text, new_completed):
+    conn = get_db_connection()
+    conn.execute('UPDATE goals SET text = ?, completed = ? WHERE id = ?', (new_text, int(new_completed), goal_id))
+    conn.commit()
+    return 'Goal updated successfully.'
+
+def toggle_goal_completion(goal_id):
+    conn = get_db_connection()
+    conn.execute('UPDATE goals SET completed = 1 - completed WHERE id = ?', (goal_id,))
+    conn.commit()
+    return 'Goal completion toggled.'
 
 def reset_all_goals(user_id):
     conn = get_db_connection()
@@ -194,11 +212,17 @@ def reset_all_goals(user_id):
     conn.commit()
 
 # --- Notification Management ---
-def find_notification_by_id(notification_id):
+def create_notification(user_id, message, time=None):
+    if time is None:
+        time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    existing = get_notifications(user_id)
+    if any(note['message'] == message for note in existing):
+        return 'Notification already exists.'
     conn = get_db_connection()
-    cur = conn.cursor()
-    cur.execute('SELECT * FROM notifications WHERE id = ?', (notification_id,))
-    return cur.fetchone()
+    conn.execute('INSERT INTO notifications (user_id, message, time) VALUES (?, ?, ?)',
+                 (user_id, message, time))
+    conn.commit()
+    return 'Notification created.'
 
 def get_notifications(user_id):
     conn = get_db_connection()
@@ -206,45 +230,25 @@ def get_notifications(user_id):
     cur.execute('SELECT * FROM notifications WHERE user_id = ? ORDER BY id DESC', (user_id,))
     return [{'id': row['id'], 'message': row['message'], 'time': row['time']} for row in cur.fetchall()]
 
-def create_notification(user_id, message, time=None):
-    conn = get_db_connection()
-    time = time or datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    conn.execute('INSERT INTO notifications (user_id, message, time) VALUES (?, ?, ?)',
-                 (user_id, message, time))
-    conn.commit()
-
 def delete_notification(notification_id, user_id):
     conn = get_db_connection()
     conn.execute('DELETE FROM notifications WHERE id = ? AND user_id = ?', (notification_id, user_id))
     conn.commit()
+    return 'Notification deleted.'
 
 def clear_notifications(user_id):
     conn = get_db_connection()
     conn.execute('DELETE FROM notifications WHERE user_id = ?', (user_id,))
     conn.commit()
+    return 'All notifications cleared.'
 
-# --- Password Reset Token Management ---
-def get_user_reset_token(user_id):
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute('SELECT reset_token, reset_token_expiry FROM users WHERE id = ?', (user_id,))
-    result = cursor.fetchone()
-    
-    if result:
-        reset_token, reset_token_expiry = result
-        if reset_token_expiry and datetime.strptime(reset_token_expiry, '%Y-%m-%d %H:%M:%S') > datetime.now():
-            return reset_token
-    return None
-
-def update_user_reset_token(user_id, reset_token, expiry_duration_hours=24):
-    reset_token_expiry = (datetime.now() + timedelta(hours=expiry_duration_hours)).strftime('%Y-%m-%d %H:%M:%S')
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute('''UPDATE users
-                      SET reset_token = ?, reset_token_expiry = ?
-                      WHERE id = ?''',
-                   (reset_token, reset_token_expiry, user_id))
-    conn.commit()
+# --- Email Credential Access ---
+def get_email_credentials():
+    email = os.environ.get("EMAIL_USERNAME")
+    password = os.environ.get("EMAIL_PASSWORD")
+    if not email or not password:
+        raise ValueError("Email credentials not found in environment variables.")
+    return {'email': email, 'password': password}
 
 # --- Standalone Execution ---
 if __name__ == "__main__":
@@ -252,4 +256,4 @@ if __name__ == "__main__":
     init_app(app)
     with app.app_context():
         init_db()
-        print("Database initialized with all updates.")
+        print("Database initialized.")

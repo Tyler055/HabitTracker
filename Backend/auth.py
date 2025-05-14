@@ -6,7 +6,7 @@ from wtforms.validators import DataRequired, EqualTo, Email
 from datetime import datetime, timedelta, timezone
 import random
 import string
-import logging
+
 
 from dataservice import (
     create_user, find_user_by_username, find_user_by_email,
@@ -15,8 +15,7 @@ from dataservice import (
 )
 
 # === Setup ===
-logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.DEBUG)
+
 auth_bp = Blueprint('auth', __name__)
 
 
