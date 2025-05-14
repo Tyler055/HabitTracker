@@ -207,9 +207,13 @@ def toggle_goal_completion(goal_id):
     return 'Goal completion toggled.'
 
 def reset_all_goals(user_id):
+    """
+    Completely remove all goals for the given user.
+    """
     conn = get_db_connection()
-    conn.execute('UPDATE goals SET completed = 0 WHERE user_id = ?', (user_id,))
+    conn.execute('DELETE FROM goals WHERE user_id = ?', (user_id,))
     conn.commit()
+    return 'All goals reset successfully.'
 
 # --- Notification Management ---
 def create_notification(user_id, message, time=None):
