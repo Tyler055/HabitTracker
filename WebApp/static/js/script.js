@@ -237,5 +237,5 @@ function getPageCategory() {
   if (path.includes("yearly")) return "yearly";
   if (path.includes("monthly")) return "monthly";
   if (path.includes("weekly")) return "weekly";
-  return "daily"; // default fallback
+  return "daily";
 }
