@@ -2,27 +2,23 @@ import { fetchContent, saveGoalsData, resetGoalsData } from './saveData.js';
 
 document.addEventListener("DOMContentLoaded", async function () {
   const logoutBtn = document.getElementById("logout-btn");
-  await loadGoalsFromDB();
-  initializeDragAndDrop();
-  bindGoalForm();
+  try {
+    await loadGoalsFromDB();
+    initializeDragAndDrop();
+    bindGoalForm();
 
-  if (logoutBtn) {
-    logoutBtn.style.display = "block";
-    logoutBtn.addEventListener("click", () => {
-      window.location.href = "/logout";
-    });
+    if (logoutBtn) {
+      logoutBtn.style.display = "block";
+      logoutBtn.addEventListener("click", () => {
+        window.location.href = "/logout";
+      });
+    }
+  } catch (err) {
+    console.error("Error during DOMContentLoaded tasks:", err.message);
   }
 });
 
 let draggedItem = null;
-
-function debounce(func, delay) {
-  let timeout;
-  return function (...args) {
-    clearTimeout(timeout);
-    timeout = setTimeout(() => func.apply(this, args), delay);
-  };
-}
 
 async function loadGoalsFromDB() {
   const lists = document.querySelectorAll('.goal-category ul');
@@ -51,17 +47,10 @@ function addCategoryEditToggle(ul, category) {
   toggleBtn.dataset.category = category;
 
   toggleBtn.addEventListener("click", () => {
-    const currentCategory = toggleBtn.dataset.category;
     const editButtons = ul.querySelectorAll('.edit-btn');
     const isVisible = editButtons[0]?.style.display === "inline-block";
-
-    if (isVisible) {
-      editButtons.forEach(btn => btn.style.display = "none");
-      toggleBtn.textContent = "Show Edit Buttons";
-    } else {
-      editButtons.forEach(btn => btn.style.display = "inline-block");
-      toggleBtn.textContent = "Hide Edit Buttons";
-    }
+    editButtons.forEach(btn => btn.style.display = isVisible ? "none" : "inline-block");
+    toggleBtn.textContent = isVisible ? "Show Edit Buttons" : "Hide Edit Buttons";
   });
 
   const li = document.createElement("li");
@@ -83,7 +72,9 @@ function createGoalElement(text, completed = false) {
   const checkbox = document.createElement("input");
   checkbox.type = "checkbox";
   checkbox.checked = completed;
-  checkbox.addEventListener("change", saveCurrentGoals);
+  checkbox.addEventListener("change", () => {
+    saveCurrentGoals().catch(e => console.error("Checkbox save error:", e.message));
+  });
   li.appendChild(checkbox);
 
   const span = document.createElement("span");
@@ -92,25 +83,28 @@ function createGoalElement(text, completed = false) {
   li.appendChild(span);
 
   const deleteBtn = document.createElement("span");
-  deleteBtn.textContent = "X"; // Changed to "X"
+  deleteBtn.textContent = "X";
   deleteBtn.className = "delete-btn";
   deleteBtn.addEventListener("click", () => {
     li.remove();
-    saveCurrentGoals();
+    saveCurrentGoals().catch(e => console.error("Delete save error:", e.message));
   });
   li.appendChild(deleteBtn);
 
   editBtn.addEventListener("click", () => {
-    const newText = prompt("Edit goal:", span.textContent);
+    const currentText = span.textContent;
+    const newText = prompt("Edit goal:", currentText);
     if (newText && newText.trim()) {
       const trimmedNewText = newText.trim();
-      const duplicateCategory = checkForDuplicateGoal(trimmedNewText, li.closest('ul').id);
-      if (!duplicateCategory) {
-        span.textContent = trimmedNewText;
-        saveCurrentGoals();
-        alert("Goal has been edited successfully!");
-      } else {
-        alert(`The goal "${trimmedNewText}" already exists in the "${duplicateCategory}" category.`);
+      if (trimmedNewText !== currentText) {
+        const duplicateCategory = checkForDuplicateGoal(trimmedNewText, li.closest('ul').id);
+        if (!duplicateCategory) {
+          span.textContent = trimmedNewText;
+          saveCurrentGoals().catch(e => console.error("Edit save error:", e.message));
+          alert("Goal has been edited successfully!");
+        } else {
+          alert(`The goal "${trimmedNewText}" already exists in the "${duplicateCategory}" category.`);
+        }
       }
     }
   });
@@ -120,15 +114,15 @@ function createGoalElement(text, completed = false) {
 }
 
 function addDragHandlers(item) {
-  item.addEventListener('dragstart', function () {
-    draggedItem = this;
-    setTimeout(() => this.classList.add('dragging'), 0);
+  item.addEventListener('dragstart', (e) => {
+    draggedItem = item;
+    setTimeout(() => item.classList.add('dragging'), 0);
   });
 
-  item.addEventListener('dragend', function () {
-    this.classList.remove('dragging');
+  item.addEventListener('dragend', () => {
+    item.classList.remove('dragging');
     draggedItem = null;
-    saveCurrentGoals();
+    saveCurrentGoals().catch(e => console.error("Drag end save error:", e.message));
   });
 }
 
@@ -159,33 +153,27 @@ function handleDrop(e) {
 
   if (target && !target.classList.contains('edit-toggle-li')) {
     const offset = target.getBoundingClientRect().y + target.offsetHeight / 2;
-    if (e.clientY > offset) {
-      list.insertBefore(draggedItem, target.nextSibling);
-    } else {
-      list.insertBefore(draggedItem, target);
-    }
+    list.insertBefore(draggedItem, e.clientY > offset ? target.nextSibling : target);
   } else {
     list.appendChild(draggedItem);
   }
 
   draggedItem = null;
-  saveCurrentGoals();
+  saveCurrentGoals().catch(err => console.error("Drop save error:", err.message));
 }
 
 async function saveCurrentGoals() {
   const lists = document.querySelectorAll('.goal-category ul');
+
   for (const ul of lists) {
     const category = ul.id.replace('-goals-list', '');
     const goals = Array.from(ul.children)
       .filter(li => !li.classList.contains('edit-toggle-li'))
-      .map(li => {
-        const span = li.querySelector('span');
-        return {
-          text: span.textContent.trim(),
-          completed: li.querySelector('input').checked
-        };
-      })
-      .filter(goal => goal.text.length > 0); // Ignore empty goals
+      .map(li => ({
+        text: li.querySelector('.goal-text').textContent.trim(),
+        completed: li.querySelector('input[type="checkbox"]').checked
+      }))
+      .filter(goal => goal.text.length > 0);
 
     try {
       await saveGoalsData(category, goals);
@@ -204,15 +192,7 @@ function bindGoalForm() {
     goalForm.addEventListener("submit", async function (e) {
       e.preventDefault();
       const newGoalText = goalInput.value.trim();
-      let selectedCategory = categorySelect ? categorySelect.value : null;
-
-      // Check if no category is selected in the dropdown
-      if (!selectedCategory) {
-        // Get the current page category (e.g., "yearly")
-        const pageCategory = getPageCategory();
-        selectedCategory = pageCategory; // Use the page category as default
-      }
-
+      const selectedCategory = categorySelect?.value || getPageCategory();
       const goalList = document.querySelector(`#${selectedCategory}-goals-list`);
 
       if (newGoalText && goalList) {
@@ -223,8 +203,12 @@ function bindGoalForm() {
           const li = createGoalElement(newGoalText);
           goalList.appendChild(li);
           goalInput.value = "";
-          await saveCurrentGoals();
-          alert(`Goal "${newGoalText}" added successfully!`);
+          try {
+            await saveCurrentGoals();
+            alert(`Goal "${newGoalText}" added successfully!`);
+          } catch (err) {
+            console.error("Error saving new goal:", err.message);
+          }
         }
       }
     });
@@ -233,7 +217,6 @@ function bindGoalForm() {
 
 function checkForDuplicateGoal(newText, currentListId = "") {
   const allGoalLists = document.querySelectorAll('.goal-category ul');
-
   for (const list of allGoalLists) {
     const category = list.id.replace('-goals-list', '');
     if (list.id !== currentListId) {
@@ -249,17 +232,9 @@ function checkForDuplicateGoal(newText, currentListId = "") {
 }
 
 function getPageCategory() {
-  if (window.location.pathname.includes("yearly")) {
-    return "yearly";
-  }
-  if (window.location.pathname.includes("monthly")) {
-    return "monthly";
-  }
-  if (window.location.pathname.includes("weekly")) {
-    return "weekly";
-  }
-  if (window.location.pathname.includes("daily")) {
-    return "daily";
-  }
-  return "daily";
+  const path = window.location.pathname;
+  if (path.includes("yearly")) return "yearly";
+  if (path.includes("monthly")) return "monthly";
+  if (path.includes("weekly")) return "weekly";
+  return "daily"; // default fallback
 }
