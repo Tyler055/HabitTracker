@@ -2,6 +2,7 @@ import { fetchContent, saveGoalsData, resetGoalsData } from './saveData.js';
 
 document.addEventListener("DOMContentLoaded", async function () {
   const logoutBtn = document.getElementById("logout-btn");
+  
   try {
     await loadGoalsFromDB();
     initializeDragAndDrop();

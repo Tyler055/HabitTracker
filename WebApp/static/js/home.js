@@ -1,9 +1,8 @@
-// home.js
-
 import { fetchContent, resetGoalsData } from './saveData.js';
 
 let charts = {};
 
+// Event listener to set up everything once DOM content is loaded
 document.addEventListener('DOMContentLoaded', () => {
   console.log('Home.js loaded');
   setupButtons();
@@ -14,7 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
 function escapeHref(url) {
   const a = document.createElement('a');
   a.href = url;
-  return a.href;
+  return a.href; // Safe href
 }
 
 // Setup the reset and logout buttons
@@ -37,7 +36,7 @@ function setupButtons() {
     },
     {
       id: 'logout-btn',
-      handler: () => window.location.href = escapeHref('/logout')
+      handler: () => window.location.href = escapeHref('/logout') // Use escapeHref to prevent XSS
     }
   ];
 
@@ -89,10 +88,8 @@ function updateChart(canvasId, goals, color) {
   const percent = total ? Math.round((completed / total) * 100) : 0;
 
   // Destroy the old chart before creating a new one
-  try {
-    if (charts[canvasId]) charts[canvasId].destroy();
-  } catch (err) {
-    console.error('Error destroying chart:', err);
+  if (charts[canvasId]) {
+    charts[canvasId].destroy();
   }
 
   // Create a new doughnut chart
@@ -121,7 +118,7 @@ function updateChart(canvasId, goals, color) {
         },
         doughnutLabel: {
           labels: [{
-            text: percent + '%',
+            text: `${percent}%`,
             font: { size: '28', weight: 'bold' },
             color
           }]
