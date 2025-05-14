@@ -11,9 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Escape function to sanitize href assignments
 function escapeHref(url) {
-  const a = document.createElement('a');
-  a.href = url;
-  return a.href; // Safe href
+  return encodeURI(url); // Safe href
 }
 
 // Setup the reset and logout buttons
@@ -36,7 +34,10 @@ function setupButtons() {
     },
     {
       id: 'logout-btn',
-      handler: () => window.location.href = escapeHref('/logout') // Use escapeHref to prevent XSS
+      handler: () => {
+        const logoutUrl = escapeHref('/logout');
+        window.location.href = logoutUrl;
+      }
     }
   ];
 

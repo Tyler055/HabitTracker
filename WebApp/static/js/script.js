@@ -7,13 +7,14 @@ document.addEventListener("DOMContentLoaded", async function () {
     await loadGoalsFromDB();
     initializeDragAndDrop();
     bindGoalForm();
-
+    
     if (logoutBtn) {
-      logoutBtn.style.display = "block";
-      logoutBtn.addEventListener("click", () => {
-        window.location.href = "/logout";
-      });
-    }
+    logoutBtn.style.display = "block";
+    logoutBtn.addEventListener("click", () => {
+        window.location.href = encodeURI("/logout"); // Securely encode the URL
+    });
+}
+
   } catch (err) {
     console.error("Error during DOMContentLoaded tasks:", err.message);
   }
