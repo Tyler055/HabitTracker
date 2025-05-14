@@ -1,4 +1,4 @@
-import { fetchContent, saveGoalsData, resetGoalsData } from './saveData.js';
+import { fetchContent, saveGoalsData } from './saveData.js';
 
 const form = document.getElementById('goal-form');
 const titleInput = document.getElementById('goal-title');
@@ -8,8 +8,11 @@ const categorySelect = document.getElementById('goal-category');
 const deadlineInput = document.getElementById('goal-deadline');
 const timeSelect = document.getElementById('goal-time');
 
+// Initialize goal categories
+const categories = ['daily', 'weekly', 'monthly', 'yearly'];
+
 // Load all goals on page load for each category
-['daily', 'weekly', 'monthly', 'yearly'].forEach(loadGoals);
+categories.forEach(loadGoals);
 
 function loadGoals(category) {
   fetchContent(category)
@@ -31,6 +34,12 @@ function renderGoal(goal, category, container) {
   div.title = goal.description || ''; // Show description in tooltip
   div.dataset.goalId = goal.id || ''; // Store goal id for later updates or deletions
   container.appendChild(div);
+
+  // Add delete button
+  const deleteButton = document.createElement('button');
+  deleteButton.textContent = 'Delete';
+  deleteButton.addEventListener('click', () => removeGoal(div, category));
+  div.appendChild(deleteButton);
 }
 
 // Collect all goals from a category's dropzone (for saving or updating)
@@ -79,7 +88,6 @@ form.addEventListener('submit', e => {
 
   // Collect all goals from the dropzone and save them
   const updatedGoals = collectGoals(newGoal.category);
-
   saveGoalsData(newGoal.category, updatedGoals)
     .then(() => {
       form.reset();
@@ -92,10 +100,7 @@ form.addEventListener('submit', e => {
 });
 
 // Remove a goal when the delete button is clicked
-function removeGoal(button) {
-  const goalItem = button.closest('.goal-card');
-  const category = goalItem.closest('.goal-section').id; // Get category from the section (e.g., 'daily', 'weekly')
-
+function removeGoal(goalItem, category) {
   // Remove goal from the UI
   goalItem.remove();
 
@@ -164,22 +169,11 @@ function sendReminder(message) {
   }
 }
 
-setInterval(
-  () => sendReminder("🗓️ Daily Goal Reminder: Stay consistent!"),
-  1000 * 60 * 60 * 24
-);
-setInterval(
-  () => sendReminder("📅 Weekly Goal Reminder: Keep up the momentum!"),
-  1000 * 60 * 60 * 24 * 7
-);
-setInterval(
-  () => sendReminder("🗓️ Monthly Goal Reminder: Time to review progress!"),
-  1000 * 60 * 60 * 24 * 30
-);
-setInterval(
-  () => sendReminder("📆 Yearly Goal Reminder: Reflect and plan ahead!"),
-  1000 * 60 * 60 * 24 * 365
-);
+// Schedule reminders for daily, weekly, monthly, and yearly goals
+setInterval(() => sendReminder("🗓️ Daily Goal Reminder: Stay consistent!"), 1000 * 60 * 60 * 24);
+setInterval(() => sendReminder("📅 Weekly Goal Reminder: Keep up the momentum!"), 1000 * 60 * 60 * 24 * 7);
+setInterval(() => sendReminder("🗓️ Monthly Goal Reminder: Time to review progress!"), 1000 * 60 * 60 * 24 * 30);
+setInterval(() => sendReminder("📆 Yearly Goal Reminder: Reflect and plan ahead!"), 1000 * 60 * 60 * 24 * 365);
 
 // Category filter functionality
 const categoryFilter = document.getElementById("category-filter");
@@ -190,4 +184,3 @@ categoryFilter.addEventListener("change", (e) => {
     section.style.display = section.id === selectedCategory || selectedCategory === 'all' ? 'block' : 'none';
   });
 });
-
