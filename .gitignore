@@ -59,4 +59,4 @@ test.yml
 # other
 HabitTracker/*
 start.bat
-gitignoreBackend/habitDatabase.sqlite
+gitignore
