@@ -1,4 +1,4 @@
-import { fetchContent, saveGoalsData, resetGoalsData } from './saveData.js';
+import { fetchContent, saveGoalsData} from './saveData.js';
 
 // Utility function to sanitize input to prevent XSS attacks
 function sanitizeInput(input) {
@@ -35,7 +35,7 @@ document.addEventListener("DOMContentLoaded", async function () {
       logoutBtn.style.display = "block";
       logoutBtn.addEventListener("click", () => {
         const logoutUrl = escapeHref('/logout');
-        window.location.href = logoutUrl; // Securely encode the URL
+        window.location.href = logoutUrl;
       });
     }
   } catch (err) {

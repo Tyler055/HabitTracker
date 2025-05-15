@@ -11,7 +11,7 @@ import string
 from dataservice import (
     create_user, find_user_by_username, find_user_by_email,
     update_user_password, find_user_by_id, update_user_reset_token,
-    soft_delete_user, get_user_reset_token
+    soft_delete_user, get_user_reset_token, clear_reset_token
 )
 
 # === Setup ===
@@ -65,24 +65,25 @@ class PasswordResetForm(FlaskForm):
 def generate_verification_code(length=6):
     return ''.join(random.choices(string.digits, k=length))
 
-
-def is_token_valid(user_id, code):
+def is_token_valid(user_id, token_value):
+    """
+    Validate the provided token for the user.
+    """
     token_data = get_user_reset_token(user_id)
     if not token_data:
         return False
-    if token_data.get('token') != code:
+    if token_data.get('token') != token_value:
         return False
-    expires = datetime.fromisoformat(token_data.get('expires_at'))
-    return datetime.now(timezone.utc) <= expires
+    expires = datetime.strptime(token_data.get('expires_at'), '%Y-%m-%d %H:%M:%S')
+    return datetime.now() <= expires
 
 
 def can_reset_password(user_id):
     token_data = get_user_reset_token(user_id)
     if not token_data:
         return True
-    last_reset = datetime.fromisoformat(token_data.get('created_at'))
+    last_reset = datetime.strptime(token_data.get('created_at'), '%Y-%m-%d %H:%M:%S').replace(tzinfo=timezone.utc)
     return datetime.now(timezone.utc) - last_reset >= timedelta(hours=24)
-
 
 # === Routes ===
 @auth_bp.route('/login', methods=['GET', 'POST'])
@@ -186,7 +187,6 @@ def profile():
 
     return render_template('profile.html', user=user, form=form)
 
-
 @auth_bp.route('/recover', methods=['GET', 'POST'])
 def recover():
     step = request.args.get('step', '1')
@@ -194,58 +194,83 @@ def recover():
     if step == '1':
         form = IdentityForm()
         if form.validate_on_submit():
-            username = form.username.data.strip()
-            email = form.email.data.strip()
+            username = form.username.data.strip().lower()
+            email = form.email.data.strip().lower()
             user = find_user_by_username(username)
 
-            if user and user['email'] == email:
-                if not can_reset_password(user['id']):
-                    flash('Password was recently reset. Please wait before trying again.', 'error')
-                    return redirect(url_for('auth.recover'))
+            if not user or (user['email'] or '').lower() != email:
+                flash('No user found with that username and email combination.', 'error')
+                return render_template('recover.html', form=form, recovery_step='1')
 
-                code = generate_verification_code()
-                expiration = datetime.now(timezone.utc) + timedelta(minutes=10)
-                update_user_reset_token(user['id'], code, expiration)
+            if not can_reset_password(user['id']):
+                flash('Password was recently reset. Please wait before trying again.', 'error')
+                return render_template('recover.html', form=form, recovery_step='1')
+            # Generate token and expiry by calling the function
+            
+            token, expires_at = update_user_reset_token(user['id'], expiry_duration_minutes=10)
+            
+            # Simulate sending email by printing to console
+            print(f"[Password Reset] Verification code for {email}: {token}")
 
-                session.update({
-                    'reset_code': code,
-                    'reset_email': email,
-                    'verified_username': username
-                })
 
-                flash(f'Verification code sent to {email}. (Simulated)', 'info')
-                return redirect(url_for('auth.recover', step='2'))
+            # Store session variables for verification
+            session['reset_user_id'] = user['id']
+            session['reset_username'] = username
+            session['reset_email'] = email
+
+            flash(f'Verification code sent to {email} (check console output in this demo).', 'info')
+            return redirect(url_for('auth.recover', step='2'))
 
         return render_template('recover.html', form=form, recovery_step='1')
 
     elif step == '2':
-        if not session.get('verified_username'):
-            flash('Session expired. Please start over.', 'error')
+        if 'reset_user_id' not in session:
+            flash('Session expired or invalid. Please start over.', 'error')
             return redirect(url_for('auth.recover'))
 
         form = CodeForm()
         if form.validate_on_submit():
-            user = find_user_by_username(session['verified_username'])
-            if user and is_token_valid(user['id'], form.code.data):
-                session['verified_user_id'] = user['id']
-                return redirect(url_for('auth.recover', step='3'))
-            flash('Invalid or expired verification code.', 'error')
+            user_id = session['reset_user_id']
+            code_entered = form.code.data.strip()
+
+            if not is_token_valid(user_id, code_entered):
+                flash('Invalid or expired verification code.', 'error')
+                return render_template('recover.html', form=form, recovery_step='2')
+
+            # Mark verification as complete
+            session['verified_user_id'] = user_id
+            flash('Code verified. You may now reset your password.', 'success')
+            return redirect(url_for('auth.recover', step='3'))
 
         return render_template('recover.html', form=form, recovery_step='2')
 
     elif step == '3':
-        if not session.get('verified_user_id'):
-            flash('Unauthorized access to password reset.', 'error')
+        if 'verified_user_id' not in session:
+            flash('Unauthorized access. Please complete verification first.', 'error')
             return redirect(url_for('auth.recover'))
 
         form = PasswordResetForm()
         if form.validate_on_submit():
-            update_user_password(session['verified_user_id'], generate_password_hash(form.new_password.data))
-            session.clear()
+            user_id = session['verified_user_id']
+            new_password = form.new_password.data
+
+            # Update password properly (your function hashes inside)
+            update_user_password(user_id, new_password)
+
+            # Clear reset token after successful reset
+            clear_reset_token(user_id)
+
+            # Clear sensitive session info
+            session.pop('reset_user_id', None)
+            session.pop('reset_username', None)
+            session.pop('reset_email', None)
+            session.pop('verified_user_id', None)
+
             flash('Password reset successfully. You can now log in.', 'success')
             return redirect(url_for('auth.login'))
 
         return render_template('recover.html', form=form, recovery_step='3')
 
-    flash('Invalid recovery step.', 'error')
+    # Fallback for invalid steps
+    flash('Invalid password recovery step.', 'error')
     return redirect(url_for('auth.recover'))

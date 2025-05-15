@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Password Recovery</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/authStyle.css') }}">
-    <link href="https://fonts.googleapis.com/css2?family=Jost:wght@500&display=swap" rel="stylesheet">
-    <link rel="icon" href="{{ url_for('static', filename='img/favicon1.ico') }}" type="image/x-icon">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/authStyle.css') }}" />
+    <link href="https://fonts.googleapis.com/css2?family=Jost:wght@500&display=swap" rel="stylesheet" />
+    <link rel="icon" href="{{ url_for('static', filename='img/favicon1.ico') }}" type="image/x-icon" />
     <style>
         body {
             font-family: 'Jost', sans-serif;
@@ -142,16 +142,7 @@
     </form>
     {% endif %}
 
-   <button class="back-button" onclick="window.location.href='{{ url_for('auth.login') }}'">Back to Login</button>
-
-
-    {% if verification_code %}
-    <script>
-    const verificationCode = "{{ verification_code }}";if (verificationCode) {
-        console.log("Verification Code (for testing):", verificationCode);
-        }
-    </script>
-    {% endif %}
+    <button class="back-button" onclick="window.location.href='{{ url_for('auth.login') }}'">Back to Login</button>
 </div>
 </body>
 </html>

@@ -2,6 +2,7 @@ import sqlite3
 import os
 from flask import Flask, g
 from datetime import datetime, timedelta
+import secrets
 from werkzeug.security import generate_password_hash, check_password_hash
 
 DATABASE_PATH = os.path.join(os.path.dirname(__file__), 'habitDatabase.sqlite')
@@ -102,8 +103,10 @@ def insert_token(user_id, token_name, token_value):
     conn = get_db_connection()
     cur = conn.cursor()
     created_at = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    cur.execute('INSERT INTO tokens (user_id, token_name, token_value, created_at) VALUES (?, ?, ?, ?)',
-                (user_id, token_name, token_value, created_at))
+    cur.execute(
+        'INSERT INTO tokens (user_id, token_name, token_value, created_at) VALUES (?, ?, ?, ?)',
+        (user_id, token_name, token_value, created_at)
+    )
     conn.commit()
 
 def get_user_token(user_id, token_name):
@@ -158,23 +161,50 @@ def update_user_password(user_id, new_password):
     insert_token(user_id, 'last_password_reset', datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
     conn.commit()
 
-def update_user_reset_token(user_id, reset_token, expiry_duration_hours=24):
-    reset_token_expiry = (datetime.now() + timedelta(hours=expiry_duration_hours)).strftime('%Y-%m-%d %H:%M:%S')
+def update_user_reset_token(user_id, expiry_duration_minutes=60):
+    # Generate a secure, one-time-use token
+    reset_token = secrets.token_urlsafe(32)
+    reset_token_expiry = (datetime.now() + timedelta(minutes=expiry_duration_minutes)).strftime('%Y-%m-%d %H:%M:%S')
+    
     conn = get_db_connection()
-    conn.execute('UPDATE users SET reset_token = ?, reset_token_expiry = ? WHERE id = ?',
-                 (reset_token, reset_token_expiry, user_id))
+    conn.execute(
+        'UPDATE users SET reset_token = ?, reset_token_expiry = ? WHERE id = ?',
+        (reset_token, reset_token_expiry, user_id)
+    )
     conn.commit()
+    return reset_token, reset_token_expiry
 
 def get_user_reset_token(user_id):
     conn = get_db_connection()
     cur = conn.cursor()
     cur.execute('SELECT reset_token, reset_token_expiry FROM users WHERE id = ?', (user_id,))
     result = cur.fetchone()
+    
     if result:
         reset_token, reset_token_expiry = result
-        if reset_token_expiry and datetime.strptime(reset_token_expiry, '%Y-%m-%d %H:%M:%S') > datetime.now():
-            return reset_token
+        # Check if the token is still valid
+        if reset_token and reset_token_expiry:
+            expires_at = datetime.strptime(reset_token_expiry, '%Y-%m-%d %H:%M:%S')
+            if expires_at > datetime.now():
+                return {
+                    'token': reset_token,
+                    'expires_at': reset_token_expiry,
+                    'created_at': (expires_at - timedelta(minutes=60)).strftime('%Y-%m-%d %H:%M:%S')
+                }
+    
     return None
+
+
+def clear_reset_token(user_id):
+    """
+    Remove reset token and expiry after successful reset or expiration.
+    """
+    conn = get_db_connection()
+    conn.execute(
+        'UPDATE users SET reset_token = NULL, reset_token_expiry = NULL WHERE id = ?',
+        (user_id,)
+    )
+    conn.commit()
 
 # --- Goal Management ---
 def get_goals_by_category(user_id, category):
