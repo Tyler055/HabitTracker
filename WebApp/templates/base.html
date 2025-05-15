@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Habit Tracker</title>
+
+  <!-- Main CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Inline Logout Button Style -->
+  <style>
+    .logout-btn {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 10px 20px;
+      background-color: #dc3545;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background-color 0.3s;
+      z-index: 1001;
+      display: none;
+    }
+    .logout-btn:hover {
+      background-color: #c82333;
+    }
+
+    @media (max-width: 768px) {
+      #navbar {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      #navbar li {
+        margin-bottom: 10px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Background -->
+  <div class="background"></div>
+
+  <!-- Navbar -->
+  <ul id="navbar">
+    <li id="logo-item">
+      <img src="{{ url_for('static', filename='img/logo.jpg') }}" class="logo" alt="Logo">
+    </li>
+    <li><a href="/" id="home-link">🏠 Home</a></li>
+    <li><a href="/goals/all-goals" id="load-goals">📋 All Goals</a></li>
+    <li><a href="/goals/daily" id="load-daily-goals">🌅 Daily</a></li>
+    <li><a href="/goals/weekly" id="load-weekly-goals">📆 Weekly</a></li>
+    <li><a href="/goals/monthly" id="load-monthly-goals">🗓️ Monthly</a></li>
+    <li><a href="/goals/yearly" id="load-yearly-goals">🎯 Yearly</a></li>
+    <li><a href="/advanced " id="advanced-load">📊 advanced </a></li>
+    <li><a href="/profile" id="profile-link">👤 Profile</a></li>
+    <li><a href="/settings" id="settings-link">⚙️ Settings</a></li>
+
+  </ul>
+
+  <!-- Logout Button -->
+  <button class="logout-btn" id="logout-btn">🚪 Logout</button>
+  
+  <!-- Dynamic Page Content -->
+   <div id="page-content">
+    {% block content %}
+    {% endblock %}
+  </div>
+
+  <!-- Dynamic Scripts -->
+   {% block scripts %}
+   {% endblock %}
+
+</body>
+</html>

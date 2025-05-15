@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <section id="content">
+    <h1>📆Weekly Goals</h1>
+    <div class="goal-category weekly-goals">
+      <h2>📆Weekly Goals</h2>
+      <ul id="weekly-goals-list"></ul>
+    </div>
+  </section>
+
+  <section id="input">
+    <div>
+      <h3>Add a New Weekly Goal</h3>
+      <form id="goal-form">
+        <input type="text" id="goal-input" placeholder="Enter your goal" required>
+        <button type="submit">➕ Add Goal</button>
+      </form>
+    </div>
+  </section>
+{% endblock %}
+
+{% block scripts %}
+  <script type="module" src="{{ url_for('static', filename='js/script.js') }}"></script>
+{% endblock %}

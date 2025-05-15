@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section id="content">
+  <h1 aria-label="All The Goals">🌟 All The Goals</h1>
+  <div id="goals-row">
+    <div class="goal-category daily-goals">
+      <h2>☀️ Daily Goals</h2>
+      <ul id="daily-goals-list"></ul>
+    </div>
+
+    <div class="goal-category weekly-goals">
+      <h2>📆 Weekly Goals</h2>
+      <ul id="weekly-goals-list"></ul>
+    </div>
+
+    <div class="goal-category monthly-goals">
+      <h2>🗓 Monthly Goals</h2>
+      <ul id="monthly-goals-list"></ul>
+    </div>
+
+    <div class="goal-category yearly-goals">
+      <h2>📅 Yearly Goals</h2>
+      <ul id="yearly-goals-list"></ul>
+    </div>
+  </div>
+
+  <section id="input">
+    <h3>Add a New Goal</h3>
+    <form id="goal-form">
+      <label for="goal-input">Goal Name:</label>
+      <input type="text" id="goal-input" placeholder="Enter your goal" required autocomplete="off">
+
+      <label for="goal-category">Select Goal Category:</label>
+      <select id="goal-category" required>
+        <option value="daily">Daily</option>
+        <option value="weekly">Weekly</option>
+        <option value="monthly">Monthly</option>
+        <option value="yearly">Yearly</option>
+      </select>
+
+      <label for="goal-due">Due Date:</label>
+      <input type="date" id="goal-due" name="goal-due">
+
+      <button type="submit">➕ Add Goal</button>
+    </form>
+  </section>
+</section>
+{% endblock %}
+
+{% block scripts %}
+  <script type="module" src="{{ url_for('static', filename='js/script.js') }}"></script>
+{% endblock %}
